@@ -42,7 +42,8 @@
   },
   "repository_binding": {
     "repository": "https://github.com/gj3447/agent-coding-paradigm",
-    "repository_commit_observed": "cfe844d65a0000b8f1b675ff7ecc84791d9f0a85",
+    "repository_commit_at_lakatotree_readback": "cfe844d65a0000b8f1b675ff7ecc84791d9f0a85",
+    "m0_subject_commit_observed": "1f0bfd158036a5662eea03dafc424bf67e247ba2",
     "lakatotree_node_referencing_repository_commit": null,
     "status": "NOT_YET_BOUND",
     "note": "This file is a local readback pointer. It does not mutate LakatoTree or manufacture a scientific binding."
