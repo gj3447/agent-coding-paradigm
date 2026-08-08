@@ -222,6 +222,27 @@
       "expected_effect_proposal_count": 0
     },
     {
+      "id": "observe-rfc3339-case-variants",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/occurred_at",
+          "value": "2026-08-08T01:00:00z"
+        },
+        {
+          "op": "replace",
+          "path": "/accepted_event/received_at",
+          "value": "2026-08-08t01:00:01Z"
+        }
+      ],
+      "expected_transition_digest": "sha256:81623155177c6ce653aea5eb72493adaffcd734a874cda4e10f4f47269d73ae3",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 0
+    },
+    {
       "id": "observe-with-effect",
       "input_ref": "observe-with-effect",
       "mutations": [],

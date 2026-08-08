@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from flrh_kernel import canonical_bytes, step_f  # noqa: E402
+from flrh_kernel import step_f  # noqa: E402
+from flrh_kernel.canonical import canonical_bytes  # noqa: E402
 from m1_fixtures import (  # noqa: E402
     find_case,
     find_replay_sequence,

@@ -203,7 +203,7 @@ def main() -> int:
 
     guard.clear()
     implementation, memory_finder = _import_guarded_implementation(code_objects)
-    canonical_bytes = implementation.canonical_bytes
+    canonical_bytes = sys.modules["flrh_kernel.canonical"].canonical_bytes
     step_f = implementation.step_f
 
     if guard.attempts:

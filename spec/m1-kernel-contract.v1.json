@@ -27,8 +27,10 @@
     "Persistence, ports, adapters, registries, plugins, and model or tool execution"
   ],
   "transition_rules": [
+    "Accepted timestamps follow the JSON Schema date-time RFC 3339 profile, including lowercase t and z lexical variants, and are range-checked without consulting an ambient clock.",
     "The event aggregate_id and expected_revision must match the snapshot.",
     "The full version envelope must match and the supported workflow, state, event, and canonicalization versions must be exact.",
+    "Version-envelope fields other than workflow, state_schema, event_schema, and canonicalization are equality-, preservation-, and digest-bound but are not validated against a registry in M1.",
     "Logical time may stay equal or advance; it may not regress.",
     "A closed snapshot rejects every observation event.",
     "mark_complete closes the returned snapshot after recording the observation."
@@ -61,7 +63,7 @@
     "domains": ["observation-fact-value", "effect-proposal-value", "proposal-dedup-value"],
     "value_rule": "The value is the complete canonical emitted FactDelta or EffectProposal content with only its self-referential identity field or fields omitted."
   },
-  "digest_note": "Each nested FactDelta and EffectProposal is canonicalized at its own root kind before its digest enters the projection; the transition never assumes wildcard set semantics.",
+  "digest_note": "Each nested FactDelta and EffectProposal is canonicalized at its own root kind before its digest enters the projection; the transition never assumes wildcard set semantics. The projection intentionally does not bind occurred_at, received_at, accepted-event causation_id, or ingress idempotency_key, so duplicate event identity conflict remains an ingress/H obligation outside M1.",
   "ambient_dependencies_forbidden": [
     "clock",
     "randomness",

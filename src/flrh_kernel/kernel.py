@@ -27,9 +27,9 @@ SUPPORTED_CANONICALIZATION = "flrh-cjson/1"
 ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$")
 VERSION_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:+/-]*$")
 DATETIME_PATTERN = re.compile(
-    r"^([0-9]{4})-([0-9]{2})-([0-9]{2})T"
+    r"^([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]"
     r"([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.[0-9]+)?"
-    r"(?:Z|[+-]([0-9]{2}):([0-9]{2}))$"
+    r"(?:[Zz]|[+-]([0-9]{2}):([0-9]{2}))$"
 )
 VERSION_KEYS = (
     "workflow",

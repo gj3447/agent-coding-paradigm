@@ -17,6 +17,7 @@ SPEC = importlib.util.spec_from_file_location("validate_m1", ROOT / "scripts/val
 assert SPEC and SPEC.loader
 M1 = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(M1)
+PACKAGE = importlib.import_module("flrh_kernel")
 KERNEL = importlib.import_module("flrh_kernel.kernel")
 
 
@@ -31,6 +32,12 @@ class M1KernelTests(unittest.TestCase):
         canonical = M1.validate_canonical_oracle()
         self.assertEqual(canonical["m1_canonical_reject"], 4)
         self.assertEqual(M1.validate_result_goldens()["m1_exact_result_goldens"], 2)
+
+    def test_package_root_exposes_only_the_transition_waist(self) -> None:
+        self.assertEqual(PACKAGE.__all__, ["step_f"])
+        self.assertIs(PACKAGE.step_f, KERNEL.step_f)
+        for helper in ("CanonicalizationError", "canonical_bytes", "canonical_digest"):
+            self.assertFalse(hasattr(PACKAGE, helper), helper)
 
     def test_manifest_closure_rejects_missing_dependencies_and_status_drift(self) -> None:
         manifest = M1.load_json("spec/m1-manifest.v1.json")
@@ -50,7 +57,8 @@ class M1KernelTests(unittest.TestCase):
 
     def test_success_rejection_equivalence_and_sensitivity_corpus(self) -> None:
         counts = M1.validate_cases()
-        self.assertEqual(counts["m1_success_cases"], 6)
+        self.assertEqual(counts["m1_success_cases"], 7)
+        self.assertEqual(counts["m1_success_input_schema_checks"], 7)
         self.assertEqual(counts["m1_rejection_cases"], 19)
         self.assertEqual(counts["m1_equivalence_pairs"], 1)
         self.assertEqual(counts["m1_sensitivity_mutations"], 7)
@@ -59,7 +67,7 @@ class M1KernelTests(unittest.TestCase):
         replay = M1.validate_replay_sequences()
         self.assertEqual(replay["m1_replay_steps"], 2)
         processes = M1.validate_clean_process_replay()
-        self.assertEqual(processes["m1_clean_process_comparisons"], 26)
+        self.assertEqual(processes["m1_clean_process_comparisons"], 27)
         self.assertEqual(processes["m1_byte_mismatches"], 0)
 
     def test_nested_aliases_do_not_survive_the_boundary(self) -> None:

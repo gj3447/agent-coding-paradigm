@@ -23,11 +23,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from flrh_kernel import (  # noqa: E402
+from flrh_kernel import step_f  # noqa: E402
+from flrh_kernel.canonical import (  # noqa: E402
     CanonicalizationError,
     canonical_bytes as kernel_canonical_bytes,
     canonical_digest as kernel_canonical_digest,
-    step_f,
 )
 from m1_fixtures import (  # noqa: E402
     find_case,
@@ -603,6 +603,7 @@ def validate_cases(*, check_goldens: bool = True) -> dict[str, int]:
     corpus = load_json("fixtures/m1/cases.json")
     for case in corpus["success_cases"]:
         document = materialize_case(corpus, case)
+        _validate_ref(document, M1_URI + "#/$defs/M1Input", registry)
         before = copy.deepcopy(document)
         before_bytes = _raw_wire_bytes(document)
         result = step_f(document["snapshot"], document["accepted_event"])
@@ -662,6 +663,7 @@ def validate_cases(*, check_goldens: bool = True) -> dict[str, int]:
     )
     return {
         "m1_success_cases": len(corpus["success_cases"]),
+        "m1_success_input_schema_checks": len(corpus["success_cases"]),
         "m1_rejection_cases": len(corpus["rejection_cases"]),
         "m1_equivalence_pairs": len(corpus["equivalence_pairs"]),
         "m1_sensitivity_mutations": len(corpus["sensitivity_mutations"]),
