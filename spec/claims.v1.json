@@ -1,6 +1,6 @@
 {
   "schema_version": "claim-ledger/v1",
-  "updated_at": "2026-08-08T09:16:03Z",
+  "updated_at": "2026-08-08T10:12:52Z",
   "claims": [
     {
       "id": "responsibility-separation",
@@ -81,7 +81,8 @@
         "fixtures/m1/golden/observe-with-effect.transition.json",
         "fixtures/m1/golden/invalid-calendar-timestamp.rejection.json",
         "scripts/validate_m1.py",
-        "tests/test_m1_kernel.py"
+        "tests/test_m1_kernel.py",
+        "research/M1_VALIDATION_2026-08-08.md"
       ],
       "falsifiers": [
         "Any frozen case produces different canonical result bytes across the declared clean-process profiles.",

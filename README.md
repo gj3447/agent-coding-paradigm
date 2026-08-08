@@ -83,6 +83,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M1 pure-F kernel](docs/M1_KERNEL.md) — the one implemented vertical slice, wire contract, replay gate, and non-claims
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
+- [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
 - [Machine-readable engine decision](spec/engine-decision.v1.json) — validated defer decision
 - [M0 manifest](spec/m0-manifest.v1.json) — normative contract set and non-claim boundary
 - [M1 manifest](spec/m1-manifest.v1.json) — bounded pure-F implementation and conformance boundary
