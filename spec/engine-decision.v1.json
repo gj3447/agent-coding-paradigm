@@ -1,0 +1,68 @@
+{
+  "schema_version": "engine-decision/v1",
+  "name": "flrh-agent-runtime-boundary",
+  "verdict": "defer",
+  "purpose": "Evaluate whether deterministic functional, logic, reactive, harness, and typed-graph mechanics justify a reusable agent runtime boundary.",
+  "current_consumers": [
+    "research-specification-workflow"
+  ],
+  "planned_consumers": [
+    "reference-runtime",
+    "conformance-runner",
+    "adapter-sdk"
+  ],
+  "rationale": [
+    "No executable runtime or production consumer exists yet.",
+    "Durability, recovery, effect reconciliation, and graph interoperability are specified but unmeasured.",
+    "The smallest justified next step is a mechanics vertical slice rather than a broad engine framework."
+  ],
+  "boundary": {
+    "owns": "Deterministic transition, fixpoint, signed-delta stabilization, and typed effect-intent output",
+    "mechanism": "Compute a stable FLR transition from explicit snapshots, events, rule bundles, and dataflow profiles while H controls commit and effects",
+    "policy_outside": [
+      "Product goals and domain policy",
+      "Model and prompt selection",
+      "User interface and editor integration",
+      "Cloud tenancy and quota policy",
+      "External adapter credentials"
+    ],
+    "non_goals": [
+      "Claiming comparative efficacy",
+      "Providing exactly-once external effects",
+      "Defining planning or dispatch doctrine",
+      "Standardizing one universal graph representation"
+    ],
+    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications only"
+  },
+  "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectIntents | TypedRejection",
+  "invariants": [
+    "Identical explicit inputs and versions produce identical canonical output.",
+    "F, L, and R never execute external effects.",
+    "R never publishes a reaction batch before the logical frontier passes.",
+    "Unknown external outcomes require reconciliation before retry or terminal success."
+  ],
+  "failure_model": [
+    "Malformed or incompatible inputs yield typed rejection without mutation.",
+    "Non-convergent logic or dataflow reaches a bounded pathology outcome.",
+    "Checkpoint or version incompatibility fails closed.",
+    "Evidence gaps prevent terminal success rather than being inferred away."
+  ],
+  "verification": [
+    "Property tests compare replay and worklist-order invariance.",
+    "Incremental insert, delete, and retract results match clean full recomputation.",
+    "Crash injection covers intent commit, dispatch, external success, receipt, and reconciliation boundaries.",
+    "Resolved production and harness composition graphs differ only by approved adapter substitutions."
+  ],
+  "promotion_gates": [
+    "At least two current consumers share the stable narrow-waist contract.",
+    "M0 through M5 mechanics admission gates pass with durable receipts.",
+    "A fenced single writer, recovery, cancellation, schema migration, and effect reconciliation are demonstrated operational requirements.",
+    "Policy variation remains outside the shared mechanism without core forks."
+  ],
+  "falsifiers": [
+    "Real tasks repeatedly require ambient effects inside the deterministic kernel.",
+    "Incremental results fail to converge to clean recomputation.",
+    "Planned consumers require incompatible semantics rather than shared adapters.",
+    "The boundary adds more coordination and state than it removes."
+  ]
+}

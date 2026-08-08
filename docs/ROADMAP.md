@@ -1,0 +1,61 @@
+# Roadmap
+
+> Roadmap status: PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.
+
+## M0 — Freeze vocabulary and contracts
+
+Deliverables:
+
+- versioned `AcceptedEvent`, `FactDelta`, `EffectIntent`, graph envelope, delta, and receipt schemas;
+- executable generic FSM and typed terminal outcomes;
+- explicit logic truth tables and retraction semantics;
+- deterministic canonical serialization rules;
+- conformance fixture layout and claim ledger.
+
+Gate: all schemas validate, golden fixtures parse, and semantic ambiguities are either resolved or marked outside v0.
+
+## M1 — Pure F kernel
+
+Deliverables: deterministic reducer/evolver, typed rejection, effect-intent boundary, replay fixtures, ambient-effect guard.
+
+Gate: purity and replay tests 1–3 pass in two clean processes.
+
+## M2 — Stratified L kernel
+
+Deliverables: facts/rules/materialization, semi-naive worklist, four-valued conflict state, derivation/provenance tracking, retraction.
+
+Gate: logic tests 4–9 pass and incremental results equal full recomputation.
+
+## M3 — Signed-delta R kernel
+
+Deliverables: dependency graph, logical epoch/frontier, stable reaction batch, demand, bounded queues, backpressure, late-event policy.
+
+Gate: reactive tests 10–15 pass under randomized ordering and slow-consumer injection.
+
+## M4 — Durable H control shell
+
+Deliverables: SQLite event/checkpoint/outbox/effect-ledger store, fenced runner, exact-hash approvals, fake effect adapter, reconciliation, independent verifier.
+
+Gate: crash/approval/interrupt tests 16–25 pass with durable receipts.
+
+## M5 — Typed graph federation
+
+Deliverables: `G_sem`, `G_dep`, `G_comp`, `G_action`, `G_trace`, `G_prov`, `G_schema`; canonicalization; SHACL validation; resolved composition receipt.
+
+Gate: graph/harness tests 26–33 pass, including mutation tests and production-root reachability.
+
+## M6 — Interoperability and engine decision
+
+Deliverables: second implementation or independent conformance runner, adapter SDK candidate, two real consumers, updated engine ADR.
+
+Gate: test 34 passes and the engine promotion gates are reviewed with operational evidence.
+
+## M7 — Comparative efficacy
+
+Deliverables: preregistered held-out corpus, equal-budget baselines, outcome metrics, blinded/independent scoring, long-horizon maintenance follow-up, failure publication.
+
+Gate: report effect sizes and uncertainty. A null or negative result is valid and must downgrade the paradigm claim.
+
+## Immediate next slice
+
+Start M0 only. Choose the reference implementation language after comparing type-system support, deterministic serialization, logic/dataflow libraries, fault injection, and contributor cost. Do not scaffold a large framework before that decision.
