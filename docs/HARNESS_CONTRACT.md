@@ -1,6 +1,6 @@
 # Harness Contract
 
-> Status: PROPOSED / L_RT TARGET / NO EXECUTABLE EVIDENCE YET
+> Status: M0 CONTROL CONTRACT MEASURED / L_RT TARGET / NO RUNTIME OR RECOVERY EVIDENCE
 
 ## Tier
 
@@ -21,15 +21,14 @@ Inform/Constrain/Verify/Correct are diagnostic lenses inside a harness instance.
 
 ```text
 INGEST
-  -> REDUCE_F
-  -> SOLVE_L
-  -> PROPAGATE_R
+  -> STABILIZE(F -> L -> R frontier)
   -> PLAN_EFFECTS
   -> WAIT_APPROVAL?
   -> COMMIT_INTENT
   -> EXECUTE
   -> RECONCILE
-  -> INGEST_RESULT
+  -> HUMAN_RECONCILIATION? | HONOR_PENDING_INTERRUPT
+  -> INGEST(receipt)
   -> VERIFY_COMPLETION
   -> CONTINUE | TERMINAL
 ```
@@ -42,18 +41,13 @@ FAILED_PERMANENT
 RETRY_EXHAUSTED
 BUDGET_EXHAUSTED
 TIMED_OUT
-CANCELLED
-SUSPENDED
-POLICY_BLOCKED
-APPROVAL_REJECTED
-APPROVAL_EXPIRED
+CANCELED
 NO_PROGRESS
-RULE_CONFLICT
-DEADLOCK
-CHECKPOINT_CORRUPT
-CHECKPOINT_INCOMPATIBLE
+RULE_BUDGET_EXHAUSTED
 EFFECT_OUTCOME_UNKNOWN
 ```
+
+This is the exact M0 terminal vocabulary. Approval expiry returns to planning; policy rejection currently maps to `FAILED_PERMANENT`. Additional suspension, corruption, incompatibility, conflict, or deadlock terminals require a versioned FSM change rather than an extra prose-only list.
 
 ## Effect ledger
 
@@ -93,8 +87,8 @@ DONE(change, profile) :=
   AND Platform
   AND Regression
   AND reachable_in_resolved_production_graph(change)
-  AND production_graph_sha == harness_graph_sha
-       modulo approved adapter substitutions
+  AND an independently verified ResolvedCompositionReceipt records
+       zero forbidden delta under the approved substitution manifest
   AND required causal trace reaches a terminal receipt
   AND every effect binds goal, authority, idempotency key, attempt, and result
   AND no required effect remains UNKNOWN or unreconciled
@@ -110,9 +104,11 @@ DONE(change, profile) :=
 
 | Lens | Score | Current evidence |
 |---|---:|---|
-| Inform | 2/3 | versioned proposal documents exist; executable schemas and resolved graphs do not |
-| Constrain | 0/3 | no runtime enforces the boundaries or FSM |
-| Verify | 0/3 | no target-repo mechanics test or platform receipt exists |
+| Inform | 2/3 | versioned boundary schemas, truth tables, graph envelopes, and one digest-bound FSM/loop profile exist; graph-content schemas remain deferred |
+| Constrain | 1/3 | abstract FSM, budgets, approval, effect, and terminal invariants validate; no runtime enforcement exists |
+| Verify | 1/3 | positive/negative fixtures and declared-transition/guard coverage pass; no exhaustive event-space, platform, or recovery receipt exists |
 | Correct | 0/3 | no observed recovery, reconciliation, or bounded correction run exists |
 
 This is evidence absence, not a negative efficacy verdict.
+
+The sole authoritative M0 lifecycle source is [`run-fsm.v1.json`](../spec/run-fsm.v1.json). [`loop-contract.v1.json`](../spec/loop-contract.v1.json) is digest-bound to it, and [`run-fsm-traces.v1.json`](../spec/run-fsm-traces.v1.json) is a conformance fixture. These scores describe only the repository instance and must not be generalized to FLR-H efficacy.

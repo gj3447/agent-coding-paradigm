@@ -1,0 +1,179 @@
+{
+  "schema_version": "flrh-run-fsm/v1",
+  "name": "flrh-outer-control-closure",
+  "authority": "sole-authoritative-outer-control-fsm",
+  "execution": {
+    "step_interface": "step(configuration, typed_event) -> next_configuration, control_commands",
+    "event_queue": "Accepted external events are FIFO; emitted commands are never synchronously re-entered.",
+    "run_to_completion": "One schema-valid and authority-valid event is guarded and reduced before the next event.",
+    "action_order": "Validate event and authority, select one transition, compute next state, then durably emit control commands."
+  },
+  "context_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["frontier_passed", "approval_matches", "intent_durable", "independent_receipt_closed", "no_unknown_effects"],
+    "properties": {
+      "frontier_passed": {"type": "boolean"},
+      "approval_matches": {"type": "boolean"},
+      "intent_durable": {"type": "boolean"},
+      "independent_receipt_closed": {"type": "boolean"},
+      "no_unknown_effects": {"type": "boolean"}
+    }
+  },
+  "event_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["type", "actor_role", "capability", "event_id", "payload"],
+    "properties": {
+      "type": {
+        "enum": [
+          "START", "EVENT_ACCEPTED", "EPOCH_STABLE", "RULE_BUDGET_EXHAUSTED",
+          "NO_EFFECTS", "APPROVAL_REQUIRED", "EFFECT_AUTHORIZED", "APPROVAL_GRANTED",
+          "APPROVAL_DENIED", "APPROVAL_EXPIRED", "INTENT_COMMITTED", "ATTEMPT_RECORDED",
+          "EFFECT_RESULT_CONFIRMED", "OUTCOME_UNKNOWN", "HUMAN_RECEIPT_CONFIRMED", "ABANDON",
+          "NO_PENDING_INTERRUPT", "PENDING_CANCEL", "PENDING_TIMEOUT", "PENDING_BUDGET_EXHAUSTED",
+          "VERIFIED_COMPLETE", "MORE_WORK", "VERIFIED_FAILURE", "NO_PROGRESS", "RETRIES_EXHAUSTED",
+          "CANCEL", "TIMEOUT", "BUDGET_EXHAUSTED"
+        ]
+      },
+      "actor_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+      "capability": {"type": "string", "pattern": "^[a-z][a-z0-9_.]*$"},
+      "event_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"},
+      "payload": {"type": "object"}
+    }
+  },
+  "event_authority": {
+    "START": [{"actor_role": "runner", "capability": "control.start"}],
+    "EVENT_ACCEPTED": [{"actor_role": "ingress_validator", "capability": "event.accept"}],
+    "EPOCH_STABLE": [{"actor_role": "stabilizer", "capability": "epoch.close"}],
+    "RULE_BUDGET_EXHAUSTED": [{"actor_role": "rule_budget_governor", "capability": "budget.halt_rules"}],
+    "NO_EFFECTS": [{"actor_role": "runner", "capability": "effect.plan_empty"}],
+    "APPROVAL_REQUIRED": [{"actor_role": "policy_evaluator", "capability": "approval.request"}],
+    "EFFECT_AUTHORIZED": [{"actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk"}],
+    "APPROVAL_GRANTED": [{"actor_role": "human_approver", "capability": "approval.grant_exact_hash"}],
+    "APPROVAL_DENIED": [{"actor_role": "human_approver", "capability": "approval.deny"}],
+    "APPROVAL_EXPIRED": [{"actor_role": "approval_timer", "capability": "approval.expire"}],
+    "INTENT_COMMITTED": [{"actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed"}],
+    "ATTEMPT_RECORDED": [{"actor_role": "outbox_dispatcher", "capability": "effect.record_attempt"}],
+    "EFFECT_RESULT_CONFIRMED": [{"actor_role": "independent_receipt_verifier", "capability": "receipt.confirm"}],
+    "OUTCOME_UNKNOWN": [{"actor_role": "outcome_reconciler", "capability": "receipt.mark_unknown"}],
+    "HUMAN_RECEIPT_CONFIRMED": [{"actor_role": "human_reconciler", "capability": "receipt.confirm_external"}],
+    "ABANDON": [{"actor_role": "human_reconciler", "capability": "receipt.abandon_unknown"}],
+    "NO_PENDING_INTERRUPT": [{"actor_role": "interrupt_reconciler", "capability": "interrupt.resume"}],
+    "PENDING_CANCEL": [{"actor_role": "interrupt_reconciler", "capability": "interrupt.honor_cancel"}],
+    "PENDING_TIMEOUT": [{"actor_role": "interrupt_reconciler", "capability": "interrupt.honor_timeout"}],
+    "PENDING_BUDGET_EXHAUSTED": [{"actor_role": "interrupt_reconciler", "capability": "interrupt.honor_budget"}],
+    "VERIFIED_COMPLETE": [{"actor_role": "independent_completion_verifier", "capability": "completion.succeed"}],
+    "MORE_WORK": [{"actor_role": "independent_completion_verifier", "capability": "completion.continue"}],
+    "VERIFIED_FAILURE": [{"actor_role": "independent_completion_verifier", "capability": "completion.fail"}],
+    "NO_PROGRESS": [{"actor_role": "no_progress_detector", "capability": "progress.halt"}],
+    "RETRIES_EXHAUSTED": [{"actor_role": "retry_controller", "capability": "retry.halt"}],
+    "CANCEL": [{"actor_role": "authorized_requester", "capability": "run.cancel"}],
+    "TIMEOUT": [{"actor_role": "deadline_controller", "capability": "run.timeout"}],
+    "BUDGET_EXHAUSTED": [{"actor_role": "budget_governor", "capability": "run.halt_budget"}]
+  },
+  "guards": {
+    "frontier_passed": {"reads": ["frontier_passed"], "pure": true, "synchronous": true},
+    "approval_matches": {"reads": ["approval_matches"], "pure": true, "synchronous": true},
+    "intent_durable": {"reads": ["intent_durable"], "pure": true, "synchronous": true},
+    "completion_closed": {"reads": ["independent_receipt_closed", "no_unknown_effects"], "operator": "all_true", "pure": true, "synchronous": true}
+  },
+  "effects": {
+    "PersistControlTransition": {"kind": "command", "payload_schema": {"type": "object", "additionalProperties": false, "required": ["event_id"], "properties": {"event_id": {"type": "string"}}}},
+    "PersistPendingInterrupt": {"kind": "command", "payload_schema": {"type": "object", "additionalProperties": false, "required": ["event_id", "interrupt"], "properties": {"event_id": {"type": "string"}, "interrupt": {"enum": ["CANCEL", "TIMEOUT", "BUDGET_EXHAUSTED"]}}}},
+    "AuditInvalidTransition": {"kind": "audit", "payload_schema": {"type": "object", "additionalProperties": false, "required": ["state", "event", "actor_role", "reason", "event_id"], "properties": {"state": {"type": "string"}, "event": {"type": "string"}, "actor_role": {"type": "string"}, "reason": {"type": "string"}, "event_id": {"type": "string"}}}}
+  },
+  "machines": [
+    {
+      "id": "control",
+      "initial": "INIT",
+      "states": [
+        {"id": "INIT", "kind": "atomic"},
+        {"id": "INGEST", "kind": "atomic"},
+        {"id": "STABILIZE", "kind": "atomic"},
+        {"id": "PLAN_EFFECTS", "kind": "atomic"},
+        {"id": "WAIT_APPROVAL", "kind": "atomic"},
+        {"id": "COMMIT_INTENT", "kind": "atomic"},
+        {"id": "EXECUTE", "kind": "atomic"},
+        {"id": "RECONCILE", "kind": "atomic"},
+        {"id": "HUMAN_RECONCILIATION", "kind": "atomic"},
+        {"id": "HONOR_PENDING_INTERRUPT", "kind": "atomic"},
+        {"id": "VERIFY_COMPLETION", "kind": "atomic"},
+        {"id": "SUCCEEDED", "kind": "final", "outcome_category": "success"},
+        {"id": "FAILED_PERMANENT", "kind": "final", "outcome_category": "permanent_failure"},
+        {"id": "RETRY_EXHAUSTED", "kind": "final", "outcome_category": "retry_exhausted"},
+        {"id": "BUDGET_EXHAUSTED", "kind": "final", "outcome_category": "budget_exhausted"},
+        {"id": "TIMED_OUT", "kind": "final", "outcome_category": "timeout"},
+        {"id": "CANCELED", "kind": "final", "outcome_category": "canceled"},
+        {"id": "RULE_BUDGET_EXHAUSTED", "kind": "final", "outcome_category": "pathology"},
+        {"id": "NO_PROGRESS", "kind": "final", "outcome_category": "saturated"},
+        {"id": "EFFECT_OUTCOME_UNKNOWN", "kind": "final", "outcome_category": "unknown_external_outcome"}
+      ],
+      "events": [
+        "START", "EVENT_ACCEPTED", "EPOCH_STABLE", "RULE_BUDGET_EXHAUSTED", "NO_EFFECTS",
+        "APPROVAL_REQUIRED", "EFFECT_AUTHORIZED", "APPROVAL_GRANTED", "APPROVAL_DENIED",
+        "APPROVAL_EXPIRED", "INTENT_COMMITTED", "ATTEMPT_RECORDED", "EFFECT_RESULT_CONFIRMED",
+        "OUTCOME_UNKNOWN", "HUMAN_RECEIPT_CONFIRMED", "ABANDON", "NO_PENDING_INTERRUPT",
+        "PENDING_CANCEL", "PENDING_TIMEOUT", "PENDING_BUDGET_EXHAUSTED", "VERIFIED_COMPLETE",
+        "MORE_WORK", "VERIFIED_FAILURE", "NO_PROGRESS", "RETRIES_EXHAUSTED", "CANCEL", "TIMEOUT",
+        "BUDGET_EXHAUSTED"
+      ],
+      "invalid_event_policy": {
+        "mode": "reject-and-audit",
+        "guard_false": "reject-and-audit",
+        "authority_failure": "reject-and-audit",
+        "schema_failure": "reject-and-audit",
+        "state_change": "none",
+        "effect": "AuditInvalidTransition"
+      },
+      "transitions": [
+        {"id": "start", "from": "INIT", "event": "START", "to": "INGEST", "effects": ["PersistControlTransition"], "evidence_required": ["workflow_digest", "version_envelope_digest"]},
+        {"id": "accept-event", "from": "INGEST", "event": "EVENT_ACCEPTED", "to": "STABILIZE", "effects": ["PersistControlTransition"], "evidence_required": ["accepted_event_digest", "cursor"]},
+        {"id": "stabilize-epoch", "from": "STABILIZE", "event": "EPOCH_STABLE", "to": "PLAN_EFFECTS", "guard": "frontier_passed", "effects": ["PersistControlTransition"], "evidence_required": ["state_digest", "support_digest", "frontier_receipt"]},
+        {"id": "rule-budget-pathology", "from": "STABILIZE", "event": "RULE_BUDGET_EXHAUSTED", "to": "RULE_BUDGET_EXHAUSTED", "effects": ["PersistControlTransition"], "evidence_required": ["rule_budget_ledger"]},
+        {"id": "verify-without-effects", "from": "PLAN_EFFECTS", "event": "NO_EFFECTS", "to": "VERIFY_COMPLETION", "effects": ["PersistControlTransition"], "evidence_required": ["empty_stable_proposal_batch"]},
+        {"id": "request-approval", "from": "PLAN_EFFECTS", "event": "APPROVAL_REQUIRED", "to": "WAIT_APPROVAL", "effects": ["PersistControlTransition"], "evidence_required": ["action_digest", "risk_classification"]},
+        {"id": "authorize-low-risk", "from": "PLAN_EFFECTS", "event": "EFFECT_AUTHORIZED", "to": "COMMIT_INTENT", "effects": ["PersistControlTransition"], "evidence_required": ["policy_verdict", "capability_digest"]},
+        {"id": "consume-approval", "from": "WAIT_APPROVAL", "event": "APPROVAL_GRANTED", "to": "COMMIT_INTENT", "guard": "approval_matches", "effects": ["PersistControlTransition"], "evidence_required": ["exact_hash_approval_digest"]},
+        {"id": "reject-approval", "from": "WAIT_APPROVAL", "event": "APPROVAL_DENIED", "to": "FAILED_PERMANENT", "effects": ["PersistControlTransition"], "evidence_required": ["approval_rejection"]},
+        {"id": "expire-approval", "from": "WAIT_APPROVAL", "event": "APPROVAL_EXPIRED", "to": "PLAN_EFFECTS", "effects": ["PersistControlTransition"], "evidence_required": ["expired_approval_digest", "nonce"]},
+        {"id": "dispatch-after-commit", "from": "COMMIT_INTENT", "event": "INTENT_COMMITTED", "to": "EXECUTE", "guard": "intent_durable", "effects": ["PersistControlTransition"], "evidence_required": ["atomic_intent_checkpoint_outbox_receipt"]},
+        {"id": "begin-reconciliation", "from": "EXECUTE", "event": "ATTEMPT_RECORDED", "to": "RECONCILE", "effects": ["PersistControlTransition"], "evidence_required": ["attempt_id", "idempotency_key", "response_hash"]},
+        {"id": "receipt-confirmed", "from": "RECONCILE", "event": "EFFECT_RESULT_CONFIRMED", "to": "HONOR_PENDING_INTERRUPT", "effects": ["PersistControlTransition"], "evidence_required": ["independent_action_receipt"]},
+        {"id": "outcome-unknown", "from": "RECONCILE", "event": "OUTCOME_UNKNOWN", "to": "HUMAN_RECONCILIATION", "effects": ["PersistControlTransition"], "evidence_required": ["bounded_query_log", "ambiguous_external_state"]},
+        {"id": "human-reconciled", "from": "HUMAN_RECONCILIATION", "event": "HUMAN_RECEIPT_CONFIRMED", "to": "HONOR_PENDING_INTERRUPT", "effects": ["PersistControlTransition"], "evidence_required": ["independently_checked_external_receipt"]},
+        {"id": "human-abandoned", "from": "HUMAN_RECONCILIATION", "event": "ABANDON", "to": "EFFECT_OUTCOME_UNKNOWN", "effects": ["PersistControlTransition"], "evidence_required": ["typed_unresolved_outcome_disposition"]},
+        {"id": "resume-after-receipt", "from": "HONOR_PENDING_INTERRUPT", "event": "NO_PENDING_INTERRUPT", "to": "INGEST", "effects": ["PersistControlTransition"], "evidence_required": ["empty_pending_interrupt_ledger", "accepted_receipt_event"]},
+        {"id": "effect-then-cancel", "from": "HONOR_PENDING_INTERRUPT", "event": "PENDING_CANCEL", "to": "CANCELED", "effects": ["PersistControlTransition"], "evidence_required": ["durable_pending_cancel", "reconciled_effect"]},
+        {"id": "effect-then-timeout", "from": "HONOR_PENDING_INTERRUPT", "event": "PENDING_TIMEOUT", "to": "TIMED_OUT", "effects": ["PersistControlTransition"], "evidence_required": ["durable_pending_timeout", "reconciled_effect"]},
+        {"id": "effect-then-budget", "from": "HONOR_PENDING_INTERRUPT", "event": "PENDING_BUDGET_EXHAUSTED", "to": "BUDGET_EXHAUSTED", "effects": ["PersistControlTransition"], "evidence_required": ["durable_pending_budget_exhaustion", "reconciled_effect"]},
+        {"id": "succeed-after-verification", "from": "VERIFY_COMPLETION", "event": "VERIFIED_COMPLETE", "to": "SUCCEEDED", "guard": "completion_closed", "effects": ["PersistControlTransition"], "evidence_required": ["independent_closure_receipt", "empty_unknown_effect_ledger"]},
+        {"id": "continue-after-verification", "from": "VERIFY_COMPLETION", "event": "MORE_WORK", "to": "INGEST", "effects": ["PersistControlTransition"], "evidence_required": ["typed_residual_work"]},
+        {"id": "fail-after-verification", "from": "VERIFY_COMPLETION", "event": "VERIFIED_FAILURE", "to": "FAILED_PERMANENT", "effects": ["PersistControlTransition"], "evidence_required": ["typed_failed_completion_gate"]},
+        {"id": "no-progress", "from": "VERIFY_COMPLETION", "event": "NO_PROGRESS", "to": "NO_PROGRESS", "effects": ["PersistControlTransition"], "evidence_required": ["unchanged_fingerprint_window"]},
+        {"id": "retry-exhausted", "from": "INGEST", "event": "RETRIES_EXHAUSTED", "to": "RETRY_EXHAUSTED", "effects": ["PersistControlTransition"], "evidence_required": ["bounded_attempt_ledger"]}
+      ]
+    }
+  ],
+  "global_interrupts": [
+    {"event": "CANCEL", "to": "CANCELED", "safe_behavior": "terminate", "deferred_in_states": ["COMMIT_INTENT", "EXECUTE", "RECONCILE", "HUMAN_RECONCILIATION", "HONOR_PENDING_INTERRUPT"], "deferred_effect": "PersistPendingInterrupt", "deferred_behavior": "Persist cancellation, reconcile the in-flight effect, then require PENDING_CANCEL."},
+    {"event": "TIMEOUT", "to": "TIMED_OUT", "safe_behavior": "terminate", "deferred_in_states": ["COMMIT_INTENT", "EXECUTE", "RECONCILE", "HUMAN_RECONCILIATION", "HONOR_PENDING_INTERRUPT"], "deferred_effect": "PersistPendingInterrupt", "deferred_behavior": "Persist timeout, reconcile the in-flight effect, then require PENDING_TIMEOUT."},
+    {"event": "BUDGET_EXHAUSTED", "to": "BUDGET_EXHAUSTED", "safe_behavior": "terminate", "deferred_in_states": ["COMMIT_INTENT", "EXECUTE", "RECONCILE", "HUMAN_RECONCILIATION", "HONOR_PENDING_INTERRUPT"], "deferred_effect": "PersistPendingInterrupt", "deferred_behavior": "Persist exhaustion, block new work, reconcile the in-flight effect, then require PENDING_BUDGET_EXHAUSTED."}
+  ],
+  "safety_properties": [
+    {"id": "effect-intent-first", "statement": "EXECUTE is reachable only from COMMIT_INTENT with intent_durable=true."},
+    {"id": "verified-success-only", "statement": "Every incoming SUCCEEDED edge is from VERIFY_COMPLETION with independent_receipt_closed=true and no_unknown_effects=true."},
+    {"id": "unknown-is-not-success", "statement": "ABANDON reaches terminal EFFECT_OUTCOME_UNKNOWN; no unknown-outcome state can reach SUCCEEDED."},
+    {"id": "receipt-reingestion", "statement": "A confirmed effect must pass HONOR_PENDING_INTERRUPT then INGEST before independent completion verification."},
+    {"id": "authority-is-external", "statement": "Every accepted control event matches its schema and an external actor-role/capability pair; untrusted content cannot issue control events."}
+  ],
+  "liveness_properties": [
+    {"id": "bounded-closure", "statement": "Under finite inputs and the declared delivery assumptions, a run reaches a typed terminal outcome.", "assumptions": ["Controllers deliver an approval, reconciliation, verification, timeout, cancellation, budget, retry, or pathology outcome within declared bounds."]}
+  ],
+  "trace_fixtures": ["spec/run-fsm-traces.v1.json"],
+  "conformance": {
+    "implementation_step": "A future reducer binds guards and commands without changing this state/event/authority vocabulary.",
+    "model_trace_runner": "scripts/validate_m0.py executes schema-valid, authority-valid abstract fixtures.",
+    "contract_tests": "Declared transitions and guard-false branches, every final state, invalid events, immediate interrupts, and deferred interrupts are covered. This is not exhaustive over all event sequences."
+  }
+}

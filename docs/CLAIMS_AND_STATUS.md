@@ -6,14 +6,15 @@ Updated: 2026-08-08
 
 | Claim | Status | Evidence boundary |
 |---|---|---|
-| F/L/R/H responsibilities can be specified without collapsing into one LLM loop | PROPOSED | architecture and semantics documents; no runtime |
-| signed deltas and logical frontiers provide a plausible L-to-R narrow waist | HYPOTHESIS | primary-source synthesis; no local conformance run |
-| typed graph federation avoids several category errors of a soup graph | HYPOTHESIS | explicit graph-kind/identity contract; no implementation |
-| H should own continuation and effect/evidence closure | PROPOSED | durable workflow and harness source synthesis; no target runtime |
+| the pinned checker returns PASS for the declared M0 schemas and fixtures | MEASURED | checker-relative local conformance; no global consistency proof or runtime |
+| F/L/R/H responsibilities can be specified without collapsing into one LLM loop | PROPOSED | architecture plus machine contracts; no runtime |
+| signed deltas and scalar logical frontiers provide a plausible L-to-R narrow waist | HYPOTHESIS | executable fixture semantics; no incremental implementation |
+| typed graph federation avoids several category errors of a soup graph | HYPOTHESIS | machine-validated graph-kind/envelope shapes; no graph implementation |
+| H should own continuation and effect/evidence closure | PROPOSED | validated abstract FSM/loop; no crash/recovery evidence |
 | the repository is ready to be called a reusable engine | DEFERRED | no executable consumer, durability proof, or recovery evidence |
 | FLR-H improves agent outcomes | UNSUPPORTED | no held-out equal-budget comparison |
 | FLR-H is original or an industry standard | UNSUPPORTED | no prior-art exhaustion or standards process |
-| FLR-H is production-ready | UNSUPPORTED | mechanics admission has not begun |
+| FLR-H is production-ready | UNSUPPORTED | mechanics implementation has not begun |
 
 ## Falsifiers
 

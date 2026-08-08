@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m0-manifest.v1.schema.json",
+  "title": "FLR-H M0 manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "normative_contracts", "self_validating_schemas", "schema_bindings", "conformance_fixtures", "fixture_schema_bindings", "non_normative_tools", "gate", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m0-manifest/v1"},
+    "status": {"enum": ["PROPOSED", "MEASURED_CHECKER_CONFORMANCE"]},
+    "normative_contracts": {"$ref": "#/$defs/paths"},
+    "self_validating_schemas": {"$ref": "#/$defs/paths"},
+    "schema_bindings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/binding"}},
+    "conformance_fixtures": {"$ref": "#/$defs/paths"},
+    "fixture_schema_bindings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/binding"}},
+    "non_normative_tools": {"$ref": "#/$defs/paths"},
+    "gate": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "path": {"type": "string", "pattern": "^(spec|fixtures|scripts|tests)/[A-Za-z0-9_./-]+$"},
+    "paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/path"}},
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact", "schema"],
+      "properties": {"artifact": {"$ref": "#/$defs/path"}, "schema": {"$ref": "#/$defs/path"}}
+    }
+  }
+}

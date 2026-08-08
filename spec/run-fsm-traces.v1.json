@@ -1,0 +1,211 @@
+{
+  "schema_version": "flrh-run-fsm-traces/v1",
+  "coverage_claim": "declared-transition-and-guard coverage-complete; not exhaustive over the event/state/actor sequence space",
+  "cases": [
+    {
+      "id": "no-effect-success",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "nes:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "nes:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "nes:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_EFFECTS", "actor_role": "runner", "capability": "effect.plan_empty", "event_id": "nes:4", "payload": {}}, "guard_results": {}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "VERIFIED_COMPLETE", "actor_role": "independent_completion_verifier", "capability": "completion.succeed", "event_id": "nes:5", "payload": {}}, "guard_results": {"completion_closed": true}, "expected_state": "SUCCEEDED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "approved-effect-result-and-more-work",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "aem:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "aem:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "aem:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_REQUIRED", "actor_role": "policy_evaluator", "capability": "approval.request", "event_id": "aem:4", "payload": {}}, "guard_results": {}, "expected_state": "WAIT_APPROVAL", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_GRANTED", "actor_role": "human_approver", "capability": "approval.grant_exact_hash", "event_id": "aem:5", "payload": {}}, "guard_results": {"approval_matches": true}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "aem:6", "payload": {}}, "guard_results": {"intent_durable": true}, "expected_state": "EXECUTE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "ATTEMPT_RECORDED", "actor_role": "outbox_dispatcher", "capability": "effect.record_attempt", "event_id": "aem:7", "payload": {}}, "guard_results": {}, "expected_state": "RECONCILE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_RESULT_CONFIRMED", "actor_role": "independent_receipt_verifier", "capability": "receipt.confirm", "event_id": "aem:8", "payload": {}}, "guard_results": {}, "expected_state": "HONOR_PENDING_INTERRUPT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_PENDING_INTERRUPT", "actor_role": "interrupt_reconciler", "capability": "interrupt.resume", "event_id": "aem:9", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "aem:10", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "aem:11", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_EFFECTS", "actor_role": "runner", "capability": "effect.plan_empty", "event_id": "aem:12", "payload": {}}, "guard_results": {}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "MORE_WORK", "actor_role": "independent_completion_verifier", "capability": "completion.continue", "event_id": "aem:13", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "authorized-effect-unknown-abandoned",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "aua:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "aua:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "aua:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_AUTHORIZED", "actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk", "event_id": "aua:4", "payload": {}}, "guard_results": {}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "aua:5", "payload": {}}, "guard_results": {"intent_durable": true}, "expected_state": "EXECUTE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "ATTEMPT_RECORDED", "actor_role": "outbox_dispatcher", "capability": "effect.record_attempt", "event_id": "aua:6", "payload": {}}, "guard_results": {}, "expected_state": "RECONCILE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "OUTCOME_UNKNOWN", "actor_role": "outcome_reconciler", "capability": "receipt.mark_unknown", "event_id": "aua:7", "payload": {}}, "guard_results": {}, "expected_state": "HUMAN_RECONCILIATION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "ABANDON", "actor_role": "human_reconciler", "capability": "receipt.abandon_unknown", "event_id": "aua:8", "payload": {}}, "guard_results": {}, "expected_state": "EFFECT_OUTCOME_UNKNOWN", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "approval-denied",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "ad:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "ad:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "ad:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_REQUIRED", "actor_role": "policy_evaluator", "capability": "approval.request", "event_id": "ad:4", "payload": {}}, "guard_results": {}, "expected_state": "WAIT_APPROVAL", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_DENIED", "actor_role": "human_approver", "capability": "approval.deny", "event_id": "ad:5", "payload": {}}, "guard_results": {}, "expected_state": "FAILED_PERMANENT", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "approval-expired-then-failure",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "aef:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "aef:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "aef:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_REQUIRED", "actor_role": "policy_evaluator", "capability": "approval.request", "event_id": "aef:4", "payload": {}}, "guard_results": {}, "expected_state": "WAIT_APPROVAL", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_EXPIRED", "actor_role": "approval_timer", "capability": "approval.expire", "event_id": "aef:5", "payload": {}}, "guard_results": {}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_EFFECTS", "actor_role": "runner", "capability": "effect.plan_empty", "event_id": "aef:6", "payload": {}}, "guard_results": {}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "VERIFIED_FAILURE", "actor_role": "independent_completion_verifier", "capability": "completion.fail", "event_id": "aef:7", "payload": {}}, "guard_results": {}, "expected_state": "FAILED_PERMANENT", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "rule-budget-pathology",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "rb:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "rb:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "RULE_BUDGET_EXHAUSTED", "actor_role": "rule_budget_governor", "capability": "budget.halt_rules", "event_id": "rb:3", "payload": {}}, "guard_results": {}, "expected_state": "RULE_BUDGET_EXHAUSTED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "no-progress-terminal",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "np:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "np:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "np:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_EFFECTS", "actor_role": "runner", "capability": "effect.plan_empty", "event_id": "np:4", "payload": {}}, "guard_results": {}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_PROGRESS", "actor_role": "no_progress_detector", "capability": "progress.halt", "event_id": "np:5", "payload": {}}, "guard_results": {}, "expected_state": "NO_PROGRESS", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "retry-exhausted-terminal",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "re:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "RETRIES_EXHAUSTED", "actor_role": "retry_controller", "capability": "retry.halt", "event_id": "re:2", "payload": {}}, "guard_results": {}, "expected_state": "RETRY_EXHAUSTED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "human-reconciled-deferred-cancel",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "hrc:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "hrc:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "hrc:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_AUTHORIZED", "actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk", "event_id": "hrc:4", "payload": {}}, "guard_results": {}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "hrc:5", "payload": {}}, "guard_results": {"intent_durable": true}, "expected_state": "EXECUTE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "ATTEMPT_RECORDED", "actor_role": "outbox_dispatcher", "capability": "effect.record_attempt", "event_id": "hrc:6", "payload": {}}, "guard_results": {}, "expected_state": "RECONCILE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "OUTCOME_UNKNOWN", "actor_role": "outcome_reconciler", "capability": "receipt.mark_unknown", "event_id": "hrc:7", "payload": {}}, "guard_results": {}, "expected_state": "HUMAN_RECONCILIATION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "CANCEL", "actor_role": "authorized_requester", "capability": "run.cancel", "event_id": "hrc:8", "payload": {}}, "guard_results": {}, "expected_state": "HUMAN_RECONCILIATION", "expected_effects": ["PersistPendingInterrupt"]},
+        {"event": {"type": "HUMAN_RECEIPT_CONFIRMED", "actor_role": "human_reconciler", "capability": "receipt.confirm_external", "event_id": "hrc:9", "payload": {}}, "guard_results": {}, "expected_state": "HONOR_PENDING_INTERRUPT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "PENDING_CANCEL", "actor_role": "interrupt_reconciler", "capability": "interrupt.honor_cancel", "event_id": "hrc:10", "payload": {}}, "guard_results": {}, "expected_state": "CANCELED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "effect-deferred-timeout",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "edt:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "edt:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "edt:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_AUTHORIZED", "actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk", "event_id": "edt:4", "payload": {}}, "guard_results": {}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "edt:5", "payload": {}}, "guard_results": {"intent_durable": true}, "expected_state": "EXECUTE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "TIMEOUT", "actor_role": "deadline_controller", "capability": "run.timeout", "event_id": "edt:6", "payload": {}}, "guard_results": {}, "expected_state": "EXECUTE", "expected_effects": ["PersistPendingInterrupt"]},
+        {"event": {"type": "ATTEMPT_RECORDED", "actor_role": "outbox_dispatcher", "capability": "effect.record_attempt", "event_id": "edt:7", "payload": {}}, "guard_results": {}, "expected_state": "RECONCILE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_RESULT_CONFIRMED", "actor_role": "independent_receipt_verifier", "capability": "receipt.confirm", "event_id": "edt:8", "payload": {}}, "guard_results": {}, "expected_state": "HONOR_PENDING_INTERRUPT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "PENDING_TIMEOUT", "actor_role": "interrupt_reconciler", "capability": "interrupt.honor_timeout", "event_id": "edt:9", "payload": {}}, "guard_results": {}, "expected_state": "TIMED_OUT", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "effect-deferred-budget",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "edb:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "edb:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "edb:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_AUTHORIZED", "actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk", "event_id": "edb:4", "payload": {}}, "guard_results": {}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "edb:5", "payload": {}}, "guard_results": {"intent_durable": true}, "expected_state": "EXECUTE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "BUDGET_EXHAUSTED", "actor_role": "budget_governor", "capability": "run.halt_budget", "event_id": "edb:6", "payload": {}}, "guard_results": {}, "expected_state": "EXECUTE", "expected_effects": ["PersistPendingInterrupt"]},
+        {"event": {"type": "ATTEMPT_RECORDED", "actor_role": "outbox_dispatcher", "capability": "effect.record_attempt", "event_id": "edb:7", "payload": {}}, "guard_results": {}, "expected_state": "RECONCILE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_RESULT_CONFIRMED", "actor_role": "independent_receipt_verifier", "capability": "receipt.confirm", "event_id": "edb:8", "payload": {}}, "guard_results": {}, "expected_state": "HONOR_PENDING_INTERRUPT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "PENDING_BUDGET_EXHAUSTED", "actor_role": "interrupt_reconciler", "capability": "interrupt.honor_budget", "event_id": "edb:9", "payload": {}}, "guard_results": {}, "expected_state": "BUDGET_EXHAUSTED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "immediate-cancel",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "CANCEL", "actor_role": "authorized_requester", "capability": "run.cancel", "event_id": "ic:1", "payload": {}}, "guard_results": {}, "expected_state": "CANCELED", "expected_effects": ["PersistControlTransition"]}
+      ]
+    },
+    {
+      "id": "frontier-guard-false",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "fg:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "fg:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "fg:3", "payload": {}}, "guard_results": {"frontier_passed": false}, "expected_state": "STABILIZE", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    },
+    {
+      "id": "approval-guard-false",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "ag:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "ag:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "ag:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_REQUIRED", "actor_role": "policy_evaluator", "capability": "approval.request", "event_id": "ag:4", "payload": {}}, "guard_results": {}, "expected_state": "WAIT_APPROVAL", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "APPROVAL_GRANTED", "actor_role": "human_approver", "capability": "approval.grant_exact_hash", "event_id": "ag:5", "payload": {}}, "guard_results": {"approval_matches": false}, "expected_state": "WAIT_APPROVAL", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    },
+    {
+      "id": "intent-guard-false",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "ig:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "ig:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "ig:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EFFECT_AUTHORIZED", "actor_role": "policy_evaluator", "capability": "effect.authorize_low_risk", "event_id": "ig:4", "payload": {}}, "guard_results": {}, "expected_state": "COMMIT_INTENT", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "INTENT_COMMITTED", "actor_role": "outbox_dispatcher", "capability": "effect.dispatch_committed", "event_id": "ig:5", "payload": {}}, "guard_results": {"intent_durable": false}, "expected_state": "COMMIT_INTENT", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    },
+    {
+      "id": "completion-guard-false",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "runner", "capability": "control.start", "event_id": "cg:1", "payload": {}}, "guard_results": {}, "expected_state": "INGEST", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EVENT_ACCEPTED", "actor_role": "ingress_validator", "capability": "event.accept", "event_id": "cg:2", "payload": {}}, "guard_results": {}, "expected_state": "STABILIZE", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "EPOCH_STABLE", "actor_role": "stabilizer", "capability": "epoch.close", "event_id": "cg:3", "payload": {}}, "guard_results": {"frontier_passed": true}, "expected_state": "PLAN_EFFECTS", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "NO_EFFECTS", "actor_role": "runner", "capability": "effect.plan_empty", "event_id": "cg:4", "payload": {}}, "guard_results": {}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["PersistControlTransition"]},
+        {"event": {"type": "VERIFIED_COMPLETE", "actor_role": "independent_completion_verifier", "capability": "completion.succeed", "event_id": "cg:5", "payload": {}}, "guard_results": {"completion_closed": false}, "expected_state": "VERIFY_COMPLETION", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    },
+    {
+      "id": "unauthorized-start",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "START", "actor_role": "model", "capability": "control.start", "event_id": "unauth:1", "payload": {}}, "guard_results": {}, "expected_state": "INIT", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    },
+    {
+      "id": "invalid-event-from-init",
+      "machine": "control",
+      "steps": [
+        {"event": {"type": "VERIFIED_FAILURE", "actor_role": "independent_completion_verifier", "capability": "completion.fail", "event_id": "inv:1", "payload": {}}, "guard_results": {}, "expected_state": "INIT", "expected_effects": ["AuditInvalidTransition"]}
+      ]
+    }
+  ]
+}

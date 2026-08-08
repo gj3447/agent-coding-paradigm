@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/loop-contract.v1.schema.json",
+  "title": "FLR-H bounded loop profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "tier", "workflow_version", "state_schema_version", "scope_exclusions", "control_fsm_binding", "control_owner", "action_types", "budgets", "no_progress", "retry", "effects", "checkpoint", "approval", "verification", "replay", "security", "trace", "icvc"],
+  "properties": {
+    "schema_version": {"const": "loop-contract/v1"},
+    "name": {"$ref": "#/$defs/text"},
+    "tier": {"const": "L_RT"},
+    "workflow_version": {"$ref": "#/$defs/text"},
+    "state_schema_version": {"$ref": "#/$defs/text"},
+    "scope_exclusions": {"$ref": "#/$defs/texts"},
+    "control_fsm_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "artifact", "file_sha256", "machine_id", "required_terminal_categories", "required_effect_critical_states", "required_safety_properties"],
+      "properties": {
+        "authority": {"const": "sole-authoritative-outer-control-fsm"},
+        "artifact": {"const": "spec/run-fsm.v1.json"},
+        "file_sha256": {"$ref": "#/$defs/digest"},
+        "machine_id": {"const": "control"},
+        "required_terminal_categories": {"$ref": "#/$defs/texts"},
+        "required_effect_critical_states": {"$ref": "#/$defs/upperIds"},
+        "required_safety_properties": {"$ref": "#/$defs/texts"}
+      }
+    },
+    "control_owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["continuation", "budgets", "authorization", "success_verdict", "checkpoint", "effects"],
+      "properties": {
+        "continuation": {"$ref": "#/$defs/text"},
+        "budgets": {"$ref": "#/$defs/text"},
+        "authorization": {"$ref": "#/$defs/text"},
+        "success_verdict": {"$ref": "#/$defs/text"},
+        "checkpoint": {"$ref": "#/$defs/text"},
+        "effects": {"$ref": "#/$defs/text"}
+      }
+    },
+    "action_types": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/actionType"}
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_steps", "max_tool_calls", "max_retries_per_transition", "max_wall_seconds", "max_suspended_seconds", "max_tokens", "max_cost", "max_recursion_depth", "max_parallelism", "soft_boundary", "hard_boundary_owner", "aggregate_descendants"],
+      "properties": {
+        "max_steps": {"$ref": "#/$defs/positiveInteger"},
+        "max_tool_calls": {"$ref": "#/$defs/positiveInteger"},
+        "max_retries_per_transition": {"$ref": "#/$defs/positiveInteger"},
+        "max_wall_seconds": {"$ref": "#/$defs/positiveInteger"},
+        "max_suspended_seconds": {"$ref": "#/$defs/positiveInteger"},
+        "max_tokens": {"$ref": "#/$defs/positiveInteger"},
+        "max_cost": {"type": "number", "exclusiveMinimum": 0},
+        "max_recursion_depth": {"$ref": "#/$defs/positiveInteger"},
+        "max_parallelism": {"$ref": "#/$defs/positiveInteger"},
+        "soft_boundary": {"$ref": "#/$defs/text"},
+        "hard_boundary_owner": {"$ref": "#/$defs/text"},
+        "aggregate_descendants": {"const": true}
+      }
+    },
+    "no_progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "gain_metric", "calibration", "scope", "threshold", "gain_components", "aggregation", "epsilon", "window_rounds", "plateau_comparator", "outcome_state"],
+      "properties": {
+        "fingerprint": {"$ref": "#/$defs/text"},
+        "gain_metric": {"$ref": "#/$defs/text"},
+        "calibration": {"$ref": "#/$defs/text"},
+        "scope": {"$ref": "#/$defs/text"},
+        "threshold": {"$ref": "#/$defs/positiveInteger"},
+        "gain_components": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["closed_obligation", "resolved_conflict", "verified_receipt"],
+          "properties": {
+            "closed_obligation": {"$ref": "#/$defs/positiveInteger"},
+            "resolved_conflict": {"$ref": "#/$defs/positiveInteger"},
+            "verified_receipt": {"$ref": "#/$defs/positiveInteger"}
+          }
+        },
+        "aggregation": {"const": "weighted-sum"},
+        "epsilon": {"$ref": "#/$defs/positiveInteger"},
+        "window_rounds": {"$ref": "#/$defs/positiveInteger"},
+        "plateau_comparator": {"$ref": "#/$defs/text"},
+        "outcome_state": {"const": "NO_PROGRESS"}
+      }
+    },
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["retryable_class", "backoff", "exhausted_outcome"],
+      "properties": {"retryable_class": {"$ref": "#/$defs/text"}, "backoff": {"$ref": "#/$defs/text"}, "exhausted_outcome": {"const": "RETRY_EXHAUSTED"}}
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["persist_intent_before_execution", "atomic_with_checkpoint_and_outbox", "delivery_semantics", "idempotency_key", "durable_ledger", "high_risk_gate", "unknown_outcome", "confirmed_outcome", "effect_critical_states"],
+      "properties": {
+        "persist_intent_before_execution": {"const": true},
+        "atomic_with_checkpoint_and_outbox": {"const": true},
+        "delivery_semantics": {"$ref": "#/$defs/text"},
+        "idempotency_key": {"$ref": "#/$defs/text"},
+        "durable_ledger": {"$ref": "#/$defs/text"},
+        "high_risk_gate": {"$ref": "#/$defs/text"},
+        "unknown_outcome": {"$ref": "#/$defs/text"},
+        "confirmed_outcome": {"$ref": "#/$defs/text"},
+        "effect_critical_states": {"$ref": "#/$defs/upperIds"}
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundaries", "persisted_fields", "compatibility", "migration", "fencing", "monotonic_sequence", "integrity", "corruption_outcome"],
+      "properties": {
+        "boundaries": {"$ref": "#/$defs/texts"},
+        "persisted_fields": {"$ref": "#/$defs/texts"},
+        "compatibility": {"$ref": "#/$defs/text"},
+        "migration": {"$ref": "#/$defs/text"},
+        "fencing": {"$ref": "#/$defs/text"},
+        "monotonic_sequence": {"$ref": "#/$defs/text"},
+        "integrity": {"$ref": "#/$defs/text"},
+        "corruption_outcome": {"$ref": "#/$defs/text"}
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_fields", "one_time", "revocation", "stale_outcome"],
+      "properties": {"binding_fields": {"$ref": "#/$defs/texts"}, "one_time": {"const": true}, "revocation": {"$ref": "#/$defs/text"}, "stale_outcome": {"$ref": "#/$defs/text"}}
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success_predicate", "invariant_checks", "environment_evidence", "evaluator_independence", "human_gray_band", "calibration", "fault_tests"],
+      "properties": {
+        "success_predicate": {"$ref": "#/$defs/text"},
+        "invariant_checks": {"$ref": "#/$defs/texts"},
+        "environment_evidence": {"$ref": "#/$defs/text"},
+        "evaluator_independence": {"$ref": "#/$defs/text"},
+        "human_gray_band": {"$ref": "#/$defs/text"},
+        "calibration": {"$ref": "#/$defs/text"},
+        "fault_tests": {"$ref": "#/$defs/texts"}
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resume", "trajectory_replay", "deterministic_replay_requirements"],
+      "properties": {"resume": {"$ref": "#/$defs/text"}, "trajectory_replay": {"$ref": "#/$defs/text"}, "deterministic_replay_requirements": {"$ref": "#/$defs/texts"}}
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["untrusted_content", "tool_least_privilege", "provenance_snapshots", "secret_isolation"],
+      "properties": {"untrusted_content": {"$ref": "#/$defs/text"}, "tool_least_privilege": {"$ref": "#/$defs/text"}, "provenance_snapshots": {"$ref": "#/$defs/text"}, "secret_isolation": {"$ref": "#/$defs/text"}}
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transition_fields", "redaction"],
+      "properties": {"transition_fields": {"$ref": "#/$defs/texts"}, "redaction": {"$ref": "#/$defs/text"}}
+    },
+    "icvc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inform", "constrain", "verify", "correct"],
+      "properties": {"inform": {"$ref": "#/$defs/text"}, "constrain": {"$ref": "#/$defs/text"}, "verify": {"$ref": "#/$defs/text"}, "correct": {"$ref": "#/$defs/text"}}
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "texts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "upperIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}},
+    "positiveInteger": {"type": "integer", "minimum": 1},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "actionType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk", "effect_class", "approval_required", "approval_state", "authorization_state", "execution_state", "reconciliation_state", "unknown_outcome_state", "post_reconciliation_state", "abandon_terminal", "confirmed_resume_state"],
+      "properties": {
+        "risk": {"$ref": "#/$defs/text"},
+        "effect_class": {"enum": ["high_risk_external"]},
+        "approval_required": {"const": true},
+        "approval_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "authorization_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "execution_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "reconciliation_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "unknown_outcome_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "post_reconciliation_state": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "abandon_terminal": {"const": "EFFECT_OUTCOME_UNKNOWN"},
+        "confirmed_resume_state": {"const": "INGEST"}
+      }
+    }
+  }
+}

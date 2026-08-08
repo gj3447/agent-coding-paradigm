@@ -1,0 +1,50 @@
+{
+  "schema_version": "lakatotree-readback-snapshot/v1",
+  "observed_at": "2026-08-08T07:38:12.058329Z",
+  "mode": "READ_ONLY_EXACT_READBACK",
+  "programme": {
+    "tree": "LakatosTree_AgentParadigm_20260808",
+    "title": "에이전트 프로그래밍 패러다임 — 실행 폐쇄 연구프로그램 (파편 통합 2026-08-08)",
+    "tree_incarnation_id": "93264ef9e2734621a24b7d48d46ebfc2",
+    "assurance_tier": "notebook",
+    "coverage_status": "partial",
+    "scientific_status": "UNJUDGED"
+  },
+  "narrow_preregistration": {
+    "scope": "E1 execution-closure wiring-gate experiment, not full FLR-H efficacy",
+    "tag": "n14-corpus-v2-14-t8-instances-prediction-v2-20260808",
+    "node_state": "PREDICTED",
+    "metric": "e1v2_unwired_rate_delta_A_minus_B_pp",
+    "baseline": 0,
+    "direction": "higher",
+    "noise_band": 20,
+    "credence": 0.65,
+    "novel_metric": "e1v2_gamed_rate_condition_B_pct",
+    "novel_threshold": 0,
+    "registered_at": "2026-08-07T17:03:08.848202Z",
+    "script_bundle_sha256": "3b17ae196e426b564e2c83ca3bac226008c342b78d26434eca2f617c9a0cc594",
+    "prediction_receipt_sha256": "1d714918c729f1d7d44a89294f7345b7d0a77c27b61cab07910c2c2554fd399f",
+    "judged_at": null,
+    "lakatos_status": null,
+    "certificate_ready": false,
+    "certificate_missing": ["preregistered", "reproducible", "calibrated"]
+  },
+  "full_flrh_comparative_preregistration": {
+    "status": "ABSENT",
+    "required_before_measurement": [
+      "new explicit experiment tag",
+      "sealed held-out corpus and hashes",
+      "equal-budget arms and stopping rules",
+      "primary metric, baseline, direction, noise band, and equivalence margin",
+      "single deterministic independent judge path and SHA",
+      "registered prediction receipt exact readback"
+    ]
+  },
+  "repository_binding": {
+    "repository": "https://github.com/gj3447/agent-coding-paradigm",
+    "repository_commit_observed": "cfe844d65a0000b8f1b675ff7ecc84791d9f0a85",
+    "lakatotree_node_referencing_repository_commit": null,
+    "status": "NOT_YET_BOUND",
+    "note": "This file is a local readback pointer. It does not mutate LakatoTree or manufacture a scientific binding."
+  }
+}

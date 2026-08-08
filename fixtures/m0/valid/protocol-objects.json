@@ -1,0 +1,227 @@
+{
+  "schema_version": "m0-valid-fixtures/v1",
+  "cases": [
+    {
+      "id": "accepted-event",
+      "instance": {
+        "kind": "AcceptedEvent",
+        "event_id": "evt:1",
+        "payload": {"observation": "fixture"},
+        "occurred_at": "2026-08-08T00:00:00Z",
+        "received_at": "2026-08-08T00:00:01Z",
+        "logical_time": 7,
+        "correlation_id": "run:1",
+        "causation_id": null,
+        "idempotency_key": "ingress:1",
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "state/0.1",
+          "event_schema": "event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "none/0",
+          "model": "none/0",
+          "oracle": "m0-oracle/1",
+          "gate": "m0-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    },
+    {
+      "id": "fact-delta",
+      "instance": {
+        "kind": "FactDelta",
+        "tuple": {"predicate": "ready", "subject": "run:1", "polarity": "positive"},
+        "logical_time": 7,
+        "diff": 1,
+        "derivation_id": "derivation:ready:1",
+        "causation_id": "evt:1",
+        "provenance_delta": {"source": "evt:1"},
+        "rule_set_version": "rules/0",
+        "dataflow_version": "dataflow/0"
+      }
+    },
+    {
+      "id": "effect-proposal",
+      "instance": {
+        "kind": "EffectProposal",
+        "proposal_id": "proposal:1",
+        "effect_type": "artifact.publish",
+        "action_digest": "sha256:1010101010101010101010101010101010101010101010101010101010101010",
+        "cause_id": "evt:1",
+        "correlation_id": "run:1",
+        "proposal_dedup_key": "proposal-dedup:1",
+        "destination_digest": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+        "goal_id": "goal:1",
+        "obligation_id": "obligation:publish:1",
+        "declared_risk_hint": "high_risk_external",
+        "preconditions": ["frontier:7"],
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "state/0.1",
+          "event_schema": "event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m0-oracle/1",
+          "gate": "m0-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    },
+    {
+      "id": "eligibility-verdict",
+      "instance": {
+        "kind": "EligibilityVerdict",
+        "verdict_id": "verdict:1",
+        "proposal_id": "proposal:1",
+        "status": "eligible",
+        "support_derivation_ids": ["derivation:policy:1"],
+        "cause_id": "evt:1",
+        "rule_set_version": "rules/0"
+      }
+    },
+    {
+      "id": "stable-proposal-batch",
+      "instance": {
+        "kind": "StableProposalBatch",
+        "batch_id": "batch:1",
+        "logical_time": 7,
+        "low_watermark": 8,
+        "proposal_ids": ["proposal:1"],
+        "eligibility_verdict_ids": ["verdict:1"],
+        "batch_digest": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+        "cause_id": "evt:1",
+        "dataflow_version": "dataflow/0"
+      }
+    },
+    {
+      "id": "effect-intent",
+      "instance": {
+        "kind": "EffectIntent",
+        "intent_id": "intent:1",
+        "proposal_id": "proposal:1",
+        "batch_id": "batch:1",
+        "effect_type": "artifact.publish",
+        "action_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "capability": "capability:publish",
+        "authority_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "cause_id": "evt:1",
+        "correlation_id": "run:1",
+        "idempotency_key": "effect:1",
+        "destination_digest": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+        "goal_id": "goal:1",
+        "obligation_id": "obligation:publish:1",
+        "adapter_version": "publisher/1",
+        "assessed_risk": "high_risk_external",
+        "approval_required": true,
+        "approval_digest": "sha256:1515151515151515151515151515151515151515151515151515151515151515",
+        "preconditions": ["frontier:7", "approval:1"],
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "state/0.1",
+          "event_schema": "event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m0-oracle/1",
+          "gate": "m0-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    },
+    {
+      "id": "graph-envelope",
+      "instance": {
+        "kind": "GraphEnvelope",
+        "profile_version": "flrh-graph/v0",
+        "graph_kind": "G_sem",
+        "graph_id": "graph:sem:1",
+        "revision_id": "revision:1",
+        "base_revision_id": null,
+        "schema_ref": "schema:sem:0",
+        "schema_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "rule_bundle_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "envelope_canonicalization": {"algorithm": "flrh-cjson", "version": "1", "media_type": "application/vnd.flrh.canonical+json;version=1"},
+        "content_canonicalization": {"algorithm": "RDFC-1.0", "version": "1", "media_type": "application/n-quads"},
+        "content_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "source_snapshot_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "provenance_refs": ["prov:1"]
+      }
+    },
+    {
+      "id": "graph-delta",
+      "instance": {
+        "kind": "GraphDelta",
+        "delta_id": "delta:1",
+        "graph_id": "graph:sem:1",
+        "base_revision_id": "revision:1",
+        "new_revision_id": "revision:2",
+        "additions_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "deletions_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "causal_parent_delta_ids": ["delta:0"],
+        "producer_id": "producer:reactor:1",
+        "idempotency_key": "delta-key:1",
+        "logical_time": 8
+      }
+    },
+    {
+      "id": "action-receipt",
+      "instance": {
+        "kind": "ActionReceipt",
+        "intent_id": "intent:1",
+        "action_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "command_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "input_root_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "platform_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "cause_id": "evt:1",
+        "correlation_id": "run:1",
+        "capability": "capability:publish",
+        "authority_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "destination_digest": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+        "goal_id": "goal:1",
+        "obligation_id": "obligation:publish:1",
+        "adapter_version": "publisher/1",
+        "assessed_risk": "high_risk_external",
+        "approval_required": true,
+        "approval_digest": "sha256:1515151515151515151515151515151515151515151515151515151515151515",
+        "attempt_id": "attempt:1",
+        "idempotency_key": "effect:1",
+        "output_digests": ["sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"],
+        "outcome": "confirmed_success",
+        "trace_ref": null,
+        "recorded_at": "2026-08-08T00:00:02Z"
+      }
+    },
+    {
+      "id": "resolved-composition-receipt",
+      "instance": {
+        "kind": "ResolvedCompositionReceipt",
+        "source_spec_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "resolver_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "schema_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "rule_bundle_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "production_profile_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "harness_profile_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "normalized_production_graph_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "normalized_harness_graph_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "substitution_manifest_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "forbidden_delta_count": 0,
+        "production_root_reachable": true,
+        "equivalence_status": "equivalent",
+        "independent_verifier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      }
+    }
+  ]
+}

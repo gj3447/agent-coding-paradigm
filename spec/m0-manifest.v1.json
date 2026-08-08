@@ -1,0 +1,57 @@
+{
+  "schema_version": "m0-manifest/v1",
+  "status": "MEASURED_CHECKER_CONFORMANCE",
+  "normative_contracts": [
+    "spec/schema/protocol.v1.schema.json",
+    "spec/engine-decision.v1.json",
+    "spec/claims.v1.json",
+    "spec/canonicalization.v1.json",
+    "spec/logic-semantics.v0.json",
+    "spec/run-fsm.v1.json",
+    "spec/loop-contract.v1.json",
+    "spec/m0-manifest.v1.json"
+  ],
+  "self_validating_schemas": [
+    "spec/schema/protocol.v1.schema.json",
+    "spec/schema/engine-decision.v1.schema.json",
+    "spec/schema/claim-ledger.v1.schema.json",
+    "spec/schema/canonicalization.v1.schema.json",
+    "spec/schema/logic-semantics.v0.schema.json",
+    "spec/schema/run-fsm.v1.schema.json",
+    "spec/schema/run-fsm-traces.v1.schema.json",
+    "spec/schema/loop-contract.v1.schema.json",
+    "spec/schema/m0-manifest.v1.schema.json"
+  ],
+  "schema_bindings": [
+    {"artifact": "spec/engine-decision.v1.json", "schema": "spec/schema/engine-decision.v1.schema.json"},
+    {"artifact": "spec/claims.v1.json", "schema": "spec/schema/claim-ledger.v1.schema.json"},
+    {"artifact": "spec/canonicalization.v1.json", "schema": "spec/schema/canonicalization.v1.schema.json"},
+    {"artifact": "spec/logic-semantics.v0.json", "schema": "spec/schema/logic-semantics.v0.schema.json"},
+    {"artifact": "spec/run-fsm.v1.json", "schema": "spec/schema/run-fsm.v1.schema.json"},
+    {"artifact": "spec/loop-contract.v1.json", "schema": "spec/schema/loop-contract.v1.schema.json"},
+    {"artifact": "spec/m0-manifest.v1.json", "schema": "spec/schema/m0-manifest.v1.schema.json"}
+  ],
+  "conformance_fixtures": [
+    "fixtures/m0/valid/protocol-objects.json",
+    "fixtures/m0/invalid/protocol-mutations.json",
+    "fixtures/m0/logic/cases.json",
+    "fixtures/m0/canonical/cases.json",
+    "spec/run-fsm-traces.v1.json"
+  ],
+  "fixture_schema_bindings": [
+    {"artifact": "spec/run-fsm-traces.v1.json", "schema": "spec/schema/run-fsm-traces.v1.schema.json"}
+  ],
+  "non_normative_tools": [
+    "scripts/validate_m0.py",
+    "tests/test_m0_contracts.py"
+  ],
+  "gate": [
+    "All nine JSON Schemas are valid Draft 2020-12 schemas and every normative instance has a closed schema binding.",
+    "Every positive protocol fixture validates and every declared negative mutation fails.",
+    "The four-valued truth and default-negation tables are complete; unit-delta retraction preserves remaining support and rejects identity conflicts.",
+    "Canonical-equivalent cases have equal digests, ordered nested payload arrays remain distinct, and duplicate set members are rejected.",
+    "The sole-authority outer FSM passes static validation, typed event and authority checks, declared transition and guard coverage, terminal coverage, and interrupt coverage.",
+    "The bounded loop profile is digest-bound to that FSM and passes budget, effect, checkpoint, approval, verification, security, and replay checks."
+  ],
+  "completion_boundary": "M0 records checker-relative contract conformance only. It is not an implemented F/L/R/H runtime, crash-recovery proof, production receipt, comparative efficacy result, originality claim, or Lakatos progress verdict."
+}

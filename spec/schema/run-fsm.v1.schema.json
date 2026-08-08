@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/run-fsm.v1.schema.json",
+  "title": "FLR-H authoritative outer FSM v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "authority", "execution", "context_schema", "event_schema", "event_authority", "guards", "effects", "machines", "global_interrupts", "safety_properties", "liveness_properties", "trace_fixtures", "conformance"],
+  "properties": {
+    "schema_version": {"const": "flrh-run-fsm/v1"},
+    "name": {"$ref": "#/$defs/text"},
+    "authority": {"const": "sole-authoritative-outer-control-fsm"},
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step_interface", "event_queue", "run_to_completion", "action_order"],
+      "properties": {
+        "step_interface": {"$ref": "#/$defs/text"},
+        "event_queue": {"$ref": "#/$defs/text"},
+        "run_to_completion": {"$ref": "#/$defs/text"},
+        "action_order": {"$ref": "#/$defs/text"}
+      }
+    },
+    "context_schema": {"type": "object", "minProperties": 1},
+    "event_schema": {"type": "object", "minProperties": 1},
+    "event_authority": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[A-Z][A-Z0-9_]*$"},
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {"$ref": "#/$defs/authorityPair"}
+      }
+    },
+    "guards": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+      "additionalProperties": {"$ref": "#/$defs/guard"}
+    },
+    "effects": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[A-Z][A-Za-z0-9]*$"},
+      "additionalProperties": {"$ref": "#/$defs/effect"}
+    },
+    "machines": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"$ref": "#/$defs/machine"}},
+    "global_interrupts": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/interrupt"}},
+    "safety_properties": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/property"}},
+    "liveness_properties": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/liveness"}},
+    "trace_fixtures": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation_step", "model_trace_runner", "contract_tests"],
+      "properties": {
+        "implementation_step": {"$ref": "#/$defs/text"},
+        "model_trace_runner": {"$ref": "#/$defs/text"},
+        "contract_tests": {"$ref": "#/$defs/text"}
+      }
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "lowerId": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+    "strings": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "authorityPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_role", "capability"],
+      "properties": {
+        "actor_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "capability": {"type": "string", "pattern": "^[a-z][a-z0-9_.]*$"}
+      }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reads", "pure", "synchronous"],
+      "properties": {
+        "reads": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "operator": {"enum": ["all_true"]},
+        "pure": {"const": true},
+        "synchronous": {"const": true}
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "payload_schema"],
+      "properties": {
+        "kind": {"enum": ["command", "audit"]},
+        "payload_schema": {"type": "object", "minProperties": 1}
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["atomic", "final"]},
+        "outcome_category": {"enum": ["success", "permanent_failure", "retry_exhausted", "budget_exhausted", "timeout", "canceled", "pathology", "saturated", "unknown_external_outcome"]}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "final"}}, "required": ["kind"]}, "then": {"required": ["outcome_category"]}},
+        {"if": {"properties": {"kind": {"const": "atomic"}}, "required": ["kind"]}, "then": {"not": {"required": ["outcome_category"]}}}
+      ]
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "event", "to", "effects", "evidence_required"],
+      "properties": {
+        "id": {"$ref": "#/$defs/lowerId"},
+        "from": {"$ref": "#/$defs/id"},
+        "event": {"$ref": "#/$defs/id"},
+        "to": {"$ref": "#/$defs/id"},
+        "guard": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "effects": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$"}},
+        "evidence_required": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}}
+      }
+    },
+    "machine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "initial", "states", "events", "invalid_event_policy", "transitions"],
+      "properties": {
+        "id": {"const": "control"},
+        "initial": {"$ref": "#/$defs/id"},
+        "states": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/state"}},
+        "events": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "invalid_event_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "guard_false", "authority_failure", "schema_failure", "state_change", "effect"],
+          "properties": {
+            "mode": {"const": "reject-and-audit"},
+            "guard_false": {"const": "reject-and-audit"},
+            "authority_failure": {"const": "reject-and-audit"},
+            "schema_failure": {"const": "reject-and-audit"},
+            "state_change": {"const": "none"},
+            "effect": {"const": "AuditInvalidTransition"}
+          }
+        },
+        "transitions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/transition"}}
+      }
+    },
+    "interrupt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "to", "safe_behavior", "deferred_in_states", "deferred_effect", "deferred_behavior"],
+      "properties": {
+        "event": {"enum": ["CANCEL", "TIMEOUT", "BUDGET_EXHAUSTED"]},
+        "to": {"enum": ["CANCELED", "TIMED_OUT", "BUDGET_EXHAUSTED"]},
+        "safe_behavior": {"const": "terminate"},
+        "deferred_in_states": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "deferred_effect": {"const": "PersistPendingInterrupt"},
+        "deferred_behavior": {"$ref": "#/$defs/text"}
+      }
+    },
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement"],
+      "properties": {"id": {"$ref": "#/$defs/lowerId"}, "statement": {"$ref": "#/$defs/text"}}
+    },
+    "liveness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement", "assumptions"],
+      "properties": {"id": {"$ref": "#/$defs/lowerId"}, "statement": {"$ref": "#/$defs/text"}, "assumptions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}}}
+    }
+  }
+}

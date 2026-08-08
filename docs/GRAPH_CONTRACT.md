@@ -1,6 +1,6 @@
 # FLRH Graph Interoperability Profile v0
 
-> Status: PROPOSED / NOT AN INDUSTRY STANDARD / NOT CANON
+> Status: M0 ENVELOPES MACHINE-VALIDATED / GRAPH MECHANICS NOT IMPLEMENTED / NOT AN INDUSTRY STANDARD
 
 ## Typed federation
 
@@ -41,10 +41,11 @@ GraphEnvelope
   base_revision_id?
   schema_ref + schema_digest
   rule_bundle_digest?
-  resolver_ref + resolver_digest?
+  resolver_digest?
   environment_profile_digest?
-  canonicalization_algorithm + version + media_type
-  content_digest_algorithm + content_digest
+  envelope_canonicalization { flrh-cjson + version + media_type }
+  content_canonicalization { graph algorithm + version + media_type }
+  content_digest
   source_snapshot_digest
   provenance_refs[]
 
@@ -58,7 +59,7 @@ GraphDelta
   causal_parent_delta_ids[]
   producer_id
   idempotency_key
-  sequence_or_frontier
+  logical_time
 
 ResolvedCompositionReceipt
   source_spec_digest
@@ -71,18 +72,28 @@ ResolvedCompositionReceipt
   normalized_harness_graph_digest
   substitution_manifest_digest
   forbidden_delta_count
-  production_root_reachability_result
+  production_root_reachable
+  equivalence_status
+  independent_verifier_digest
 
 ActionReceipt
+  intent_id
   action_digest
   command_digest
   input_root_digest
   platform_digest
+  cause_id + correlation_id
+  capability + authority_digest
+  destination_digest
+  goal_id + obligation_id
+  adapter_version
+  assessed_risk + approval_required + approval_digest?
   attempt_id
   idempotency_key
   output_digests[]
-  terminal_status
+  outcome: confirmed_success | confirmed_failure | outcome_unknown
   trace_ref
+  recorded_at
 ```
 
 ## Invariants
@@ -100,11 +111,13 @@ ActionReceipt
 11. Migration declares `lossless` or enumerated `lossy` semantics and preserves revision lineage.
 12. Canonicalization, fixpoint, causal depth, and queues have explicit budgets and no-progress behavior.
 
+The normative M0 shapes in [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json) cover envelopes, deltas, and receipts only. They do **not** yet validate graph-kind-specific node/edge payloads; that is an explicit M5 gate. A successful `ResolvedCompositionReceipt` requires zero forbidden delta and a reachable production root; it does not require literal production/harness graph-digest equality when an approved substitution manifest accounts for adapter differences.
+
 ## Baseline standards profile
 
 - RDF 1.1-compatible core representation; RDF 1.2 features remain optional until the selected processor matrix is stable.
 - SHACL 1.0 Recommendation with pinned processor and version for mandatory structural gates.
 - PROV-O vocabulary for provenance, without treating derivation as physical causality or correctness.
-- RDFC-1.0 or another explicitly pinned algorithm for canonical dataset bytes.
+- RDFC-1.0 or another explicitly pinned algorithm for canonical dataset bytes. Its algorithm/version/media type is bound separately from the JSON envelope canonicalizer.
 - Property-graph/GQL support only as an adapter with enumerated round-trip loss.
 - OpenTelemetry only as trace projection; durable receipts live outside sampled traces.

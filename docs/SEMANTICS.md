@@ -1,18 +1,18 @@
 # FLR-H Execution Semantics v0
 
-> Status: PROPOSED / NOT CANON / NOT IMPLEMENTED
+> Status: M0 MACHINE CONTRACT PRESENT / NOT CANON / NOT IMPLEMENTED
 
 ## Boundary types
 
 ```text
-type LogicalTime
-type Frontier = Antichain<LogicalTime>
+type LogicalTime = Int64 where value >= 0
+type FrontierV0 = LowWatermark<LogicalTime>
 type RuleSetVersion
 type DataflowVersion
 type SchemaVersion
 type CauseId
 type DerivationId
-type Weight = Int64
+type UnitDelta = -1 | +1
 
 AcceptedEvent<E> = {
   payload: E,
@@ -22,24 +22,42 @@ AcceptedEvent<E> = {
   correlation_id: Id,
   causation_id: CauseId?,
   idempotency_key: Id,
-  schema_version: SchemaVersion
+  versions: VersionEnvelope
 }
 
 FactDelta<F> = {
   tuple: F,
-  time: LogicalTime,
-  diff: Weight,
-  derivation: DerivationId,
+  logical_time: LogicalTime,
+  diff: UnitDelta,
+  derivation_id: DerivationId,
+  causation_id: CauseId,
   provenance_delta: ProvenanceExpr,
   rule_set_version: RuleSetVersion
 }
 
+EffectProposal<Eff> = {
+  proposal_id: Id,
+  effect_type: Eff,
+  cause_id: CauseId,
+  action_digest: Digest,
+  destination_digest: Digest,
+  goal_id: Id,
+  obligation_id: Id,
+  correlation_id: Id,
+  proposal_dedup_key: Id,
+  declared_risk_hint: read_only | reversible | high_risk_external | unknown,
+  preconditions: PredicateSet,
+  versions: VersionEnvelope
+}
+
+EligibilityVerdict = { proposal_id, eligible | ineligible | conflicted, support_derivation_ids }
+StableProposalBatch = { epoch, strict_low_watermark, proposal_ids, eligibility_verdict_ids, digest }
 EffectIntent<Eff, Cap> = {
-  effect: Eff,
-  capability: Cap,
-  cause: CauseId,
-  idempotency_key: Id,
-  preconditions: PredicateSet
+  intent_id, proposal_id, batch_id, effect_type: Eff, action_digest,
+  cause_id, correlation_id, destination_digest, goal_id, obligation_id,
+  capability: Cap, authority_digest, assessed_risk,
+  adapter_version, idempotency_key, approval_digest?, approval_required,
+  preconditions, versions
 }
 ```
 
@@ -47,7 +65,7 @@ EffectIntent<Eff, Cap> = {
 
 `step_F(snapshot, event)` has no ambient effects. Clock, randomness, filesystem, network, credentials, model responses, and tool results enter as recorded inputs. Identical snapshot, event, and version inputs must yield byte-stable canonical transition output.
 
-F may emit an effect intent; it may not execute the effect. It may reject malformed or incompatible inputs with a typed reason and no mutation.
+F may emit an authority-free effect proposal; it may neither authorize nor execute it. `declared_risk_hint` is untrusted input to H, and `proposal_dedup_key` only deduplicates proposal values. Neither is an approval decision or the final external-effect identity. F may reject malformed or incompatible inputs with a typed reason and no mutation.
 
 ## L — logic semantics
 
@@ -56,26 +74,26 @@ The v0 core uses:
 - stratified negation;
 - semi-naive least-fixpoint evaluation within a stratum;
 - explicit four-valued evidence state: `NEITHER`, `TRUE_ONLY`, `FALSE_ONLY`, `BOTH`;
-- derivation counts or equivalent support tracking;
+- derivation-identity support sets with unit `+1/-1` deltas;
 - qualified provenance that changes with each signed delta;
 - explicit conflict results instead of arbitrary rule order;
 - versioned rule bundles and deterministic worklist ordering.
 
-Negative recursion is outside the v0 core. A Well-Founded Semantics profile may be promoted only when a real task corpus requires it and conformance fixtures specify every truth state.
+Default negation succeeds when positive support is absent in a completed lower stratum: `NEITHER` and `FALSE_ONLY` pass; `TRUE_ONLY` and `BOTH` fail. Negative recursion is outside the v0 core. A Well-Founded Semantics profile may be promoted only when a real task corpus requires it and conformance fixtures specify every truth state.
 
 Retraction removes a support derivation, not blindly the derived tuple. If `a -> c` and `b -> c`, retracting `a` must retain `c` through `b`. The final support removal retracts `c` and its affected reverse closure.
 
 ## R — reactive semantics
 
-R consumes versioned signed deltas shaped as `(tuple, logical_time, diff)`. Positive weights add support; negative weights retract support. R owns dependency readiness, invalidation, timer/watermark inputs, demand, bounded queues, and backpressure policy.
+R consumes versioned unit deltas shaped as `(tuple, logical_time, diff)` where `diff ∈ {-1,+1}`. `+1` inserts one named derivation support and `-1` retracts that same identity; repeated byte-identical insertion is idempotent, not multiplicity. R owns dependency readiness, invalidation, timer/watermark inputs, demand, bounded queues, and backpressure policy.
 
-R publishes one stable reaction batch only after the frontier passes the logical epoch. No irreversible effect may observe an intermediate half-fixpoint. A late event follows an explicit correction, retraction, rejection, or compensation policy.
+R publishes one stable reaction batch only when the v0 scalar low watermark is strictly greater than the logical epoch. No irreversible effect may observe an intermediate half-fixpoint. General partially ordered antichain time is outside v0. A late event follows an explicit correction, retraction, rejection, or compensation policy.
 
 Continuous FRP `Behavior` values are not required in the core. They belong in UI/sensor adapters when a task needs continuous time-varying values.
 
 ## H — control semantics
 
-H owns continuation and real-world closure. It decides when accepted transitions commit, when an authorized intent is dispatched, how an unknown outcome is reconciled, and whether evidence satisfies a terminal predicate.
+H owns continuation, policy/capability enforcement, intent creation, approval binding, and real-world closure. It independently produces `assessed_risk` and the final effect `idempotency_key`; it must not trust the proposal hint as authority. H decides when accepted transitions commit, when an authorized intent is dispatched, how an unknown outcome is reconciled, and whether evidence satisfies a terminal predicate.
 
 Model output may propose goals, commands, facts, rules, or diagnostics. It cannot directly commit authoritative state, mint capabilities, or sign terminal success.
 
@@ -84,12 +102,12 @@ Model output may propose goals, commands, facts, rules, or diagnostics. It canno
 ```text
 accepted event at epoch t
   -> pure F transition
-  -> base FactDelta(+/-)
-  -> L semi-naive fixpoint at t
+  -> base FactDelta(+1/-1) + EffectProposal
+  -> L semi-naive fixpoint + EligibilityVerdict at t
   -> frontier passes t
-  -> R publishes one stable reaction batch
-  -> L authorization
-  -> H atomically commits state/events + outbox intent
+  -> R publishes one StableProposalBatch
+  -> H policy/capability/approval gate
+  -> H atomically commits state/events + EffectIntent/outbox
   -> external effect attempt
   -> durable receipt or unknown outcome
   -> reconciliation
@@ -110,3 +128,5 @@ Every resumable run pins at least:
 - canonicalization algorithm and media type.
 
 Mismatch yields an explicit migration or `CHECKPOINT_INCOMPATIBLE`; it never silently resumes.
+
+The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), and [`canonicalization.v1.json`](../spec/canonicalization.v1.json). This prose is a view of those contracts.

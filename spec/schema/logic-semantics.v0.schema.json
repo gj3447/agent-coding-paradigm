@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/logic-semantics.v0.schema.json",
+  "title": "FLR-H logic semantics v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "support_model", "truth_states", "explicit_negation", "default_negation", "retraction", "stratification", "logical_time", "outside_v0"],
+  "properties": {
+    "schema_version": {"const": "logic-semantics/v0"},
+    "status": {"enum": ["PROPOSED", "MEASURED_TABLE_CONFORMANCE"]},
+    "support_model": {"$ref": "#/$defs/text"},
+    "truth_states": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["positive_support_present", "negative_support_present", "state"],
+        "properties": {
+          "positive_support_present": {"type": "boolean"},
+          "negative_support_present": {"type": "boolean"},
+          "state": {"$ref": "#/$defs/truth"}
+        }
+      }
+    },
+    "explicit_negation": {"$ref": "#/$defs/twoTexts"},
+    "default_negation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operator", "succeeds_when", "truth_table", "stability_rule"],
+      "properties": {
+        "operator": {"const": "not"},
+        "succeeds_when": {"$ref": "#/$defs/text"},
+        "truth_table": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["state", "succeeds"],
+            "properties": {"state": {"$ref": "#/$defs/truth"}, "succeeds": {"type": "boolean"}}
+          }
+        },
+        "stability_rule": {"$ref": "#/$defs/text"}
+      }
+    },
+    "retraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "delta_domain", "rules"],
+      "properties": {
+        "target": {"const": "derivation_id"},
+        "delta_domain": {"const": [-1, 1]},
+        "rules": {"$ref": "#/$defs/texts"}
+      }
+    },
+    "stratification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive_recursion", "negative_dependency", "negative_cycle", "worklist_order", "limits"],
+      "properties": {
+        "positive_recursion": {"$ref": "#/$defs/text"},
+        "negative_dependency": {"$ref": "#/$defs/text"},
+        "negative_cycle": {"$ref": "#/$defs/text"},
+        "worklist_order": {"$ref": "#/$defs/text"},
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_rule_firings", "max_derivation_depth", "nonconvergence_outcome"],
+          "properties": {
+            "max_rule_firings": {"type": "integer", "minimum": 1},
+            "max_derivation_depth": {"type": "integer", "minimum": 1},
+            "nonconvergence_outcome": {"const": "RULE_BUDGET_EXHAUSTED"}
+          }
+        }
+      }
+    },
+    "logical_time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["representation", "frontier_rule", "late_event_policy"],
+      "properties": {
+        "representation": {"$ref": "#/$defs/text"},
+        "frontier_rule": {"$ref": "#/$defs/text"},
+        "late_event_policy": {"$ref": "#/$defs/text"}
+      }
+    },
+    "outside_v0": {"$ref": "#/$defs/texts"}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "texts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "truth": {"enum": ["NEITHER", "TRUE_ONLY", "FALSE_ONLY", "BOTH"]},
+    "twoTexts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["meaning", "conflict"],
+      "properties": {"meaning": {"$ref": "#/$defs/text"}, "conflict": {"$ref": "#/$defs/text"}}
+    }
+  }
+}

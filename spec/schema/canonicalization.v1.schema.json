@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/canonicalization.v1.schema.json",
+  "title": "FLR-H canonicalization profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "algorithm", "algorithm_version", "media_type", "status", "purpose", "encoding", "normalization", "set_like_paths_by_kind", "domain_restrictions", "digest"],
+  "properties": {
+    "schema_version": {"const": "canonicalization/v1"},
+    "algorithm": {"const": "flrh-cjson"},
+    "algorithm_version": {"const": "1"},
+    "media_type": {"const": "application/vnd.flrh.canonical+json;version=1"},
+    "status": {"enum": ["PROPOSED", "MEASURED_LOCAL_FIXTURE_CONFORMANCE"]},
+    "purpose": {"$ref": "#/$defs/text"},
+    "encoding": {"const": "UTF-8 without BOM"},
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strings", "object_keys", "whitespace", "null_vs_omitted", "numbers", "booleans_and_null", "object_members", "ordered_arrays", "set_like_arrays"],
+      "properties": {
+        "strings": {"$ref": "#/$defs/text"},
+        "object_keys": {"$ref": "#/$defs/text"},
+        "whitespace": {"$ref": "#/$defs/text"},
+        "null_vs_omitted": {"$ref": "#/$defs/text"},
+        "numbers": {"$ref": "#/$defs/text"},
+        "booleans_and_null": {"$ref": "#/$defs/text"},
+        "object_members": {"$ref": "#/$defs/text"},
+        "ordered_arrays": {"$ref": "#/$defs/text"},
+        "set_like_arrays": {"$ref": "#/$defs/text"}
+      }
+    },
+    "set_like_paths_by_kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["EffectProposal", "EligibilityVerdict", "StableProposalBatch", "EffectIntent", "GraphEnvelope", "GraphDelta", "ActionReceipt"],
+      "properties": {
+        "EffectProposal": {"$ref": "#/$defs/pointers"},
+        "EligibilityVerdict": {"$ref": "#/$defs/pointers"},
+        "StableProposalBatch": {"$ref": "#/$defs/pointers"},
+        "EffectIntent": {"$ref": "#/$defs/pointers"},
+        "GraphEnvelope": {"$ref": "#/$defs/pointers"},
+        "GraphDelta": {"$ref": "#/$defs/pointers"},
+        "ActionReceipt": {"$ref": "#/$defs/pointers"}
+      }
+    },
+    "domain_restrictions": {"$ref": "#/$defs/texts"},
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "encoding", "external_form"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "encoding": {"$ref": "#/$defs/text"},
+        "external_form": {"$ref": "#/$defs/text"}
+      }
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "texts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "pointers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^/"}}
+  }
+}

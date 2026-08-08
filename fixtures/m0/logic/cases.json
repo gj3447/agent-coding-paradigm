@@ -1,0 +1,123 @@
+{
+  "schema_version": "logic-fixtures/v0",
+  "truth_state_cases": [
+    {"positive": 0, "negative": 0, "expected": "NEITHER"},
+    {"positive": 2, "negative": 0, "expected": "TRUE_ONLY"},
+    {"positive": 0, "negative": 1, "expected": "FALSE_ONLY"},
+    {"positive": 2, "negative": 3, "expected": "BOTH"}
+  ],
+  "default_negation_cases": [
+    {"state": "NEITHER", "expected": true},
+    {"state": "TRUE_ONLY", "expected": false},
+    {"state": "FALSE_ONLY", "expected": true},
+    {"state": "BOTH", "expected": false}
+  ],
+  "retraction_cases": [
+    {
+      "id": "one-of-two-positive-supports-survives",
+      "initial_supports": [
+        {"derivation_id": "d:positive:1", "polarity": "positive"},
+        {"derivation_id": "d:positive:2", "polarity": "positive"}
+      ],
+      "remove": ["d:positive:1"],
+      "expected_state": "TRUE_ONLY",
+      "expected_remaining": ["d:positive:2"]
+    },
+    {
+      "id": "last-positive-support-removal",
+      "initial_supports": [
+        {"derivation_id": "d:positive:1", "polarity": "positive"}
+      ],
+      "remove": ["d:positive:1"],
+      "expected_state": "NEITHER",
+      "expected_remaining": []
+    },
+    {
+      "id": "conflict-preserved-after-one-positive-removal",
+      "initial_supports": [
+        {"derivation_id": "d:positive:1", "polarity": "positive"},
+        {"derivation_id": "d:positive:2", "polarity": "positive"},
+        {"derivation_id": "d:negative:1", "polarity": "negative"}
+      ],
+      "remove": ["d:positive:1"],
+      "expected_state": "BOTH",
+      "expected_remaining": ["d:negative:1", "d:positive:2"]
+    }
+  ],
+  "retraction_conflict_cases": [
+    {
+      "id": "unknown-derivation-target",
+      "initial_supports": [{"derivation_id": "d:positive:1", "polarity": "positive"}],
+      "remove": ["d:missing"],
+      "expected": "UNKNOWN_DERIVATION"
+    },
+    {
+      "id": "double-retraction-underflow",
+      "initial_supports": [{"derivation_id": "d:positive:1", "polarity": "positive"}],
+      "remove": ["d:positive:1", "d:positive:1"],
+      "expected": "UNKNOWN_DERIVATION"
+    },
+    {
+      "id": "derivation-identity-content-conflict",
+      "initial_supports": [
+        {"derivation_id": "d:shared", "polarity": "positive"},
+        {"derivation_id": "d:shared", "polarity": "negative"}
+      ],
+      "remove": [],
+      "expected": "DERIVATION_IDENTITY_CONFLICT"
+    }
+  ],
+  "derivation_identity_cases": [
+    {
+      "id": "exact-support-duplicate",
+      "left_id": "d:shared",
+      "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "right_id": "d:shared",
+      "right_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected": "IDEMPOTENT_DUPLICATE"
+    },
+    {
+      "id": "support-identity-content-conflict",
+      "left_id": "d:shared",
+      "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "right_id": "d:shared",
+      "right_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "expected": "DERIVATION_IDENTITY_CONFLICT"
+    },
+    {
+      "id": "distinct-support-identities",
+      "left_id": "d:1",
+      "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "right_id": "d:2",
+      "right_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected": "DISTINCT"
+    }
+  ],
+  "effect_identity_cases": [
+    {"id": "exact-duplicate", "left_key": "effect:1", "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "right_key": "effect:1", "right_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected": "IDEMPOTENT_DUPLICATE"},
+    {"id": "identity-content-conflict", "left_key": "effect:1", "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "right_key": "effect:1", "right_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "expected": "IDEMPOTENCY_CONFLICT"},
+    {"id": "distinct-intents", "left_key": "effect:1", "left_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "right_key": "effect:2", "right_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "expected": "DISTINCT"}
+  ],
+  "stratification_cases": [
+    {
+      "id": "lower-stratum-default-negation",
+      "dependencies": [
+        {"from": "rule:high", "to": "rule:low", "polarity": "negative", "from_stratum": 1, "to_stratum": 0}
+      ],
+      "expected": "ACCEPT"
+    },
+    {
+      "id": "same-stratum-negative-cycle",
+      "dependencies": [
+        {"from": "rule:a", "to": "rule:b", "polarity": "negative", "from_stratum": 0, "to_stratum": 0},
+        {"from": "rule:b", "to": "rule:a", "polarity": "negative", "from_stratum": 0, "to_stratum": 0}
+      ],
+      "expected": "OUTSIDE_V0_NEGATIVE_RECURSION"
+    }
+  ],
+  "frontier_cases": [
+    {"epoch": 7, "low_watermark": 8, "publish": true},
+    {"epoch": 7, "low_watermark": 7, "publish": false},
+    {"epoch": 7, "low_watermark": 6, "publish": false}
+  ]
+}

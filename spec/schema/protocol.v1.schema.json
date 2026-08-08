@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json",
+  "title": "FLR-H protocol objects v1",
+  "description": "Language-neutral M0 boundary contracts. Validation proves shape only, not runtime behavior or efficacy.",
+  "oneOf": [
+    {"$ref": "#/$defs/AcceptedEvent"},
+    {"$ref": "#/$defs/FactDelta"},
+    {"$ref": "#/$defs/EffectProposal"},
+    {"$ref": "#/$defs/EligibilityVerdict"},
+    {"$ref": "#/$defs/StableProposalBatch"},
+    {"$ref": "#/$defs/EffectIntent"},
+    {"$ref": "#/$defs/GraphEnvelope"},
+    {"$ref": "#/$defs/GraphDelta"},
+    {"$ref": "#/$defs/ActionReceipt"},
+    {"$ref": "#/$defs/ResolvedCompositionReceipt"}
+  ],
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "Version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:+/-]*$"
+    },
+    "Digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "VersionEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow",
+        "state_schema",
+        "event_schema",
+        "graph_schema",
+        "rule_set",
+        "dataflow",
+        "canonicalization",
+        "tool",
+        "model",
+        "oracle",
+        "gate",
+        "resolver",
+        "composition_profile"
+      ],
+      "properties": {
+        "workflow": {"$ref": "#/$defs/Version"},
+        "state_schema": {"$ref": "#/$defs/Version"},
+        "event_schema": {"$ref": "#/$defs/Version"},
+        "graph_schema": {"$ref": "#/$defs/Version"},
+        "rule_set": {"$ref": "#/$defs/Version"},
+        "dataflow": {"$ref": "#/$defs/Version"},
+        "canonicalization": {"$ref": "#/$defs/Version"},
+        "tool": {"$ref": "#/$defs/Version"},
+        "model": {"$ref": "#/$defs/Version"},
+        "oracle": {"$ref": "#/$defs/Version"},
+        "gate": {"$ref": "#/$defs/Version"},
+        "resolver": {"$ref": "#/$defs/Version"},
+        "composition_profile": {"$ref": "#/$defs/Version"}
+      }
+    },
+    "AcceptedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "event_id",
+        "payload",
+        "occurred_at",
+        "received_at",
+        "logical_time",
+        "correlation_id",
+        "causation_id",
+        "idempotency_key",
+        "versions"
+      ],
+      "properties": {
+        "kind": {"const": "AcceptedEvent"},
+        "event_id": {"$ref": "#/$defs/Id"},
+        "payload": {"type": "object"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "received_at": {"type": "string", "format": "date-time"},
+        "logical_time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "correlation_id": {"$ref": "#/$defs/Id"},
+        "causation_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "idempotency_key": {"$ref": "#/$defs/Id"},
+        "versions": {"$ref": "#/$defs/VersionEnvelope"}
+      }
+    },
+    "FactDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "tuple",
+        "logical_time",
+        "diff",
+        "derivation_id",
+        "causation_id",
+        "provenance_delta",
+        "rule_set_version",
+        "dataflow_version"
+      ],
+      "properties": {
+        "kind": {"const": "FactDelta"},
+        "tuple": {"type": "object", "minProperties": 1},
+        "logical_time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "diff": {"enum": [-1, 1]},
+        "derivation_id": {"$ref": "#/$defs/Id"},
+        "causation_id": {"$ref": "#/$defs/Id"},
+        "provenance_delta": {"type": "object", "minProperties": 1},
+        "rule_set_version": {"$ref": "#/$defs/Version"},
+        "dataflow_version": {"$ref": "#/$defs/Version"}
+      }
+    },
+    "EffectProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "proposal_id",
+        "effect_type",
+        "action_digest",
+        "cause_id",
+        "correlation_id",
+        "proposal_dedup_key",
+        "destination_digest",
+        "goal_id",
+        "obligation_id",
+        "declared_risk_hint",
+        "preconditions",
+        "versions"
+      ],
+      "properties": {
+        "kind": {"const": "EffectProposal"},
+        "proposal_id": {"$ref": "#/$defs/Id"},
+        "effect_type": {"$ref": "#/$defs/Id"},
+        "action_digest": {"$ref": "#/$defs/Digest"},
+        "cause_id": {"$ref": "#/$defs/Id"},
+        "correlation_id": {"$ref": "#/$defs/Id"},
+        "proposal_dedup_key": {"$ref": "#/$defs/Id"},
+        "destination_digest": {"$ref": "#/$defs/Digest"},
+        "goal_id": {"$ref": "#/$defs/Id"},
+        "obligation_id": {"$ref": "#/$defs/Id"},
+        "declared_risk_hint": {"enum": ["read_only", "reversible", "high_risk_external", "unknown"]},
+        "preconditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "versions": {"$ref": "#/$defs/VersionEnvelope"}
+      }
+    },
+    "EligibilityVerdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "verdict_id",
+        "proposal_id",
+        "status",
+        "support_derivation_ids",
+        "cause_id",
+        "rule_set_version"
+      ],
+      "properties": {
+        "kind": {"const": "EligibilityVerdict"},
+        "verdict_id": {"$ref": "#/$defs/Id"},
+        "proposal_id": {"$ref": "#/$defs/Id"},
+        "status": {"enum": ["eligible", "ineligible", "conflicted"]},
+        "support_derivation_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "cause_id": {"$ref": "#/$defs/Id"},
+        "rule_set_version": {"$ref": "#/$defs/Version"}
+      }
+    },
+    "StableProposalBatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "batch_id",
+        "logical_time",
+        "low_watermark",
+        "proposal_ids",
+        "eligibility_verdict_ids",
+        "batch_digest",
+        "cause_id",
+        "dataflow_version"
+      ],
+      "properties": {
+        "kind": {"const": "StableProposalBatch"},
+        "batch_id": {"$ref": "#/$defs/Id"},
+        "logical_time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "low_watermark": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "proposal_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "eligibility_verdict_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "batch_digest": {"$ref": "#/$defs/Digest"},
+        "cause_id": {"$ref": "#/$defs/Id"},
+        "dataflow_version": {"$ref": "#/$defs/Version"}
+      }
+    },
+    "EffectIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "intent_id",
+        "proposal_id",
+        "batch_id",
+        "effect_type",
+        "action_digest",
+        "capability",
+        "authority_digest",
+        "cause_id",
+        "correlation_id",
+        "idempotency_key",
+        "destination_digest",
+        "goal_id",
+        "obligation_id",
+        "adapter_version",
+        "assessed_risk",
+        "approval_required",
+        "approval_digest",
+        "preconditions",
+        "versions"
+      ],
+      "properties": {
+        "kind": {"const": "EffectIntent"},
+        "intent_id": {"$ref": "#/$defs/Id"},
+        "proposal_id": {"$ref": "#/$defs/Id"},
+        "batch_id": {"$ref": "#/$defs/Id"},
+        "effect_type": {"$ref": "#/$defs/Id"},
+        "action_digest": {"$ref": "#/$defs/Digest"},
+        "capability": {"$ref": "#/$defs/Id"},
+        "authority_digest": {"$ref": "#/$defs/Digest"},
+        "cause_id": {"$ref": "#/$defs/Id"},
+        "correlation_id": {"$ref": "#/$defs/Id"},
+        "idempotency_key": {"$ref": "#/$defs/Id"},
+        "destination_digest": {"$ref": "#/$defs/Digest"},
+        "goal_id": {"$ref": "#/$defs/Id"},
+        "obligation_id": {"$ref": "#/$defs/Id"},
+        "adapter_version": {"$ref": "#/$defs/Version"},
+        "assessed_risk": {"enum": ["read_only", "reversible", "high_risk_external"]},
+        "approval_required": {"type": "boolean"},
+        "approval_digest": {
+          "oneOf": [
+            {"$ref": "#/$defs/Digest"},
+            {"type": "null"}
+          ]
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "versions": {"$ref": "#/$defs/VersionEnvelope"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"assessed_risk": {"const": "high_risk_external"}}, "required": ["assessed_risk"]},
+          "then": {"properties": {"approval_required": {"const": true}}}
+        },
+        {
+          "if": {"properties": {"approval_required": {"const": true}}, "required": ["approval_required"]},
+          "then": {"properties": {"approval_digest": {"$ref": "#/$defs/Digest"}}}
+        },
+        {
+          "if": {"properties": {"approval_required": {"const": false}}, "required": ["approval_required"]},
+          "then": {"properties": {"approval_digest": {"type": "null"}}}
+        }
+      ]
+    },
+    "EnvelopeCanonicalizationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "version", "media_type"],
+      "properties": {
+        "algorithm": {"const": "flrh-cjson"},
+        "version": {"const": "1"},
+        "media_type": {"const": "application/vnd.flrh.canonical+json;version=1"}
+      }
+    },
+    "ContentCanonicalizationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "version", "media_type"],
+      "properties": {
+        "algorithm": {"type": "string", "minLength": 1, "maxLength": 128},
+        "version": {"$ref": "#/$defs/Version"},
+        "media_type": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
+    "GraphEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "profile_version",
+        "graph_kind",
+        "graph_id",
+        "revision_id",
+        "schema_ref",
+        "schema_digest",
+        "envelope_canonicalization",
+        "content_canonicalization",
+        "content_digest",
+        "source_snapshot_digest",
+        "provenance_refs"
+      ],
+      "properties": {
+        "kind": {"const": "GraphEnvelope"},
+        "profile_version": {"const": "flrh-graph/v0"},
+        "graph_kind": {"enum": ["G_sem", "G_dep", "G_comp", "G_action", "G_trace", "G_prov", "G_schema"]},
+        "graph_id": {"$ref": "#/$defs/Id"},
+        "revision_id": {"$ref": "#/$defs/Id"},
+        "base_revision_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "schema_ref": {"$ref": "#/$defs/Id"},
+        "schema_digest": {"$ref": "#/$defs/Digest"},
+        "rule_bundle_digest": {"$ref": "#/$defs/Digest"},
+        "resolver_digest": {"$ref": "#/$defs/Digest"},
+        "environment_profile_digest": {"$ref": "#/$defs/Digest"},
+        "envelope_canonicalization": {"$ref": "#/$defs/EnvelopeCanonicalizationProfile"},
+        "content_canonicalization": {"$ref": "#/$defs/ContentCanonicalizationProfile"},
+        "content_digest": {"$ref": "#/$defs/Digest"},
+        "source_snapshot_digest": {"$ref": "#/$defs/Digest"},
+        "provenance_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "GraphDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "delta_id",
+        "graph_id",
+        "base_revision_id",
+        "new_revision_id",
+        "additions_digest",
+        "deletions_digest",
+        "causal_parent_delta_ids",
+        "producer_id",
+        "idempotency_key",
+        "logical_time"
+      ],
+      "properties": {
+        "kind": {"const": "GraphDelta"},
+        "delta_id": {"$ref": "#/$defs/Id"},
+        "graph_id": {"$ref": "#/$defs/Id"},
+        "base_revision_id": {"$ref": "#/$defs/Id"},
+        "new_revision_id": {"$ref": "#/$defs/Id"},
+        "additions_digest": {"$ref": "#/$defs/Digest"},
+        "deletions_digest": {"$ref": "#/$defs/Digest"},
+        "causal_parent_delta_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        },
+        "producer_id": {"$ref": "#/$defs/Id"},
+        "idempotency_key": {"$ref": "#/$defs/Id"},
+        "logical_time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807}
+      }
+    },
+    "ActionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "intent_id",
+        "action_digest",
+        "command_digest",
+        "input_root_digest",
+        "platform_digest",
+        "cause_id",
+        "correlation_id",
+        "capability",
+        "authority_digest",
+        "destination_digest",
+        "goal_id",
+        "obligation_id",
+        "adapter_version",
+        "assessed_risk",
+        "approval_required",
+        "approval_digest",
+        "attempt_id",
+        "idempotency_key",
+        "output_digests",
+        "outcome",
+        "trace_ref",
+        "recorded_at"
+      ],
+      "properties": {
+        "kind": {"const": "ActionReceipt"},
+        "intent_id": {"$ref": "#/$defs/Id"},
+        "action_digest": {"$ref": "#/$defs/Digest"},
+        "command_digest": {"$ref": "#/$defs/Digest"},
+        "input_root_digest": {"$ref": "#/$defs/Digest"},
+        "platform_digest": {"$ref": "#/$defs/Digest"},
+        "cause_id": {"$ref": "#/$defs/Id"},
+        "correlation_id": {"$ref": "#/$defs/Id"},
+        "capability": {"$ref": "#/$defs/Id"},
+        "authority_digest": {"$ref": "#/$defs/Digest"},
+        "destination_digest": {"$ref": "#/$defs/Digest"},
+        "goal_id": {"$ref": "#/$defs/Id"},
+        "obligation_id": {"$ref": "#/$defs/Id"},
+        "adapter_version": {"$ref": "#/$defs/Version"},
+        "assessed_risk": {"enum": ["read_only", "reversible", "high_risk_external"]},
+        "approval_required": {"type": "boolean"},
+        "approval_digest": {
+          "oneOf": [
+            {"$ref": "#/$defs/Digest"},
+            {"type": "null"}
+          ]
+        },
+        "attempt_id": {"$ref": "#/$defs/Id"},
+        "idempotency_key": {"$ref": "#/$defs/Id"},
+        "output_digests": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Digest"},
+          "uniqueItems": true
+        },
+        "outcome": {"enum": ["confirmed_success", "confirmed_failure", "outcome_unknown"]},
+        "trace_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "recorded_at": {"type": "string", "format": "date-time"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"assessed_risk": {"const": "high_risk_external"}}, "required": ["assessed_risk"]},
+          "then": {"properties": {"approval_required": {"const": true}}}
+        },
+        {
+          "if": {"properties": {"approval_required": {"const": true}}, "required": ["approval_required"]},
+          "then": {"properties": {"approval_digest": {"$ref": "#/$defs/Digest"}}}
+        },
+        {
+          "if": {"properties": {"approval_required": {"const": false}}, "required": ["approval_required"]},
+          "then": {"properties": {"approval_digest": {"type": "null"}}}
+        }
+      ]
+    },
+    "ResolvedCompositionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_spec_digest",
+        "resolver_digest",
+        "schema_digest",
+        "rule_bundle_digest",
+        "production_profile_digest",
+        "harness_profile_digest",
+        "normalized_production_graph_digest",
+        "normalized_harness_graph_digest",
+        "substitution_manifest_digest",
+        "forbidden_delta_count",
+        "production_root_reachable",
+        "equivalence_status",
+        "independent_verifier_digest"
+      ],
+      "properties": {
+        "kind": {"const": "ResolvedCompositionReceipt"},
+        "source_spec_digest": {"$ref": "#/$defs/Digest"},
+        "resolver_digest": {"$ref": "#/$defs/Digest"},
+        "schema_digest": {"$ref": "#/$defs/Digest"},
+        "rule_bundle_digest": {"$ref": "#/$defs/Digest"},
+        "production_profile_digest": {"$ref": "#/$defs/Digest"},
+        "harness_profile_digest": {"$ref": "#/$defs/Digest"},
+        "normalized_production_graph_digest": {"$ref": "#/$defs/Digest"},
+        "normalized_harness_graph_digest": {"$ref": "#/$defs/Digest"},
+        "substitution_manifest_digest": {"$ref": "#/$defs/Digest"},
+        "forbidden_delta_count": {"type": "integer", "minimum": 0},
+        "production_root_reachable": {"type": "boolean"},
+        "equivalence_status": {"enum": ["equivalent", "not_equivalent", "inconclusive"]},
+        "independent_verifier_digest": {"$ref": "#/$defs/Digest"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"equivalence_status": {"const": "equivalent"}}, "required": ["equivalence_status"]},
+          "then": {
+            "properties": {
+              "forbidden_delta_count": {"const": 0},
+              "production_root_reachable": {"const": true}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

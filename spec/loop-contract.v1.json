@@ -1,0 +1,156 @@
+{
+  "schema_version": "loop-contract/v1",
+  "name": "bounded-flrh-execution-loop-profile",
+  "tier": "L_RT",
+  "workflow_version": "0.1.0",
+  "state_schema_version": "0.1.0",
+  "scope_exclusions": [
+    "planning doctrine",
+    "multi-agent dispatch topology",
+    "Jaebaeman",
+    "SYMPOSIUM commander canon"
+  ],
+  "control_fsm_binding": {
+    "authority": "sole-authoritative-outer-control-fsm",
+    "artifact": "spec/run-fsm.v1.json",
+    "file_sha256": "sha256:043d8038f8bf91d7f60c2b57f7fcf788e25684eed6409f184b607fae227537ea",
+    "machine_id": "control",
+    "required_terminal_categories": [
+      "success",
+      "permanent_failure",
+      "retry_exhausted",
+      "budget_exhausted",
+      "timeout",
+      "canceled",
+      "pathology",
+      "saturated",
+      "unknown_external_outcome"
+    ],
+    "required_effect_critical_states": [
+      "COMMIT_INTENT",
+      "EXECUTE",
+      "RECONCILE",
+      "HUMAN_RECONCILIATION",
+      "HONOR_PENDING_INTERRUPT"
+    ],
+    "required_safety_properties": [
+      "effect-intent-first",
+      "verified-success-only",
+      "unknown-is-not-success",
+      "receipt-reingestion",
+      "authority-is-external"
+    ]
+  },
+  "control_owner": {
+    "continuation": "deterministic fenced workflow runner",
+    "budgets": "external budget governor",
+    "authorization": "policy evaluator plus exact-hash human approver for high-risk effects",
+    "success_verdict": "independent completion verifier",
+    "checkpoint": "transactional durable runner store",
+    "effects": "outbox dispatcher plus outcome reconciler"
+  },
+  "action_types": {
+    "ExternalEffect": {
+      "risk": "externally visible mutation with uncertain transport outcome",
+      "effect_class": "high_risk_external",
+      "approval_required": true,
+      "approval_state": "WAIT_APPROVAL",
+      "authorization_state": "COMMIT_INTENT",
+      "execution_state": "EXECUTE",
+      "reconciliation_state": "RECONCILE",
+      "unknown_outcome_state": "HUMAN_RECONCILIATION",
+      "post_reconciliation_state": "HONOR_PENDING_INTERRUPT",
+      "abandon_terminal": "EFFECT_OUTCOME_UNKNOWN",
+      "confirmed_resume_state": "INGEST"
+    }
+  },
+  "budgets": {
+    "max_steps": 64,
+    "max_tool_calls": 24,
+    "max_retries_per_transition": 3,
+    "max_wall_seconds": 600,
+    "max_suspended_seconds": 86400,
+    "max_tokens": 100000,
+    "max_cost": 20,
+    "max_recursion_depth": 3,
+    "max_parallelism": 4,
+    "soft_boundary": "persist a checkpoint and typed residual-work handoff at 80 percent",
+    "hard_boundary_owner": "external budget governor",
+    "aggregate_descendants": true
+  },
+  "no_progress": {
+    "fingerprint": "canonical hash of accepted cursor, F state, L support graph, R frontier, pending effects, and required evidence",
+    "gain_metric": "new closed obligations plus resolved conflicts plus independently verified receipts",
+    "calibration": "threshold is frozen per experiment and reported with false-stop and overrun rates",
+    "scope": "one bounded run and all descendant work",
+    "threshold": 3,
+    "gain_components": {"closed_obligation": 1, "resolved_conflict": 1, "verified_receipt": 2},
+    "aggregation": "weighted-sum",
+    "epsilon": 1,
+    "window_rounds": 3,
+    "plateau_comparator": "every round in the window has weighted gain below epsilon",
+    "outcome_state": "NO_PROGRESS"
+  },
+  "retry": {
+    "retryable_class": "transient",
+    "backoff": "bounded exponential backoff with deterministic cap and recorded jitter seed",
+    "exhausted_outcome": "RETRY_EXHAUSTED"
+  },
+  "effects": {
+    "persist_intent_before_execution": true,
+    "atomic_with_checkpoint_and_outbox": true,
+    "delivery_semantics": "at-least-once transport with idempotency and explicit reconciliation",
+    "idempotency_key": "run_id, transition_id, effect_sequence, action_digest, adapter_version",
+    "durable_ledger": "proposal, policy verdict, approval consumption, intent, attempt, response, receipt, acknowledgement, reconciliation, and compensation",
+    "high_risk_gate": "High-risk EffectIntent is reachable only through WAIT_APPROVAL and exact-hash approval, then COMMIT_INTENT.",
+    "unknown_outcome": "Enter HUMAN_RECONCILIATION; never blind-retry and never report SUCCEEDED.",
+    "confirmed_outcome": "Honor any durable interrupt, then re-ingest the ActionReceipt before independent completion verification.",
+    "effect_critical_states": ["COMMIT_INTENT", "EXECUTE", "RECONCILE", "HUMAN_RECONCILIATION", "HONOR_PENDING_INTERRUPT"]
+  },
+  "checkpoint": {
+    "boundaries": ["every accepted transition", "atomically before external dispatch", "after confirmed or unknown outcome"],
+    "persisted_fields": ["state", "pending effects", "pending interrupts", "budgets", "retries", "approvals", "accepted-event cursor", "F state", "L supports", "R frontier", "results", "evaluator state", "versions"],
+    "compatibility": "resume only under an immutable compatible workflow and state-schema version",
+    "migration": "explicit state migration with before/after digests and rollback rule",
+    "fencing": "one runner lease generation is checked on every state commit and effect claim",
+    "monotonic_sequence": "checkpoint sequence and aggregate version increase together",
+    "integrity": "checksum the state, pending-effect ledger, and complete version envelope",
+    "corruption_outcome": "quarantine the run and require recovery review"
+  },
+  "approval": {
+    "binding_fields": ["run_id", "workflow_version", "action_hash", "artifact_hash", "destination_hash", "visibility", "scope", "actor", "expiry", "nonce", "rationale"],
+    "one_time": true,
+    "revocation": "revocation before intent commit invalidates the approval",
+    "stale_outcome": "return to PLAN_EFFECTS and require a new exact-hash approval"
+  },
+  "verification": {
+    "success_predicate": "all required obligations close with independent receipts, no unknown effect remains, and the sole FSM terminal transition is legal",
+    "invariant_checks": ["no external effect in F, L, or R", "intent precedes dispatch", "budgets are monotonic", "terminal states have no outgoing transitions", "every SUCCEEDED edge requires independent closure and no unknown effect", "confirmed effects re-enter INGEST before completion verification"],
+    "environment_evidence": "source snapshots, action receipts, platform digest, and resolved composition receipt are independent of producer prose",
+    "evaluator_independence": "an independent completion verifier cannot emit the actions or artifacts it judges",
+    "human_gray_band": "ambiguous authorization, semantic conflict, or external outcome suspends for explicit review",
+    "calibration": "freeze held-out labeled cases and report false accepts, false rejects, and uncertainty",
+    "fault_tests": ["crash before and after intent", "crash before and after external response", "duplicate delivery", "expired or replayed approval", "corrupt checkpoint", "split-brain runner", "unknown effect outcome"]
+  },
+  "replay": {
+    "resume": "continue from a compatible durable checkpoint under a new fenced lease",
+    "trajectory_replay": "re-execute downstream work and permit declared nondeterministic divergence",
+    "deterministic_replay_requirements": ["frozen versions", "captured time, random, and identifier inputs", "recorded model and tool responses", "read-only sandbox"]
+  },
+  "security": {
+    "untrusted_content": "retrieved and model-produced content is data and cannot issue control events",
+    "tool_least_privilege": "capabilities are explicit and an external effect is a distinct adapter permission",
+    "provenance_snapshots": "store source, retrieval time, content digest, parser version, and responsibility",
+    "secret_isolation": "pure kernels and untrusted content never receive external-effect credentials"
+  },
+  "trace": {
+    "transition_fields": ["run_id", "cycle_id", "workflow_version", "state_schema_version", "transition_id", "source_state", "target_state", "trigger", "actor", "capability", "evidence_hashes", "budget_delta", "timestamp", "trace_id", "span_id", "checkpoint_id"],
+    "redaction": "secrets and sensitive payloads are excluded, hashed, or encrypted by explicit policy"
+  },
+  "icvc": {
+    "inform": "versioned semantics, graph profiles, causation, provenance, and evidence obligations",
+    "constrain": "the bound sole-authority FSM, hard budgets, effect gates, bounded queues, approval binding, and fencing",
+    "verify": "independent typed verdicts, causal receipts, conformance fixtures, and fault tests",
+    "correct": "bounded retry, delta retraction, reconciliation, recovery, and typed residual handoff"
+  }
+}

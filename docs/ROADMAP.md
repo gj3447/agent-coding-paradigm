@@ -2,11 +2,11 @@
 
 > Roadmap status: PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.
 
-## M0 — Freeze vocabulary and contracts
+## M0 — Freeze vocabulary and contracts ✅ MEASURED 2026-08-08
 
 Deliverables:
 
-- versioned `AcceptedEvent`, `FactDelta`, `EffectIntent`, graph envelope, delta, and receipt schemas;
+- versioned `AcceptedEvent`, `FactDelta`, `EffectProposal`, `EligibilityVerdict`, `StableProposalBatch`, `EffectIntent`, graph envelope, delta, and receipt schemas;
 - executable generic FSM and typed terminal outcomes;
 - explicit logic truth tables and retraction semantics;
 - deterministic canonical serialization rules;
@@ -14,9 +14,11 @@ Deliverables:
 
 Gate: all schemas validate, golden fixtures parse, and semantic ambiguities are either resolved or marked outside v0.
 
+Receipt boundary: the pinned repository checker reports nine valid Draft 2020-12 schemas, ten valid and thirteen invalid protocol fixtures, complete declared truth/default-negation tables, retraction/frontier/canonical cases, 25/25 declared transition coverage across 18 typed traces, nine terminal categories, three interrupt types, and a bounded-loop profile digest-bound to the sole-authority outer FSM. This is checker-relative M0 conformance only; it is not a global consistency proof, runtime evidence, or efficacy evidence.
+
 ## M1 — Pure F kernel
 
-Deliverables: deterministic reducer/evolver, typed rejection, effect-intent boundary, replay fixtures, ambient-effect guard.
+Deliverables: deterministic reducer/evolver, typed rejection, inert effect-proposal boundary, replay fixtures, ambient-effect guard.
 
 Gate: purity and replay tests 1–3 pass in two clean processes.
 
@@ -58,4 +60,4 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Start M0 only. Choose the reference implementation language after comparing type-system support, deterministic serialization, logic/dataflow libraries, fault injection, and contributor cost. Do not scaffold a large framework before that decision.
+Start one M1 vertical slice only: accepted event → pure transition → signed fact delta plus inert effect proposal, with deterministic replay in two clean processes and an ambient-effect failure test. `EffectIntent` remains an H-owned, authority-bound object for M4. Do not scaffold a broad engine; the engine decision remains deferred.

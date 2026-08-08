@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: PROPOSED / NOT IMPLEMENTED
+> Status: M0 BOUNDARY CONTRACT PRESENT / NOT IMPLEMENTED
 
 ## System boundary
 
@@ -30,11 +30,11 @@ MCP or another tool protocol may connect tiers. It is an adapter, not a fourth t
 Command or AcceptedEvent
   -> Decision: DomainEvent[] | Rejection
   -> Evolution: Snapshot x DomainEvent -> Snapshot
-  -> FactDelta[]
-  -> LogicFixpoint
-  -> StableReactionBatch
-  -> EffectIntent[]
-  -> AuthorizedEffect[] | Rejection[]
+  -> FactDelta[] + EffectProposal[]
+  -> LogicFixpoint + EligibilityVerdict[]
+  -> StableProposalBatch
+  -> H policy/capability/approval gate
+  -> EffectIntent[] | Rejection[]
   -> EffectAttempt -> ActionReceipt
   -> AcceptedEvent
 ```
@@ -55,35 +55,36 @@ It terminates when the chosen logical epoch is stable, not when a work queue hap
 
 ```text
 INGEST
-  -> REDUCE_F
-  -> SOLVE_L
-  -> PROPAGATE_R
+  -> STABILIZE(F -> L -> R frontier)
   -> PLAN_EFFECTS
   -> WAIT_APPROVAL?
   -> COMMIT_INTENT
   -> EXECUTE
   -> RECONCILE
-  -> INGEST_RESULT
+  -> HUMAN_RECONCILIATION? | HONOR_PENDING_INTERRUPT
+  -> INGEST(receipt)
   -> VERIFY_COMPLETION
   -> CONTINUE | TERMINAL
 ```
 
 The outer loop terminates only with a typed outcome and evidence closure.
 
+[`run-fsm.v1.json`](../spec/run-fsm.v1.json) is the sole authoritative outer transition table. [`loop-contract.v1.json`](../spec/loop-contract.v1.json) is a digest-bound operational profile for budgets, checkpoints, effects, and replay; it does not define a second lifecycle. This diagram is explanatory.
+
 ## Core interfaces
 
 ```text
 step_F(snapshot, accepted_event)
-  -> Transition(next_state, base_fact_deltas, effect_intents, diagnostics)
+  -> Transition(next_state, base_fact_deltas, effect_proposals, diagnostics)
 
 solve_L(rule_set_version, materialization, fact_deltas, logical_time)
-  -> FixpointResult(derived_deltas, conflicts, provenance)
+  -> FixpointResult(derived_deltas, eligibility_verdicts, conflicts, provenance)
 
 propagate_R(dataflow_version, derived_deltas, frontier, demand)
-  -> StableReactionBatch(command_proposals, invalidations)
+  -> StableProposalBatch(effect_proposals, eligibility_verdicts, invalidations)
 
-authorize(command_proposal, policy_snapshot)
-  -> AuthorizedEffect | Rejection
+authorize(stable_proposal_batch, policy_snapshot, capability, approval?)
+  -> EffectIntent | Rejection
 
 execute_effect_shell(authorized_effect)
   -> ActionReceipt | UnknownOutcome

@@ -2,7 +2,7 @@
 
 함수형·논리형·반응형 프로그래밍을 durable Harness와 typed graph engineering으로 결합하는 agent runtime 연구 저장소.
 
-> Status: **RESEARCH INCUBATOR / PROPOSED / NOT CANON / EFFICACY UNMEASURED**
+> Status: **RESEARCH INCUBATOR / M0 CONTRACT CONFORMANCE MEASURED / NO RUNTIME / EFFICACY UNJUDGED**
 >
 > Working profile: **FLR-H** — Functional, Logic, Reactive, Harness
 >
@@ -14,10 +14,10 @@
 
 An agent runtime may become substantially more reliable if it separates four responsibilities instead of asking an LLM loop to own all of them:
 
-- **F — Functional kernel:** deterministic state transition and explicit effect intent.
-- **L — Logic kernel:** facts, rules, constraints, authorization, conflict, provenance, retraction, and fixpoint.
-- **R — Reactive kernel:** versioned dependencies, signed deltas, logical time/frontiers, scheduling, and backpressure.
-- **H — Harness/control shell:** continuation, budgets, approvals, checkpoints, outbox, reconciliation, independent verification, and terminal receipts.
+- **F — Functional kernel:** deterministic state transition plus inert `EffectProposal` values.
+- **L — Logic kernel:** facts, rules, constraints, eligibility, conflict, provenance, retraction, and fixpoint.
+- **R — Reactive kernel:** versioned dependencies, signed deltas, logical time/frontiers, stable proposal batches, scheduling, and backpressure.
+- **H — Harness/control shell:** authority and approval enforcement, `EffectIntent` creation, continuation, budgets, checkpoints, outbox, reconciliation, independent verification, and terminal receipts.
 
 The working sentence is:
 
@@ -31,21 +31,27 @@ This is a falsifiable architecture hypothesis, not evidence of originality or su
 AcceptedEvent
     │
     ▼
-pure F transition ──► base FactDelta(+/-)
-    │                         │
-    │                         ▼
-    │                   L fixpoint + provenance
-    │                         │
-    │                         ▼ frontier passes epoch
-    │                   R stable reaction batch
-    │                         │
-    ▼                         ▼
-EffectIntent ──► L authorization ──► H commit/execute/reconcile
-                                             │
-                                             ▼
-                                      durable ReceiptEvent
-                                             │
-                                             └──► next accepted event
+pure F transition ──► FactDelta(+/-) + EffectProposal
+                               │
+                               ▼
+                     L fixpoint + EligibilityVerdict
+                               │
+                               ▼ frontier passes epoch
+                     R StableProposalBatch
+                               │
+                               ▼
+                     H authority/approval check
+                               │
+                               ▼
+                     durable EffectIntent
+                               │
+                               ▼
+                     commit/execute/reconcile
+                               │
+                               ▼
+                     durable ActionReceipt
+                               │
+                               └──► next accepted event
 ```
 
 The inner loop stabilizes facts and deltas. The outer loop closes real-world effects and evidence. An empty queue is not success, a model final answer is not success, and a trace span marked `OK` is not success.
@@ -73,13 +79,25 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [Fault Test Plan](docs/FAULT_TEST_PLAN.md) — mechanics admission tests
 - [Claims and Status](docs/CLAIMS_AND_STATUS.md) — what is and is not supported
 - [Roadmap](docs/ROADMAP.md) — M0 through comparative efficacy work
+- [M0 contract and test boundary](docs/M0_CONTRACT.md) — what kind of theory this is, what passed, and what remains untested
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
 - [Machine-readable engine decision](spec/engine-decision.v1.json) — validated defer decision
+- [M0 manifest](spec/m0-manifest.v1.json) — normative contract set and non-claim boundary
 
-## First admission gate
+## Current admission gate
 
-Before any efficacy comparison, a minimal vertical slice must prove:
+The pinned M0 checker passed on 2026-08-08 for the declared corpus: nine Draft 2020-12 schemas, ten valid and thirteen invalid protocol fixtures, logic/canonicalization cases, all 25 declared FSM transitions across 18 typed traces, all nine terminal categories, and all three interrupt types. The supplemental bounded-loop profile is digest-bound to that sole-authority FSM. This is checker-relative conformance, not a proof of global consistency; the traces are transition/guard-complete for the declared FSM, not exhaustive over all possible event sequences.
+
+Run it with:
+
+```bash
+python3 -m pip install -r requirements-m0.txt
+python3 scripts/validate_m0.py
+python3 -m unittest discover -s tests -v
+```
+
+The next mechanics gate must prove:
 
 1. replay of the same accepted events yields the same F state and L derivation digests;
 2. incremental insert/delete/retract converges to the same result as clean full recomputation;
@@ -88,7 +106,7 @@ Before any efficacy comparison, a minimal vertical slice must prove:
 5. trace-only, harness-only, or model-self-reported success cannot satisfy `DONE`;
 6. production and harness use the same resolved composition graph modulo enumerated test adapters.
 
-Until those gates pass, this repository contains a specification and test plan, not a working runtime.
+Until those mechanics gates pass, this repository contains executable contracts and a test oracle, not a working runtime.
 
 ## Non-claims
 

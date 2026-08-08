@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/claim-ledger.v1.schema.json",
+  "title": "FLR-H claim ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "claims"],
+  "properties": {
+    "schema_version": {"const": "claim-ledger/v1"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/Claim"}
+    }
+  },
+  "$defs": {
+    "Claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement", "epistemic_status", "disposition", "scope", "evidence", "falsifiers"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "statement": {"type": "string", "minLength": 1},
+        "epistemic_status": {"enum": ["HYPOTHESIS", "PROPOSED", "MEASURED", "FALSIFIED", "ACCEPTED"]},
+        "disposition": {"enum": ["active", "deferred", "unsupported", "retired"]},
+        "scope": {"type": "string", "minLength": 1},
+        "evidence": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "falsifiers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

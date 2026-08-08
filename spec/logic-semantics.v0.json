@@ -1,0 +1,60 @@
+{
+  "schema_version": "logic-semantics/v0",
+  "status": "MEASURED_TABLE_CONFORMANCE",
+  "support_model": "derivation-identity set with unit deltas",
+  "truth_states": [
+    {"positive_support_present": false, "negative_support_present": false, "state": "NEITHER"},
+    {"positive_support_present": true, "negative_support_present": false, "state": "TRUE_ONLY"},
+    {"positive_support_present": false, "negative_support_present": true, "state": "FALSE_ONLY"},
+    {"positive_support_present": true, "negative_support_present": true, "state": "BOTH"}
+  ],
+  "explicit_negation": {
+    "meaning": "Negative support is first-class evidence and does not erase positive support.",
+    "conflict": "Positive and negative support together yield BOTH. Rule order cannot choose a winner."
+  },
+  "default_negation": {
+    "operator": "not",
+    "succeeds_when": "positive support is absent in the completed lower stratum",
+    "truth_table": [
+      {"state": "NEITHER", "succeeds": true},
+      {"state": "TRUE_ONLY", "succeeds": false},
+      {"state": "FALSE_ONLY", "succeeds": true},
+      {"state": "BOTH", "succeeds": false}
+    ],
+    "stability_rule": "Default negation is evaluated only after the referenced lower stratum reaches its fixpoint."
+  },
+  "retraction": {
+    "target": "derivation_id",
+    "delta_domain": [-1, 1],
+    "rules": [
+      "FactDelta(+1) inserts one named derivation support; FactDelta(-1) removes only that named support.",
+      "Repeating the same derivation identity with byte-identical content is an idempotent duplicate, not multiplicity.",
+      "A proposition remains present while at least one derivation support remains.",
+      "Removing the final support emits a retraction into the affected reverse dependency closure.",
+      "Support count underflow, an unknown derivation target, or same derivation identity with different content is a typed conflict."
+    ]
+  },
+  "stratification": {
+    "positive_recursion": "allowed within a stratum under a bounded least-fixpoint worklist",
+    "negative_dependency": "must point strictly to a lower stratum",
+    "negative_cycle": "reject rule bundle as OUTSIDE_V0_NEGATIVE_RECURSION",
+    "worklist_order": "deterministic tie-break by canonical rule id then canonical tuple bytes",
+    "limits": {
+      "max_rule_firings": 1000,
+      "max_derivation_depth": 8,
+      "nonconvergence_outcome": "RULE_BUDGET_EXHAUSTED"
+    }
+  },
+  "logical_time": {
+    "representation": "non-negative signed-64-bit scalar epoch",
+    "frontier_rule": "Epoch t may publish only when the low watermark is strictly greater than t.",
+    "late_event_policy": "A late event must produce a declared correction, retraction, rejection, or compensation; it cannot silently rewrite a published effect."
+  },
+  "outside_v0": [
+    "negative recursion",
+    "well-founded or stable-model selection",
+    "general partially ordered antichain time",
+    "unbounded rule generation",
+    "automatic rollback of an external effect"
+  ]
+}

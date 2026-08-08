@@ -16,22 +16,22 @@ Treat the repository as a specification and mechanics incubator. The initial mac
 
 ```text
 evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile)
-  -> stable transition + authorized effect intents | typed rejection
+  -> stable transition + stable effect proposals | typed rejection
 ```
 
 The candidate owns deterministic transition, fixpoint, signed-delta stabilization, and typed output. Product policy, model choice, UI, credentials, external effect implementation, and cloud tenancy stay outside.
 
 ## Promotion gates
 
-Reconsider an engine verdict only when:
+Reconsider an engine verdict only when all frozen gates pass:
 
-1. at least two current consumers share the same stable narrow-waist contract;
-2. the pure kernel and durable shell demonstrably simplify those consumers;
+1. two named independent consumers use the same narrow-waist contract for three compatible version cycles;
+2. a fixed replay corpus produces byte-identical digests in two clean processes and incremental results equal clean recomputation;
 3. one fenced writer, checkpoint compatibility, recovery, and effect reconciliation are operational requirements rather than speculation;
-4. the M0–M5 mechanics gates pass with durable receipts;
-5. bounded ingress, backpressure, cancellation, timeout, schema evolution, security capabilities, and observability are executable contracts;
+4. the M0–M5 mechanics gates pass with durable receipts, including zero duplicate confirmed mutations across the frozen crash matrix;
+5. bounded ingress, queue capacity, deadline, backpressure, cancellation, timeout, schema evolution, security capabilities, and observability meet preregistered numeric limits;
 6. policy variation is handled outside the mechanism without forking the core;
-7. a falsifier review finds that separate modules would be less coherent than the engine boundary.
+7. a frozen comparison shows the shared boundary reduces duplicated state/coordination relative to separate modules without increasing fault rate beyond its registered margin.
 
 ## Consequences
 

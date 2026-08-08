@@ -1,0 +1,41 @@
+{
+  "schema_version": "canonicalization/v1",
+  "algorithm": "flrh-cjson",
+  "algorithm_version": "1",
+  "media_type": "application/vnd.flrh.canonical+json;version=1",
+  "status": "MEASURED_LOCAL_FIXTURE_CONFORMANCE",
+  "purpose": "Produce deterministic bytes for M0 protocol objects without selecting a runtime language.",
+  "encoding": "UTF-8 without BOM",
+  "normalization": {
+    "strings": "Unicode NFC is required before serialization; non-NFC input is rejected.",
+    "object_keys": "Sort by Unicode scalar value after NFC normalization.",
+    "whitespace": "None outside JSON string literals.",
+    "null_vs_omitted": "Distinct. Optional fields must not be inserted as null unless their schema permits null.",
+    "numbers": "Signed integers only, decimal form, no leading zero except zero, range -(2^63) through 2^63-1. Floating-point values are rejected.",
+    "booleans_and_null": "Lowercase JSON literals.",
+    "object_members": "Emit key, colon, value with no extra whitespace.",
+    "ordered_arrays": "Preserve declared order.",
+    "set_like_arrays": "Reject duplicates, sort by each element's canonical bytes, then serialize as an array."
+  },
+  "set_like_paths_by_kind": {
+    "EffectProposal": ["/preconditions"],
+    "EligibilityVerdict": ["/support_derivation_ids"],
+    "StableProposalBatch": ["/proposal_ids", "/eligibility_verdict_ids"],
+    "EffectIntent": ["/preconditions"],
+    "GraphEnvelope": ["/provenance_refs"],
+    "GraphDelta": ["/causal_parent_delta_ids"],
+    "ActionReceipt": ["/output_digests"]
+  },
+  "domain_restrictions": [
+    "Normative protocol member names are ASCII.",
+    "NaN, Infinity, negative zero, and every floating-point number are outside v1.",
+    "Maps with non-string keys are outside v1.",
+    "Set-like semantics are selected by root protocol kind plus exact JSON Pointer; a same-named nested application payload remains ordered.",
+    "Canonicalization proves byte identity only, not graph isomorphism, semantic equivalence, or behavioral equivalence."
+  ],
+  "digest": {
+    "algorithm": "SHA-256",
+    "encoding": "lowercase hexadecimal",
+    "external_form": "sha256:<64 lowercase hex characters>"
+  }
+}

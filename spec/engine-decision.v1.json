@@ -17,8 +17,8 @@
     "The smallest justified next step is a mechanics vertical slice rather than a broad engine framework."
   ],
   "boundary": {
-    "owns": "Deterministic transition, fixpoint, signed-delta stabilization, and typed effect-intent output",
-    "mechanism": "Compute a stable FLR transition from explicit snapshots, events, rule bundles, and dataflow profiles while H controls commit and effects",
+    "owns": "Deterministic transition, fixpoint, unit-delta stabilization, and typed stable-proposal output",
+    "mechanism": "Compute a stable FLR transition from explicit snapshots, events, rule bundles, and dataflow profiles while H alone binds policy, capability, approval, intent, commit, and effects",
     "policy_outside": [
       "Product goals and domain policy",
       "Model and prompt selection",
@@ -34,7 +34,7 @@
     ],
     "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications only"
   },
-  "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectIntents | TypedRejection",
+  "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [
     "Identical explicit inputs and versions produce identical canonical output.",
     "F, L, and R never execute external effects.",
@@ -54,10 +54,83 @@
     "Resolved production and harness composition graphs differ only by approved adapter substitutions."
   ],
   "promotion_gates": [
-    "At least two current consumers share the stable narrow-waist contract.",
-    "M0 through M5 mechanics admission gates pass with durable receipts.",
-    "A fenced single writer, recovery, cancellation, schema migration, and effect reconciliation are demonstrated operational requirements.",
-    "Policy variation remains outside the shared mechanism without core forks."
+    {
+      "id": "two-consumers-three-cycles",
+      "criterion": "Two named independent consumers use the same narrow-waist contract for three compatible version cycles.",
+      "status": "BLOCKED",
+      "measurements": [
+        {"metric": "independent_consumer_count", "operator": ">=", "threshold": 2, "unit": "consumers"},
+        {"metric": "compatible_version_cycle_count", "operator": ">=", "threshold": 3, "unit": "cycles"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Name and operate two independent consumers before adoption evidence is counted."]
+    },
+    {
+      "id": "deterministic-incremental-equivalence",
+      "criterion": "Replay is byte-stable in two clean processes and incremental results equal clean recomputation.",
+      "status": "OPEN",
+      "measurements": [
+        {"metric": "clean_process_replay_digest_mismatch_count", "operator": "==", "threshold": 0, "unit": "mismatches"},
+        {"metric": "incremental_recompute_mismatch_count", "operator": "==", "threshold": 0, "unit": "mismatches"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Implement M1 through M3 and freeze their conformance corpora."]
+    },
+    {
+      "id": "operational-durability-requirement",
+      "criterion": "Fenced writing, checkpoint compatibility, recovery, cancellation, schema migration, and effect reconciliation are demonstrated operational requirements in real consumers.",
+      "status": "BLOCKED",
+      "measurements": [
+        {"metric": "consumer_operational_requirement_coverage_pct", "operator": "==", "threshold": 100, "unit": "percent"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Operate real consumers with durable H control before classifying requirements as demonstrated."]
+    },
+    {
+      "id": "m0-m5-mechanics-and-crash",
+      "criterion": "M0 through M5 pass with durable receipts and the frozen crash matrix produces no duplicate confirmed mutations.",
+      "status": "OPEN",
+      "measurements": [
+        {"metric": "passed_mechanics_milestone_count", "operator": "==", "threshold": 6, "unit": "milestones"},
+        {"metric": "duplicate_confirmed_mutation_count", "operator": "==", "threshold": 0, "unit": "mutations"},
+        {"metric": "executed_crash_matrix_case_count", "operator": "==", "threshold": "registered_crash_matrix_size", "unit": "cases"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Freeze the M4 crash matrix before executing recovery trials."]
+    },
+    {
+      "id": "preregistered-operational-limits",
+      "criterion": "Ingress, queues, deadlines, backpressure, cancellation, timeout, schema evolution, capabilities, and observability meet preregistered numeric limits.",
+      "status": "BLOCKED",
+      "measurements": [
+        {"metric": "preregistered_limit_coverage_pct", "operator": "==", "threshold": 100, "unit": "percent"},
+        {"metric": "operational_limit_violation_count", "operator": "==", "threshold": 0, "unit": "violations"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Preregister one numeric limit and measurement procedure for every listed operational dimension before M6 evaluation."]
+    },
+    {
+      "id": "policy-outside-core",
+      "criterion": "Policy variation remains outside the shared mechanism without core forks.",
+      "status": "BLOCKED",
+      "measurements": [
+        {"metric": "independent_policy_variant_count", "operator": ">=", "threshold": 2, "unit": "variants"},
+        {"metric": "policy_induced_core_fork_count", "operator": "==", "threshold": 0, "unit": "forks"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Exercise at least two independent consumer policy profiles."]
+    },
+    {
+      "id": "separate-modules-comparator",
+      "criterion": "A frozen comparison shows less duplicated state and coordination than separate modules without exceeding the registered fault-rate margin.",
+      "status": "BLOCKED",
+      "measurements": [
+        {"metric": "duplicated_state_coordination_delta", "operator": "<", "threshold": 0, "unit": "registered_units"},
+        {"metric": "fault_rate_delta", "operator": "<=", "threshold": "registered_noninferiority_margin", "unit": "percentage_points"}
+      ],
+      "evidence": [],
+      "prerequisites": ["Preregister the duplication metric, task corpus, and fault-rate noninferiority margin before comparison."]
+    }
   ],
   "falsifiers": [
     "Real tasks repeatedly require ambient effects inside the deterministic kernel.",

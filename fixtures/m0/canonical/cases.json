@@ -1,0 +1,39 @@
+{
+  "schema_version": "canonical-fixtures/v1",
+  "equal_pairs": [
+    {
+      "id": "object-order-and-set-like-order",
+      "left": {
+        "kind": "GraphDelta",
+        "causal_parent_delta_ids": ["delta:2", "delta:1"],
+        "producer_id": "producer:1",
+        "logical_time": 8
+      },
+      "right": {
+        "logical_time": 8,
+        "producer_id": "producer:1",
+        "causal_parent_delta_ids": ["delta:1", "delta:2"],
+        "kind": "GraphDelta"
+      },
+      "expected_digest": "sha256:b5e649bdc9b75efe46a3707feded39e77a9a570190fd38713cb324752944af5a"
+    }
+  ],
+  "different_pairs": [
+    {
+      "id": "logical-time-change",
+      "left": {"kind": "GraphDelta", "causal_parent_delta_ids": ["delta:1"], "logical_time": 8},
+      "right": {"kind": "GraphDelta", "causal_parent_delta_ids": ["delta:1"], "logical_time": 9}
+    },
+    {
+      "id": "nested-application-array-order-is-semantic",
+      "left": {"kind": "AcceptedEvent", "payload": {"preconditions": ["z", "a"]}},
+      "right": {"kind": "AcceptedEvent", "payload": {"preconditions": ["a", "z"]}}
+    }
+  ],
+  "reject_cases": [
+    {"id": "floating-point", "input": {"metric": 0.5}, "expected": "floating-point"},
+    {"id": "non-nfc-string", "input": {"label": "é"}, "expected": "NFC"},
+    {"id": "int64-overflow", "input": {"logical_time": 9223372036854775808}, "expected": "int64"},
+    {"id": "duplicate-set-element", "input": {"kind": "GraphDelta", "causal_parent_delta_ids": ["delta:1", "delta:1"]}, "expected": "duplicate set-like"}
+  ]
+}

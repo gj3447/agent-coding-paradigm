@@ -1,0 +1,73 @@
+{
+  "schema_version": "claim-ledger/v1",
+  "updated_at": "2026-08-08T07:40:09Z",
+  "claims": [
+    {
+      "id": "responsibility-separation",
+      "statement": "F, L, R, and H responsibilities can be specified without collapsing them into one model-directed loop.",
+      "epistemic_status": "PROPOSED",
+      "disposition": "active",
+      "scope": "architecture contract",
+      "evidence": ["docs/ARCHITECTURE.md", "docs/SEMANTICS.md"],
+      "falsifiers": ["A required transition cannot be represented without ambient external mutation inside F, L, or R."]
+    },
+    {
+      "id": "signed-delta-frontier-seam",
+      "statement": "Signed deltas plus a logical frontier form a usable narrow waist between logic stabilization and reactive publication.",
+      "epistemic_status": "HYPOTHESIS",
+      "disposition": "active",
+      "scope": "mechanics",
+      "evidence": ["spec/logic-semantics.v0.json", "docs/SEMANTICS.md"],
+      "falsifiers": ["Incremental evaluation disagrees with clean full recomputation on the conformance corpus."]
+    },
+    {
+      "id": "typed-graph-federation",
+      "statement": "A typed federation preserves required graph-specific identity better than one undifferentiated graph.",
+      "epistemic_status": "HYPOTHESIS",
+      "disposition": "active",
+      "scope": "graph interoperability profile",
+      "evidence": ["docs/GRAPH_CONTRACT.md", "spec/schema/protocol.v1.schema.json"],
+      "falsifiers": ["Required information cannot round-trip across the declared graph-kind boundaries."]
+    },
+    {
+      "id": "harness-owns-closure",
+      "statement": "H should own continuation, authorization enforcement, effect reconciliation, and terminal evidence closure.",
+      "epistemic_status": "PROPOSED",
+      "disposition": "active",
+      "scope": "L_RT control contract",
+      "evidence": ["docs/HARNESS_CONTRACT.md", "spec/loop-contract.v1.json", "spec/run-fsm.v1.json"],
+      "falsifiers": ["Crash injection repeatedly permits duplicate confirmed mutation or false SUCCEEDED after the specified controls are implemented."]
+    },
+    {
+      "id": "engine-promotion-deferred",
+      "statement": "The current repository does not yet justify promotion to a reusable engine.",
+      "epistemic_status": "ACCEPTED",
+      "disposition": "deferred",
+      "scope": "repository engineering governance",
+      "evidence": ["docs/adr/0001-defer-engine-verdict.md", "spec/engine-decision.v1.json"],
+      "falsifiers": ["All explicit promotion gates are satisfied by at least two real consumers and operational recovery evidence."]
+    },
+    {
+      "id": "flrh-improves-agent-outcomes",
+      "statement": "Full FLR-H improves held-out agent coding outcomes over simpler equal-budget controls.",
+      "epistemic_status": "HYPOTHESIS",
+      "disposition": "unsupported",
+      "scope": "comparative efficacy",
+      "evidence": [],
+      "falsifiers": ["A preregistered held-out equal-budget comparison shows no material benefit or material regression."]
+    },
+    {
+      "id": "m0-contract-conformance",
+      "statement": "The pinned non-normative checker returns PASS for the declared M0 schemas, semantic tables, typed FSM traces, and negative fixtures.",
+      "epistemic_status": "MEASURED",
+      "disposition": "active",
+      "scope": "checker-relative M0 conformance corpus only; not a global consistency proof",
+      "evidence": ["scripts/validate_m0.py", "tests/test_m0_contracts.py", "research/M0_VALIDATION_2026-08-08.md"],
+      "falsifiers": [
+        "A second independent implementation rejects an artifact or expected fixture accepted by the pinned checker.",
+        "Reachability or model checking finds a path to SUCCEEDED with an unknown effect or without an independent closure receipt.",
+        "A declared set-like canonicalization rule collapses ordered payload content or accepts duplicate set members."
+      ]
+    }
+  ]
+}
