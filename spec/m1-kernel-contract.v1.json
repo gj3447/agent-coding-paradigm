@@ -1,0 +1,100 @@
+{
+  "schema_version": "m1-kernel-contract/v1",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
+  "purpose": "Measure one reference pure-F vertical slice without promoting a broad runtime or engine.",
+  "public_api": "step_f(snapshot, accepted_event) -> FTransition | FRejection",
+  "supported_profile": {
+    "contract": "flrh-f-kernel/1",
+    "snapshot_schema": "flrh-f-snapshot/1",
+    "result_schema": "flrh-f-result/1",
+    "workflow": "flrh-workflow/0.1",
+    "state_schema": "flrh-f-state/1",
+    "event_schema": "flrh-f-event/1",
+    "payload_event_type": "flrh.m1.observation-recorded/1",
+    "canonicalization": "flrh-cjson/1"
+  },
+  "owned_mechanism": [
+    "Validate one explicit snapshot and accepted observation event.",
+    "Derive one signed base FactDelta and zero or one authority-free EffectProposal.",
+    "Return a fresh next snapshot or a closed typed rejection without mutating inputs.",
+    "Derive identities and digests only from versioned canonical explicit input."
+  ],
+  "excluded_policy_and_authority": [
+    "Product goal selection",
+    "Logic eligibility and fixpoint",
+    "Reactive scheduling and frontier publication",
+    "Capability, approval, EffectIntent, dispatch, receipt, retry, and reconciliation",
+    "Persistence, ports, adapters, registries, plugins, and model or tool execution"
+  ],
+  "transition_rules": [
+    "The event aggregate_id and expected_revision must match the snapshot.",
+    "The full version envelope must match and the supported workflow, state, event, and canonicalization versions must be exact.",
+    "Logical time may stay equal or advance; it may not regress.",
+    "A closed snapshot rejects every observation event.",
+    "mark_complete closes the returned snapshot after recording the observation."
+  ],
+  "output_invariants": [
+    "Every FactDelta has diff +1, event logical_time, event_id causation, and the event rule-set and dataflow versions.",
+    "Every EffectProposal has event cause and correlation, event versions, an action digest bound to explicit action data, and a destination digest bound to explicit destination data.",
+    "Every derivation, proposal, and proposal-dedup identity binds the complete emitted value except its own identity field or fields.",
+    "EffectProposal preconditions are unique and emitted in canonical-byte order.",
+    "F output contains no EffectIntent, capability, authority, assessed risk, approval, adapter binding, final effect idempotency key, or execution receipt.",
+    "Success and rejection return fresh JSON values and leave both caller inputs byte-for-byte unchanged."
+  ],
+  "transition_digest_projection": [
+    "contract_version",
+    "event_id",
+    "prior_snapshot_digest",
+    "next_snapshot_digest",
+    "ordered_fact_delta_digests",
+    "ordered_effect_proposal_digests"
+  ],
+  "value_digest_preimages": {
+    "kind": "M1ValueDigestPreimage",
+    "contract_version": "flrh-f-kernel/1",
+    "domains": ["observation", "effect-action", "effect-destination"],
+    "shape": ["kind", "contract_version", "domain", "value"]
+  },
+  "identity_preimages": {
+    "kind": "M1IdentityPreimage",
+    "contract_version": "flrh-f-kernel/1",
+    "domains": ["observation-fact-value", "effect-proposal-value", "proposal-dedup-value"],
+    "value_rule": "The value is the complete canonical emitted FactDelta or EffectProposal content with only its self-referential identity field or fields omitted."
+  },
+  "digest_note": "Each nested FactDelta and EffectProposal is canonicalized at its own root kind before its digest enters the projection; the transition never assumes wildcard set semantics.",
+  "ambient_dependencies_forbidden": [
+    "clock",
+    "randomness",
+    "uuid",
+    "environment_or_credentials",
+    "filesystem",
+    "network",
+    "subprocess",
+    "model_or_tool_call"
+  ],
+  "rejection_codes": [
+    "MALFORMED_SNAPSHOT",
+    "MALFORMED_ACCEPTED_EVENT",
+    "CANONICALIZATION_VIOLATION",
+    "UNSUPPORTED_STATE_SCHEMA",
+    "UNSUPPORTED_EVENT_SCHEMA",
+    "UNSUPPORTED_CANONICALIZATION",
+    "WORKFLOW_VERSION_MISMATCH",
+    "VERSION_ENVELOPE_MISMATCH",
+    "SNAPSHOT_EVENT_MISMATCH",
+    "STALE_REVISION",
+    "LOGICAL_TIME_REGRESSION",
+    "UNSUPPORTED_EVENT_PAYLOAD",
+    "DOMAIN_REJECTED",
+    "INVARIANT_VIOLATION"
+  ],
+  "completion_gate": [
+    "The frozen success and rejection corpus validates against closed schemas.",
+    "Two spawned clean processes with distinct hash seed, timezone, cwd, and ambient environment produce byte-identical canonical results.",
+    "Malformed and incompatible inputs return the expected typed rejection and never mutate input.",
+    "A trusted test loader preloads and compiles source, then a fresh-process audit hook plus explicit Python surface traps lock ambient access before any implementation module body executes; every guarded category has a positive self-test, guarded kernel attempts remain zero, and deliberate ambient and mutation mutants are detected.",
+    "Independent semantic construction and frozen canonical golden bytes agree with both transition and rejection output.",
+    "Every emitted FactDelta and EffectProposal validates against protocol.v1 and no H-owned object or field is emitted."
+  ],
+  "completion_boundary": "Passing M1 measures only the declared Python reference kernel, frozen corpus, instrumented ambient surfaces, and tested environments. It is not a proof of universal purity, L/R/H mechanics, integrated runtime behavior, production readiness, comparative efficacy, or Lakatos progress."
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": "claim-ledger/v1",
-  "updated_at": "2026-08-08T07:40:09Z",
+  "updated_at": "2026-08-08T09:16:03Z",
   "claims": [
     {
       "id": "responsibility-separation",
@@ -67,6 +67,26 @@
         "A second independent implementation rejects an artifact or expected fixture accepted by the pinned checker.",
         "Reachability or model checking finds a path to SUCCEEDED with an unknown effect or without an independent closure receipt.",
         "A declared set-like canonicalization rule collapses ordered payload content or accepts duplicate set members."
+      ]
+    },
+    {
+      "id": "m1-pure-f-mechanics",
+      "statement": "The bounded Python reference implements the frozen M1 pure-F transition with byte-stable replay, typed rejection, no caller-input mutation, and inert authority-free EffectProposal output on the declared corpus.",
+      "epistemic_status": "MEASURED",
+      "disposition": "active",
+      "scope": "one Python reference event profile, frozen corpus with full independent rejection expectations, two local clean-process replay profiles, two guarded-import processes, eight explicit guarded CPython categories, three audit-only probes, ten import-metadata checks, and eight deliberate control mutants; not universal purity or integrated runtime evidence",
+      "evidence": [
+        "spec/m1-manifest.v1.json",
+        "fixtures/m1/cases.json",
+        "fixtures/m1/golden/observe-with-effect.transition.json",
+        "fixtures/m1/golden/invalid-calendar-timestamp.rejection.json",
+        "scripts/validate_m1.py",
+        "tests/test_m1_kernel.py"
+      ],
+      "falsifiers": [
+        "Any frozen case produces different canonical result bytes across the declared clean-process profiles.",
+        "The kernel mutates a caller input or accesses a guarded ambient authority surface.",
+        "F emits EffectIntent, execution authority, approval, a final effect idempotency key, or an execution receipt."
       ]
     }
   ]

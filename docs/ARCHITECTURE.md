@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M0 BOUNDARY CONTRACT PRESENT / NOT IMPLEMENTED
+> Status: M1 PURE-F REFERENCE MECHANICS MEASURED / L-R-H NOT IMPLEMENTED
 
 ## System boundary
 
@@ -75,7 +75,7 @@ The outer loop terminates only with a typed outcome and evidence closure.
 
 ```text
 step_F(snapshot, accepted_event)
-  -> Transition(next_state, base_fact_deltas, effect_proposals, diagnostics)
+  -> FTransition(next_snapshot, fact_deltas, effect_proposals) | FRejection
 
 solve_L(rule_set_version, materialization, fact_deltas, logical_time)
   -> FixpointResult(derived_deltas, eligibility_verdicts, conflicts, provenance)
@@ -89,6 +89,8 @@ authorize(stable_proposal_batch, policy_snapshot, capability, approval?)
 execute_effect_shell(authorized_effect)
   -> ActionReceipt | UnknownOutcome
 ```
+
+M1 realizes only `step_F` for the version-pinned `flrh.m1.observation-recorded/1` event. The public Python waist is [`step_f`](../src/flrh_kernel/kernel.py); its output schemas are [`m1-kernel.v1.schema.json`](../spec/schema/m1-kernel.v1.schema.json). It owns no durable state, handler registry, adapter, scheduler, authority, or execution port. The wider interfaces remain proposed until their own milestones pass.
 
 ## Authority and single writers
 

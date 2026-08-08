@@ -6,11 +6,11 @@
 
 ## Context
 
-The research proposes a reusable deterministic kernel, durable control shell, and graph contracts. However, there is no implementation, current production consumer, durable recovery evidence, or demonstrated need for a shared runtime boundary. Calling the work an engine now would turn an architecture hypothesis into an unsupported product claim.
+The research proposes a reusable deterministic kernel, durable control shell, and graph contracts. One bounded Python pure-F reference slice now exists, but there is no integrated L/R/H runtime, current production consumer, durable recovery evidence, or demonstrated need for a shared runtime boundary. Calling the work an engine now would still turn an architecture hypothesis into an unsupported product claim.
 
 ## Decision
 
-Treat the repository as a specification and mechanics incubator. The initial machine-readable decision is `defer`, not `engine`. Implement only the smallest vertical mechanics slice needed to falsify or support the boundary.
+Treat the repository as a specification and mechanics incubator. The machine-readable decision remains `defer`, not `engine`. The completed M1 slice is evidence for one candidate seam, not permission to scaffold the broader framework.
 
 ## Candidate boundary
 
@@ -36,6 +36,6 @@ Reconsider an engine verdict only when all frozen gates pass:
 ## Consequences
 
 - No broad plugin framework or service topology is created in the first slice.
-- Language selection remains open until M0 constraints are compared.
+- Python is the M1 reference language only; an eventual engine language remains open pending independent consumers and interoperability evidence.
 - Documentation may use “runtime candidate” or “profile”; “engine” must be qualified as deferred/candidate.
 - If consumers need incompatible policies or semantics, keep separate modules/adapters and reject engine promotion.

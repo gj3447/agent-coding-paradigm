@@ -1,0 +1,627 @@
+{
+  "schema_version": "m1-fixtures/v1",
+  "base_inputs": {
+    "observe-no-effect": {
+      "snapshot": {
+        "kind": "FStateSnapshot",
+        "schema_version": "flrh-f-snapshot/1",
+        "aggregate_id": "work:1",
+        "revision": 0,
+        "phase": "open",
+        "observation_count": 0,
+        "last_logical_time": null,
+        "last_event_id": null,
+        "last_observation_digest": null,
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      },
+      "accepted_event": {
+        "kind": "AcceptedEvent",
+        "event_id": "evt:m1:observe",
+        "payload": {
+          "event_type": "flrh.m1.observation-recorded/1",
+          "aggregate_id": "work:1",
+          "expected_revision": 0,
+          "observation": {
+            "artifact_id": "artifact:1",
+            "status": "seen",
+            "ordered_steps": ["capture", "verify"]
+          },
+          "mark_complete": false,
+          "effect_request": null
+        },
+        "occurred_at": "2026-08-08T01:00:00Z",
+        "received_at": "2026-08-08T01:00:01Z",
+        "logical_time": 1,
+        "correlation_id": "run:m1:1",
+        "causation_id": null,
+        "idempotency_key": "ingress:m1:observe",
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    },
+    "observe-with-effect": {
+      "snapshot": {
+        "kind": "FStateSnapshot",
+        "schema_version": "flrh-f-snapshot/1",
+        "aggregate_id": "work:1",
+        "revision": 0,
+        "phase": "open",
+        "observation_count": 0,
+        "last_logical_time": null,
+        "last_event_id": null,
+        "last_observation_digest": null,
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      },
+      "accepted_event": {
+        "kind": "AcceptedEvent",
+        "event_id": "evt:m1:effect",
+        "payload": {
+          "event_type": "flrh.m1.observation-recorded/1",
+          "aggregate_id": "work:1",
+          "expected_revision": 0,
+          "observation": {
+            "artifact_id": "artifact:1",
+            "status": "ready",
+            "ordered_steps": ["capture", "verify"]
+          },
+          "mark_complete": false,
+          "effect_request": {
+            "effect_type": "artifact.publish",
+            "action": {
+              "operation": "publish",
+              "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "destination": {
+              "adapter": "publisher",
+              "target": "store:fixture"
+            },
+            "goal_id": "goal:m1:publish",
+            "obligation_id": "obligation:m1:publish",
+            "declared_risk_hint": "high_risk_external",
+            "preconditions": ["constraint:artifact-ready", "frontier:1"]
+          }
+        },
+        "occurred_at": "2026-08-08T01:00:00Z",
+        "received_at": "2026-08-08T01:00:01Z",
+        "logical_time": 1,
+        "correlation_id": "run:m1:1",
+        "causation_id": null,
+        "idempotency_key": "ingress:m1:effect",
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    },
+    "observe-after-one": {
+      "snapshot": {
+        "kind": "FStateSnapshot",
+        "schema_version": "flrh-f-snapshot/1",
+        "aggregate_id": "work:1",
+        "revision": 1,
+        "phase": "open",
+        "observation_count": 1,
+        "last_logical_time": 2,
+        "last_event_id": "evt:m1:prior",
+        "last_observation_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      },
+      "accepted_event": {
+        "kind": "AcceptedEvent",
+        "event_id": "evt:m1:close",
+        "payload": {
+          "event_type": "flrh.m1.observation-recorded/1",
+          "aggregate_id": "work:1",
+          "expected_revision": 1,
+          "observation": {
+            "artifact_id": "artifact:1",
+            "status": "verified"
+          },
+          "mark_complete": true,
+          "effect_request": null
+        },
+        "occurred_at": "2026-08-08T01:00:02Z",
+        "received_at": "2026-08-08T01:00:03Z",
+        "logical_time": 2,
+        "correlation_id": "run:m1:1",
+        "causation_id": "evt:m1:prior",
+        "idempotency_key": "ingress:m1:close",
+        "versions": {
+          "workflow": "flrh-workflow/0.1",
+          "state_schema": "flrh-f-state/1",
+          "event_schema": "flrh-f-event/1",
+          "graph_schema": "graph/0",
+          "rule_set": "rules/0",
+          "dataflow": "dataflow/0",
+          "canonicalization": "flrh-cjson/1",
+          "tool": "publisher/1",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "gate": "m1-gate/1",
+          "resolver": "resolver/0",
+          "composition_profile": "composition/0"
+        }
+      }
+    }
+  },
+  "success_cases": [
+    {
+      "id": "observe-no-effect",
+      "input_ref": "observe-no-effect",
+      "mutations": [],
+      "expected_transition_digest": "sha256:81623155177c6ce653aea5eb72493adaffcd734a874cda4e10f4f47269d73ae3",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 0
+    },
+    {
+      "id": "observe-with-effect",
+      "input_ref": "observe-with-effect",
+      "mutations": [],
+      "expected_transition_digest": "sha256:58aebb4a6256a7dc2d5cde67eb2f303c1902afc9687c2854e5e292ee2c0b3f3f",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 1
+    },
+    {
+      "id": "observe-with-effect-reordered-preconditions",
+      "input_ref": "observe-with-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/effect_request/preconditions",
+          "value": ["frontier:1", "constraint:artifact-ready"]
+        }
+      ],
+      "expected_transition_digest": "sha256:58aebb4a6256a7dc2d5cde67eb2f303c1902afc9687c2854e5e292ee2c0b3f3f",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 1
+    },
+    {
+      "id": "reserved-kind-action-order-a",
+      "input_ref": "observe-with-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/effect_request/action",
+          "value": {
+            "kind": "EffectProposal",
+            "operation": "publish",
+            "preconditions": ["step:b", "step:a"]
+          }
+        }
+      ],
+      "expected_transition_digest": "sha256:dd25fe85422335c74d91b2416809c870cc4b7b63a8b1a189fdcf8c2f88482193",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 1
+    },
+    {
+      "id": "reserved-kind-action-order-b",
+      "input_ref": "observe-with-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/effect_request/action",
+          "value": {
+            "kind": "EffectProposal",
+            "operation": "publish",
+            "preconditions": ["step:a", "step:b"]
+          }
+        }
+      ],
+      "expected_transition_digest": "sha256:864cd854013aa09338e498e301b5680f2f3ed6b4e6517b4c717e912b27efe863",
+      "expected_next_revision": 1,
+      "expected_next_phase": "open",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 1
+    },
+    {
+      "id": "observe-and-close",
+      "input_ref": "observe-after-one",
+      "mutations": [],
+      "expected_transition_digest": "sha256:98b7a3b922e209dc10747706a345cc06f7b62f5cbfb04963d4c254036471ad37",
+      "expected_next_revision": 2,
+      "expected_next_phase": "closed",
+      "expected_fact_delta_count": 1,
+      "expected_effect_proposal_count": 0
+    }
+  ],
+  "rejection_cases": [
+    {
+      "id": "snapshot-extra-field",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "add", "path": "/snapshot/ambient", "value": "forbidden"}],
+      "expected_code": "MALFORMED_SNAPSHOT",
+      "expected_path": "/snapshot",
+      "expected_context": {}
+    },
+    {
+      "id": "event-missing-id",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "remove", "path": "/accepted_event/event_id"}],
+      "expected_code": "MALFORMED_ACCEPTED_EVENT",
+      "expected_path": "/accepted_event",
+      "expected_context": {}
+    },
+    {
+      "id": "non-nfc-observation",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/payload/observation/status", "value": "é"}],
+      "expected_code": "CANONICALIZATION_VIOLATION",
+      "expected_path": "/accepted_event/payload/observation/status",
+      "expected_context": {"canonical_code": "NON_NFC_STRING"}
+    },
+    {
+      "id": "workflow-version-mismatch",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/versions/workflow", "value": "flrh-workflow/9"}],
+      "expected_code": "WORKFLOW_VERSION_MISMATCH",
+      "expected_path": "/versions/workflow",
+      "expected_context": {"expected": "flrh-workflow/0.1"}
+    },
+    {
+      "id": "unsupported-state-schema",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/snapshot/versions/state_schema", "value": "flrh-f-state/9"}],
+      "expected_code": "UNSUPPORTED_STATE_SCHEMA",
+      "expected_path": "/snapshot/versions/state_schema",
+      "expected_context": {"expected": "flrh-f-state/1"}
+    },
+    {
+      "id": "unsupported-event-schema",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/versions/event_schema", "value": "flrh-f-event/9"}],
+      "expected_code": "UNSUPPORTED_EVENT_SCHEMA",
+      "expected_path": "/accepted_event/versions/event_schema",
+      "expected_context": {"expected": "flrh-f-event/1"}
+    },
+    {
+      "id": "unsupported-canonicalization",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {"op": "replace", "path": "/snapshot/versions/canonicalization", "value": "flrh-cjson/9"},
+        {"op": "replace", "path": "/accepted_event/versions/canonicalization", "value": "flrh-cjson/9"}
+      ],
+      "expected_code": "UNSUPPORTED_CANONICALIZATION",
+      "expected_path": "/versions/canonicalization",
+      "expected_context": {"expected": "flrh-cjson/1"}
+    },
+    {
+      "id": "aggregate-mismatch",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/payload/aggregate_id", "value": "work:2"}],
+      "expected_code": "SNAPSHOT_EVENT_MISMATCH",
+      "expected_path": "/accepted_event/payload/aggregate_id",
+      "expected_context": {}
+    },
+    {
+      "id": "stale-revision",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/payload/expected_revision", "value": 9}],
+      "expected_code": "STALE_REVISION",
+      "expected_path": "/accepted_event/payload/expected_revision",
+      "expected_context": {"expected": 0}
+    },
+    {
+      "id": "logical-time-regression",
+      "input_ref": "observe-after-one",
+      "mutations": [{"op": "replace", "path": "/accepted_event/logical_time", "value": 1}],
+      "expected_code": "LOGICAL_TIME_REGRESSION",
+      "expected_path": "/accepted_event/logical_time",
+      "expected_context": {"minimum": 2}
+    },
+    {
+      "id": "unsupported-event-payload",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/payload/event_type", "value": "flrh.m1.unknown/1"}],
+      "expected_code": "UNSUPPORTED_EVENT_PAYLOAD",
+      "expected_path": "/accepted_event/payload/event_type",
+      "expected_context": {"expected": "flrh.m1.observation-recorded/1"}
+    },
+    {
+      "id": "closed-snapshot",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/snapshot/phase", "value": "closed"}],
+      "expected_code": "DOMAIN_REJECTED",
+      "expected_path": "/snapshot/phase",
+      "expected_context": {"phase": "closed"}
+    },
+    {
+      "id": "duplicate-precondition",
+      "input_ref": "observe-with-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/effect_request/preconditions",
+          "value": ["frontier:1", "frontier:1"]
+        }
+      ],
+      "expected_code": "INVARIANT_VIOLATION",
+      "expected_path": "/accepted_event/payload/effect_request/preconditions",
+      "expected_context": {"invariant": "unique_preconditions"}
+    },
+    {
+      "id": "snapshot-int64-overflow",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/snapshot/revision",
+          "value": 9223372036854775808
+        }
+      ],
+      "expected_code": "CANONICALIZATION_VIOLATION",
+      "expected_path": "/snapshot/revision",
+      "expected_context": {"canonical_code": "INTEGER_OUTSIDE_INT64"}
+    },
+    {
+      "id": "event-float-logical-time",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/logical_time",
+          "value": 1.5
+        }
+      ],
+      "expected_code": "CANONICALIZATION_VIOLATION",
+      "expected_path": "/accepted_event/logical_time",
+      "expected_context": {"canonical_code": "FLOAT_FORBIDDEN"}
+    },
+    {
+      "id": "snapshot-revision-exhausted",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/snapshot/revision",
+          "value": 9223372036854775807
+        },
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/expected_revision",
+          "value": 9223372036854775807
+        }
+      ],
+      "expected_code": "INVARIANT_VIOLATION",
+      "expected_path": "/snapshot/revision",
+      "expected_context": {"invariant": "revision_increment_within_int64"}
+    },
+    {
+      "id": "unicode-surrogate-observation",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/payload/observation/status",
+          "value": "\ud800"
+        }
+      ],
+      "expected_code": "CANONICALIZATION_VIOLATION",
+      "expected_path": "/accepted_event/payload/observation/status",
+      "expected_context": {"canonical_code": "NON_UNICODE_SCALAR"}
+    },
+    {
+      "id": "invalid-calendar-timestamp",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/occurred_at",
+          "value": "2026-99-99T99:99:99Z"
+        }
+      ],
+      "expected_code": "MALFORMED_ACCEPTED_EVENT",
+      "expected_path": "/accepted_event/occurred_at",
+      "expected_context": {}
+    },
+    {
+      "id": "invalid-offset-timestamp",
+      "input_ref": "observe-no-effect",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/accepted_event/received_at",
+          "value": "2026-08-08T01:00:01+24:00"
+        }
+      ],
+      "expected_code": "MALFORMED_ACCEPTED_EVENT",
+      "expected_path": "/accepted_event/received_at",
+      "expected_context": {}
+    }
+  ],
+  "equivalence_pairs": [
+    {
+      "left_case_id": "observe-with-effect",
+      "right_case_id": "observe-with-effect-reordered-preconditions"
+    }
+  ],
+  "replay_sequences": [
+    {
+      "id": "two-observations",
+      "initial_input_ref": "observe-no-effect",
+      "steps": [
+        {
+          "input_ref": "observe-no-effect",
+          "event_mutations": []
+        },
+        {
+          "input_ref": "observe-no-effect",
+          "event_mutations": [
+            {
+              "op": "replace",
+              "path": "/accepted_event/event_id",
+              "value": "evt:m1:observe:2"
+            },
+            {
+              "op": "replace",
+              "path": "/accepted_event/payload/expected_revision",
+              "value": 1
+            },
+            {
+              "op": "replace",
+              "path": "/accepted_event/payload/observation/status",
+              "value": "verified"
+            },
+            {
+              "op": "replace",
+              "path": "/accepted_event/logical_time",
+              "value": 2
+            },
+            {
+              "op": "replace",
+              "path": "/accepted_event/idempotency_key",
+              "value": "ingress:m1:observe:2"
+            }
+          ]
+        }
+      ],
+      "expected_transition_digests": [
+        "sha256:81623155177c6ce653aea5eb72493adaffcd734a874cda4e10f4f47269d73ae3",
+        "sha256:dcd3efad1305caaa24a4bada6cbe801731b1b0c35a8ecaa49227381523bd7b9d"
+      ],
+      "expected_final_revision": 2
+    }
+  ],
+  "sensitivity_mutations": [
+    {
+      "id": "sensitivity-event-id",
+      "input_ref": "observe-no-effect",
+      "mutation": {"op": "replace", "path": "/accepted_event/event_id", "value": "evt:m1:observe-mutated"},
+      "expected_relation": "different_transition"
+    },
+    {
+      "id": "sensitivity-observation",
+      "input_ref": "observe-no-effect",
+      "mutation": {"op": "replace", "path": "/accepted_event/payload/observation/status", "value": "changed"},
+      "expected_relation": "different_transition"
+    },
+    {
+      "id": "sensitivity-logical-time",
+      "input_ref": "observe-no-effect",
+      "mutation": {"op": "replace", "path": "/accepted_event/logical_time", "value": 2},
+      "expected_relation": "different_transition",
+      "identity_paths": ["/fact_deltas/0/derivation_id"]
+    },
+    {
+      "id": "sensitivity-effect-risk",
+      "input_ref": "observe-with-effect",
+      "mutation": {
+        "op": "replace",
+        "path": "/accepted_event/payload/effect_request/declared_risk_hint",
+        "value": "unknown"
+      },
+      "expected_relation": "different_transition",
+      "identity_paths": [
+        "/effect_proposals/0/proposal_id",
+        "/effect_proposals/0/proposal_dedup_key"
+      ]
+    },
+    {
+      "id": "sensitivity-effect-preconditions",
+      "input_ref": "observe-with-effect",
+      "mutation": {
+        "op": "replace",
+        "path": "/accepted_event/payload/effect_request/preconditions",
+        "value": ["frontier:2"]
+      },
+      "expected_relation": "different_transition",
+      "identity_paths": [
+        "/effect_proposals/0/proposal_id",
+        "/effect_proposals/0/proposal_dedup_key"
+      ]
+    },
+    {
+      "id": "sensitivity-effect-correlation",
+      "input_ref": "observe-with-effect",
+      "mutation": {
+        "op": "replace",
+        "path": "/accepted_event/correlation_id",
+        "value": "run:m1:2"
+      },
+      "expected_relation": "different_transition",
+      "identity_paths": [
+        "/effect_proposals/0/proposal_id",
+        "/effect_proposals/0/proposal_dedup_key"
+      ]
+    },
+    {
+      "id": "sensitivity-rule-version",
+      "input_ref": "observe-no-effect",
+      "mutation": {"op": "replace", "path": "/accepted_event/versions/rule_set", "value": "rules/1"},
+      "expected_relation": "typed_rejection"
+    }
+  ]
+}

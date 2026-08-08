@@ -16,11 +16,13 @@ Gate: all schemas validate, golden fixtures parse, and semantic ambiguities are 
 
 Receipt boundary: the pinned repository checker reports nine valid Draft 2020-12 schemas, ten valid and thirteen invalid protocol fixtures, complete declared truth/default-negation tables, retraction/frontier/canonical cases, 25/25 declared transition coverage across 18 typed traces, nine terminal categories, three interrupt types, and a bounded-loop profile digest-bound to the sole-authority outer FSM. This is checker-relative M0 conformance only; it is not a global consistency proof, runtime evidence, or efficacy evidence.
 
-## M1 — Pure F kernel
+## M1 — Pure F kernel ✅ MEASURED 2026-08-08
 
 Deliverables: deterministic reducer/evolver, typed rejection, inert effect-proposal boundary, replay fixtures, ambient-effect guard.
 
 Gate: purity and replay tests 1–3 pass in two clean processes.
+
+Receipt boundary: one Python reference event profile produced six successful transitions, nineteen closed typed rejections, seven sensitivity mutations, and two exact canonical result goldens. A two-step sequence and every frozen case produced byte-identical, independently canonicalized output across 52 spawned replay runs in two distinct environment profiles. Two additional fresh processes locked filesystem reads before an `importlib` metadata-bearing import from precompiled source through a memory loader: eight explicit guarded categories and three audit-hook-only probes passed 11 positive self-tests, ten import-metadata checks passed, the kernel recorded zero attempts, and eight deliberate ambient/mutation mutants were caught. This is bounded reference-mechanism evidence, not a universal purity proof or an integrated runtime result.
 
 ## M2 — Stratified L kernel
 
@@ -60,4 +62,4 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Start one M1 vertical slice only: accepted event → pure transition → signed fact delta plus inert effect proposal, with deterministic replay in two clean processes and an ambient-effect failure test. `EffectIntent` remains an H-owned, authority-bound object for M4. Do not scaffold a broad engine; the engine decision remains deferred.
+Start M2 as one stratified-logic vertical slice over the M1 `FactDelta` seam: materialization, deterministic semi-naive worklist, four-valued support/conflict, provenance, and retraction versus clean full recomputation. Keep R and H out of that slice. `EffectIntent` remains H-owned for M4, and the engine decision remains deferred.

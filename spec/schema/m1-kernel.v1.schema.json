@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m1-kernel.v1.schema.json",
+  "title": "FLR-H M1 pure F-kernel wire objects",
+  "description": "Closed wire shapes for the bounded M1 reference slice. This is not an integrated FLR-H runtime schema.",
+  "oneOf": [
+    {"$ref": "#/$defs/FStateSnapshot"},
+    {"$ref": "#/$defs/M1Input"},
+    {"$ref": "#/$defs/FTransition"},
+    {"$ref": "#/$defs/FRejection"}
+  ],
+  "$defs": {
+    "Id": {
+      "$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Id"
+    },
+    "VersionEnvelope": {
+      "$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/VersionEnvelope"
+    },
+    "Digest": {
+      "$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Digest"
+    },
+    "EffectRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effect_type",
+        "action",
+        "destination",
+        "goal_id",
+        "obligation_id",
+        "declared_risk_hint",
+        "preconditions"
+      ],
+      "properties": {
+        "effect_type": {"$ref": "#/$defs/Id"},
+        "action": {"type": "object", "minProperties": 1},
+        "destination": {"type": "object", "minProperties": 1},
+        "goal_id": {"$ref": "#/$defs/Id"},
+        "obligation_id": {"$ref": "#/$defs/Id"},
+        "declared_risk_hint": {
+          "enum": ["read_only", "reversible", "high_risk_external", "unknown"]
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Id"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "ObservationPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_type",
+        "aggregate_id",
+        "expected_revision",
+        "observation",
+        "mark_complete",
+        "effect_request"
+      ],
+      "properties": {
+        "event_type": {"const": "flrh.m1.observation-recorded/1"},
+        "aggregate_id": {"$ref": "#/$defs/Id"},
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "observation": {"type": "object", "minProperties": 1},
+        "mark_complete": {"type": "boolean"},
+        "effect_request": {
+          "oneOf": [
+            {"$ref": "#/$defs/EffectRequest"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "M1AcceptedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "event_id",
+        "payload",
+        "occurred_at",
+        "received_at",
+        "logical_time",
+        "correlation_id",
+        "causation_id",
+        "idempotency_key",
+        "versions"
+      ],
+      "properties": {
+        "kind": {"const": "AcceptedEvent"},
+        "event_id": {"$ref": "#/$defs/Id"},
+        "payload": {"$ref": "#/$defs/ObservationPayload"},
+        "occurred_at": {"type": "string", "format": "date-time"},
+        "received_at": {"type": "string", "format": "date-time"},
+        "logical_time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "correlation_id": {"$ref": "#/$defs/Id"},
+        "causation_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "idempotency_key": {"$ref": "#/$defs/Id"},
+        "versions": {"$ref": "#/$defs/VersionEnvelope"}
+      }
+    },
+    "FStateSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema_version",
+        "aggregate_id",
+        "revision",
+        "phase",
+        "observation_count",
+        "last_logical_time",
+        "last_event_id",
+        "last_observation_digest",
+        "versions"
+      ],
+      "properties": {
+        "kind": {"const": "FStateSnapshot"},
+        "schema_version": {"const": "flrh-f-snapshot/1"},
+        "aggregate_id": {"$ref": "#/$defs/Id"},
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "phase": {"enum": ["open", "closed"]},
+        "observation_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "last_logical_time": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9223372036854775807
+            },
+            {"type": "null"}
+          ]
+        },
+        "last_event_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "last_observation_digest": {
+          "oneOf": [
+            {"$ref": "#/$defs/Digest"},
+            {"type": "null"}
+          ]
+        },
+        "versions": {"$ref": "#/$defs/VersionEnvelope"}
+      }
+    },
+    "M1Input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot", "accepted_event"],
+      "properties": {
+        "snapshot": {"$ref": "#/$defs/FStateSnapshot"},
+        "accepted_event": {"$ref": "#/$defs/M1AcceptedEvent"}
+      }
+    },
+    "FTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema_version",
+        "contract_version",
+        "event_id",
+        "prior_snapshot_digest",
+        "next_snapshot",
+        "fact_deltas",
+        "effect_proposals",
+        "transition_digest"
+      ],
+      "properties": {
+        "kind": {"const": "FTransition"},
+        "schema_version": {"const": "flrh-f-result/1"},
+        "contract_version": {"const": "flrh-f-kernel/1"},
+        "event_id": {"$ref": "#/$defs/Id"},
+        "prior_snapshot_digest": {"$ref": "#/$defs/Digest"},
+        "next_snapshot": {"$ref": "#/$defs/FStateSnapshot"},
+        "fact_deltas": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/FactDelta"
+          }
+        },
+        "effect_proposals": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EffectProposal"
+          }
+        },
+        "transition_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "FRejection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema_version",
+        "contract_version",
+        "code",
+        "path",
+        "event_id",
+        "snapshot_revision",
+        "context"
+      ],
+      "properties": {
+        "kind": {"const": "FRejection"},
+        "schema_version": {"const": "flrh-f-result/1"},
+        "contract_version": {"const": "flrh-f-kernel/1"},
+        "code": {
+          "enum": [
+            "MALFORMED_SNAPSHOT",
+            "MALFORMED_ACCEPTED_EVENT",
+            "CANONICALIZATION_VIOLATION",
+            "UNSUPPORTED_STATE_SCHEMA",
+            "UNSUPPORTED_EVENT_SCHEMA",
+            "UNSUPPORTED_CANONICALIZATION",
+            "WORKFLOW_VERSION_MISMATCH",
+            "VERSION_ENVELOPE_MISMATCH",
+            "SNAPSHOT_EVENT_MISMATCH",
+            "STALE_REVISION",
+            "LOGICAL_TIME_REGRESSION",
+            "UNSUPPORTED_EVENT_PAYLOAD",
+            "DOMAIN_REJECTED",
+            "INVARIANT_VIOLATION"
+          ]
+        },
+        "path": {"type": "string", "pattern": "^/"},
+        "event_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/Id"},
+            {"type": "null"}
+          ]
+        },
+        "snapshot_revision": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9223372036854775807
+            },
+            {"type": "null"}
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "integer", "boolean", "null"]
+          }
+        }
+      }
+    }
+  }
+}

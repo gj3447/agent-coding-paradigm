@@ -12,9 +12,9 @@
     "adapter-sdk"
   ],
   "rationale": [
-    "No executable runtime or production consumer exists yet.",
+    "One bounded Python pure-F reference slice exists; no integrated runtime or production consumer exists yet.",
     "Durability, recovery, effect reconciliation, and graph interoperability are specified but unmeasured.",
-    "The smallest justified next step is a mechanics vertical slice rather than a broad engine framework."
+    "The smallest justified next step is a stratified-logic mechanics slice rather than a broad engine framework."
   ],
   "boundary": {
     "owns": "Deterministic transition, fixpoint, unit-delta stabilization, and typed stable-proposal output",
@@ -32,7 +32,7 @@
       "Defining planning or dispatch doctrine",
       "Standardizing one universal graph representation"
     ],
-    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications only"
+    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications and a stateless pure-F reference only"
   },
   "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [

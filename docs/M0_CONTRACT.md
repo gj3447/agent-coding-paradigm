@@ -13,11 +13,13 @@ Four claim levels must remain separate:
 | Level | Question | Current state |
 |---|---|---|
 | Formal design | Do the current F/L/R/H artifacts satisfy their closed schemas, encoded invariants, and declared fixtures? | M0 checker conformance measured |
-| Mechanism | Can independent code implement those contracts deterministically, incrementally, durably, and safely? | M1–M5 not implemented |
+| Mechanism | Can independent code implement those contracts deterministically, incrementally, durably, and safely? | bounded M1 pure-F reference measured; M2–M5 not implemented |
 | Comparative efficacy | Does full FLR-H improve held-out coding-agent outcomes over a simpler equal-budget control? | Unpreregistered and unjudged |
 | Paradigm/standard | Is the abstraction independently adopted, stable across implementations, and worth teaching as a general paradigm? | Unsupported |
 
 M0 therefore records **checker-relative contract conformance**. It does not prove global logical consistency, implementation feasibility, or practical usefulness.
+
+M1 subsequently added one bounded implementation result without changing this historical M0 boundary. See [`M1_KERNEL.md`](M1_KERNEL.md) for the implemented seam and its narrower claims.
 
 ## Lakatos framing
 
@@ -69,7 +71,7 @@ The Python checker is non-normative and replaceable. A second implementation sho
 
 | Milestone | Decisive test | What would falsify or downgrade it? |
 |---|---|---|
-| M1 Functional | replay/property tests in two clean processes | identical explicit inputs yield different canonical state/effect proposals |
+| M1 Functional ✅ | replay/property tests in two clean processes | measured for the frozen reference profile; any byte mismatch or ambient attempt reopens it |
 | M2 Logic | incremental insert/delete/retract versus clean recomputation | support, conflict, or provenance diverges |
 | M3 Reactive | randomized order, frontier, slow-consumer, and backpressure tests | intermediate effects leak or queues grow outside bounds |
 | M4 Harness | crash injection around intent/send/receipt plus cancellation and fencing | duplicate confirmed mutation or false `SUCCEEDED` |

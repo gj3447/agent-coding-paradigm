@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m1-kernel-contract.v1.schema.json",
+  "title": "M1 pure F-kernel contract document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "purpose",
+    "public_api",
+    "supported_profile",
+    "owned_mechanism",
+    "excluded_policy_and_authority",
+    "transition_rules",
+    "output_invariants",
+    "transition_digest_projection",
+    "value_digest_preimages",
+    "identity_preimages",
+    "digest_note",
+    "ambient_dependencies_forbidden",
+    "rejection_codes",
+    "completion_gate",
+    "completion_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "m1-kernel-contract/v1"},
+    "status": {
+      "enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]
+    },
+    "purpose": {"type": "string", "minLength": 1},
+    "public_api": {"const": "step_f(snapshot, accepted_event) -> FTransition | FRejection"},
+    "supported_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "snapshot_schema",
+        "result_schema",
+        "workflow",
+        "state_schema",
+        "event_schema",
+        "payload_event_type",
+        "canonicalization"
+      ],
+      "properties": {
+        "contract": {"const": "flrh-f-kernel/1"},
+        "snapshot_schema": {"const": "flrh-f-snapshot/1"},
+        "result_schema": {"const": "flrh-f-result/1"},
+        "workflow": {"const": "flrh-workflow/0.1"},
+        "state_schema": {"const": "flrh-f-state/1"},
+        "event_schema": {"const": "flrh-f-event/1"},
+        "payload_event_type": {"const": "flrh.m1.observation-recorded/1"},
+        "canonicalization": {"const": "flrh-cjson/1"}
+      }
+    },
+    "owned_mechanism": {"$ref": "#/$defs/NonEmptyUniqueStrings"},
+    "excluded_policy_and_authority": {"$ref": "#/$defs/NonEmptyUniqueStrings"},
+    "transition_rules": {"$ref": "#/$defs/NonEmptyUniqueStrings"},
+    "output_invariants": {"$ref": "#/$defs/NonEmptyUniqueStrings"},
+    "transition_digest_projection": {
+      "type": "array",
+      "const": [
+        "contract_version",
+        "event_id",
+        "prior_snapshot_digest",
+        "next_snapshot_digest",
+        "ordered_fact_delta_digests",
+        "ordered_effect_proposal_digests"
+      ]
+    },
+    "value_digest_preimages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "contract_version", "domains", "shape"],
+      "properties": {
+        "kind": {"const": "M1ValueDigestPreimage"},
+        "contract_version": {"const": "flrh-f-kernel/1"},
+        "domains": {
+          "type": "array",
+          "const": ["observation", "effect-action", "effect-destination"]
+        },
+        "shape": {
+          "type": "array",
+          "const": ["kind", "contract_version", "domain", "value"]
+        }
+      }
+    },
+    "identity_preimages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "contract_version", "domains", "value_rule"],
+      "properties": {
+        "kind": {"const": "M1IdentityPreimage"},
+        "contract_version": {"const": "flrh-f-kernel/1"},
+        "domains": {
+          "type": "array",
+          "const": ["observation-fact-value", "effect-proposal-value", "proposal-dedup-value"]
+        },
+        "value_rule": {"type": "string", "minLength": 1}
+      }
+    },
+    "digest_note": {"type": "string", "minLength": 1},
+    "ambient_dependencies_forbidden": {
+      "type": "array",
+      "const": [
+        "clock",
+        "randomness",
+        "uuid",
+        "environment_or_credentials",
+        "filesystem",
+        "network",
+        "subprocess",
+        "model_or_tool_call"
+      ]
+    },
+    "rejection_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+    },
+    "completion_gate": {"$ref": "#/$defs/NonEmptyUniqueStrings"},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "NonEmptyUniqueStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

@@ -7,6 +7,7 @@ Updated: 2026-08-08
 | Claim | Status | Evidence boundary |
 |---|---|---|
 | the pinned checker returns PASS for the declared M0 schemas and fixtures | MEASURED | checker-relative local conformance; no global consistency proof or runtime |
+| the bounded Python M1 reference implements a deterministic pure-F transition with typed rejection and inert proposals for the frozen event profile | MEASURED | six success cases, nineteen full-rejection fixture oracles, seven sensitivity mutations, two exact goldens, one two-step replay, 52 clean replay runs plus two guarded-import runs, eight explicit categories plus three audit-only probes, ten import-metadata checks, and eight detected control mutants; no universal purity or integrated-runtime claim |
 | F/L/R/H responsibilities can be specified without collapsing into one LLM loop | PROPOSED | architecture plus machine contracts; no runtime |
 | signed deltas and scalar logical frontiers provide a plausible L-to-R narrow waist | HYPOTHESIS | executable fixture semantics; no incremental implementation |
 | typed graph federation avoids several category errors of a soup graph | HYPOTHESIS | machine-validated graph-kind/envelope shapes; no graph implementation |
@@ -14,7 +15,7 @@ Updated: 2026-08-08
 | the repository is ready to be called a reusable engine | DEFERRED | no executable consumer, durability proof, or recovery evidence |
 | FLR-H improves agent outcomes | UNSUPPORTED | no held-out equal-budget comparison |
 | FLR-H is original or an industry standard | UNSUPPORTED | no prior-art exhaustion or standards process |
-| FLR-H is production-ready | UNSUPPORTED | mechanics implementation has not begun |
+| FLR-H is production-ready | UNSUPPORTED | only one bounded pure-F reference slice exists; L/R/H, durability, graphs, and operational trials remain open |
 
 ## Falsifiers
 

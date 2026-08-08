@@ -1,6 +1,6 @@
 # FLR-H Execution Semantics v0
 
-> Status: M0 MACHINE CONTRACT PRESENT / NOT CANON / NOT IMPLEMENTED
+> Status: M1 PURE-F REFERENCE MECHANICS MEASURED / L-R-H NOT IMPLEMENTED / NOT EXTERNAL CANON
 
 ## Boundary types
 
@@ -65,7 +65,9 @@ EffectIntent<Eff, Cap> = {
 
 `step_F(snapshot, event)` has no ambient effects. Clock, randomness, filesystem, network, credentials, model responses, and tool results enter as recorded inputs. Identical snapshot, event, and version inputs must yield byte-stable canonical transition output.
 
-F may emit an authority-free effect proposal; it may neither authorize nor execute it. `declared_risk_hint` is untrusted input to H, and `proposal_dedup_key` only deduplicates proposal values. Neither is an approval decision or the final external-effect identity. F may reject malformed or incompatible inputs with a typed reason and no mutation.
+F may emit an authority-free effect proposal; it may neither authorize nor execute it. `declared_risk_hint` is untrusted input to H, and `proposal_dedup_key` only deduplicates proposal values. In M1, derivation and proposal identities bind the complete emitted value except their own identity field or fields, preventing distinct bytes from sharing an identity by construction. None of these fields is an approval decision or the final external-effect identity. F may reject malformed or incompatible inputs with a typed reason and no mutation.
+
+The M1 reference realizes that boundary for one versioned observation event and a closed snapshot/transition/rejection vocabulary. It derives one `FactDelta`, zero or one `EffectProposal`, and a fresh snapshot. Transition identity is a digest projection over the individually root-canonicalized next snapshot, deltas, and proposals; this preserves `EffectProposal.preconditions` set semantics without sorting ordered arrays nested in arbitrary payloads. The measured result is limited to the frozen corpus and guarded Python surfaces.
 
 ## L — logic semantics
 
@@ -129,4 +131,4 @@ Every resumable run pins at least:
 
 Mismatch yields an explicit migration or `CHECKPOINT_INCOMPATIBLE`; it never silently resumes.
 
-The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), and [`canonicalization.v1.json`](../spec/canonicalization.v1.json). This prose is a view of those contracts.
+The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), and the bounded M1 contracts in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json). This prose is a view of those contracts.
