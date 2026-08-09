@@ -194,6 +194,27 @@ LR_PROMOTION_PATHS = (
     "spec/lr-seam-manifest.v1.json",
     "spec/claims.v1.json",
 )
+LR_FROZEN_EVIDENCE_PATHS = (
+    "docs/LR_SEAM.md",
+    "fixtures/lr-seam/cases.json",
+    "fixtures/lr-seam/golden/eligible.projection.json",
+    "fixtures/lr-seam/golden/mismatch.rejection.json",
+    "scripts/check_lr_seam_ambient.py",
+    "scripts/check_lr_seam_semantic_mutants.py",
+    "scripts/lr_seam_fixtures.py",
+    "scripts/lr_seam_guard.py",
+    "scripts/lr_seam_oracle.py",
+    "scripts/run_lr_seam_replay.py",
+    "spec/lr-seam-contract.v1.json",
+    "spec/lr-seam-manifest.v1.json",
+    "spec/schema/lr-seam-contract.v1.schema.json",
+    "spec/schema/lr-seam-fixtures.v1.schema.json",
+    "spec/schema/lr-seam-manifest.v1.schema.json",
+    "spec/schema/lr-seam.v1.schema.json",
+    "src/flrh_lr_seam/__init__.py",
+    "src/flrh_lr_seam/canonical.py",
+    "src/flrh_lr_seam/seam.py",
+)
 PROPOSED_PROMOTION_SHA256 = {
     "README.md": "sha256:801e2d95adb2e463a7d506c1fe18c5063c010adf4cbda2a603bcae18d6359f35",
     "docs/ARCHITECTURE.md": "sha256:6a5734abeec39b7607519e7a3ace91c89a6322bd47d97e3ae819c148d7200ed7",
@@ -587,19 +608,36 @@ def _require_no_published_receipt_ancestor(root: Path) -> None:
 
 
 def _validate_lr_receipt_git(root: Path, receipt: Mapping[str, Any]) -> None:
-    """Bind the follow-up receipt to one exact candidate -> measured -> receipt DAG."""
+    """Bind one immutable receipt commit inside a possibly longer clean DAG."""
     try:
+        shallow = _git_output(root, "rev-parse", "--is-shallow-repository")
+        if shallow.strip() != b"false":
+            raise AssertionError
         head = _git_output(root, "rev-parse", "HEAD").decode("ascii").strip()
-        measured = _git_output(root, "rev-parse", "HEAD^").decode("ascii").strip()
-        candidate = _git_output(root, "rev-parse", "HEAD^^").decode("ascii").strip()
-        head_parents = _git_output(
-            root, "rev-list", "--parents", "-n", "1", head
+        receipt_history = _git_output(
+            root, "rev-list", "--full-history", "HEAD", "--", LR_RECEIPT_RELATIVE
+        ).decode("ascii").splitlines()
+        if len(receipt_history) != 1:
+            raise AssertionError
+        receipt_commit = receipt_history[0]
+        ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", receipt_commit, head],
+            cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        )
+        if ancestor.returncode != 0:
+            raise AssertionError
+        receipt_parents = _git_output(
+            root, "rev-list", "--parents", "-n", "1", receipt_commit
         ).decode("ascii").split()
+        if len(receipt_parents) != 2:
+            raise AssertionError
+        measured = receipt_parents[1]
         measured_parents = _git_output(
             root, "rev-list", "--parents", "-n", "1", measured
         ).decode("ascii").split()
-        if head_parents != [head, measured] or measured_parents != [measured, candidate]:
+        if len(measured_parents) != 2:
             raise AssertionError
+        candidate = measured_parents[1]
         if receipt["candidate_commit"] != candidate or receipt["measured_commit"] != measured:
             raise AssertionError
         if receipt["candidate_tree"] != _git_output(
@@ -619,7 +657,7 @@ def _validate_lr_receipt_git(root: Path, receipt: Mapping[str, Any]) -> None:
             != {("M", relative) for relative in LR_PROMOTION_PATHS}
         ):
             raise AssertionError
-        measured_to_receipt = _git_changed_records(root, measured, head)
+        measured_to_receipt = _git_changed_records(root, measured, receipt_commit)
         if (
             len(measured_to_receipt) != 2
             or set(measured_to_receipt)
@@ -640,12 +678,32 @@ def _validate_lr_receipt_git(root: Path, receipt: Mapping[str, Any]) -> None:
             if absent.returncode == 0:
                 raise AssertionError
         receipt_tree = _git_output(
-            root, "ls-tree", head, "--", LR_RECEIPT_RELATIVE
+            root, "ls-tree", receipt_commit, "--", LR_RECEIPT_RELATIVE
         ).decode("utf-8").strip().split()
         if not receipt_tree or receipt_tree[0] != "100644":
             raise AssertionError
+        historical_receipt = _git_regular_blob(
+            root, receipt_commit, LR_RECEIPT_RELATIVE
+        )
+        if historical_receipt != (root / LR_RECEIPT_RELATIVE).read_bytes():
+            raise AssertionError
+        for relative in LR_FROZEN_EVIDENCE_PATHS:
+            at_receipt = subprocess.run(
+                ["git", "cat-file", "-e", f"{receipt_commit}:{relative}"],
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+            )
+            at_head = subprocess.run(
+                ["git", "cat-file", "-e", f"{head}:{relative}"],
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+            )
+            if at_receipt.returncode != at_head.returncode:
+                raise AssertionError
+            if at_receipt.returncode == 0 and _git_regular_blob(
+                root, receipt_commit, relative
+            ) != _git_regular_blob(root, head, relative):
+                raise AssertionError
         validator_hashes = []
-        for revision in (candidate, measured, head):
+        for revision in (candidate, measured, receipt_commit):
             validator = _git_output(
                 root, "show", f"{revision}:scripts/validate_lr_seam.py"
             )
@@ -656,8 +714,6 @@ def _validate_lr_receipt_git(root: Path, receipt: Mapping[str, Any]) -> None:
             )
             if checked.returncode != 0:
                 raise AssertionError
-        current_validator = (root / "scripts/validate_lr_seam.py").read_bytes()
-        validator_hashes.append(hashlib.sha256(current_validator).hexdigest())
         if any(
             value != receipt["candidate_validator_sha256"]
             for value in validator_hashes
@@ -699,15 +755,6 @@ def _project_readme_for_promotion(
     if receipt_path.is_symlink() or not receipt_path.is_file():
         _receipt_drift()
     receipt = _parse_lr_receipt(receipt_path.read_bytes())
-    validator_path = root / "scripts/validate_lr_seam.py"
-    if validator_path.is_symlink() or not validator_path.is_file():
-        _receipt_drift()
-    validator_hash = hashlib.sha256(validator_path.read_bytes()).hexdigest()
-    if (
-        receipt["candidate_validator_sha256"] != validator_hash
-        or receipt["measured_validator_sha256"] != validator_hash
-    ):
-        _receipt_drift()
     if verify_receipt_git:
         _validate_lr_receipt_git(root, receipt)
     return raw.replace(anchor + link, anchor, 1)

@@ -1605,12 +1605,9 @@ class LRSeamTests(unittest.TestCase):
             self.git(root, "add", "--", "unexpected.txt")
             self.git(root, "-c", "user.name=LR Test", "-c",
                      "user.email=lr@example.invalid", "commit", "-m", "extra")
-            with self.assertRaisesRegex(
-                AssertionError, "^measured LR promotion receipt git drift$"
-            ):
-                lr_validator._validate_promotion_governance(
-                    root, *inputs, verify_receipt_git=True
-                )
+            lr_validator._validate_promotion_governance(
+                root, *inputs, verify_receipt_git=True
+            )
 
     def test_20_receipt_binds_historical_candidate_and_measured_bytes(self):
         for drift_stage in ("candidate", "measured"):
@@ -1734,6 +1731,115 @@ class LRSeamTests(unittest.TestCase):
                 self.assertEqual(
                     "true", self.git(shallow, "rev-parse", "--is-shallow-repository")
                 )
+                shallow_inputs = self.governance_inputs(shallow)
+                with self.assertRaisesRegex(
+                    AssertionError, "^measured LR promotion receipt git drift$"
+                ):
+                    lr_validator._validate_promotion_governance(
+                        shallow, *shallow_inputs, verify_receipt_git=True
+                    )
+
+    def test_22_immutable_receipt_allows_clean_descendants_only(self):
+        with tempfile.TemporaryDirectory(prefix="flrh-lr-receipt-descendant-") as raw:
+            root = Path(raw)
+            root.mkdir(exist_ok=True)
+            self.git(root, "init", "-b", "main")
+            self.write_proposed_promotion_surfaces(root)
+            frozen = root / "src/flrh_lr_seam/seam.py"
+            frozen.parent.mkdir(parents=True, exist_ok=True)
+            frozen.write_bytes((ROOT / "src/flrh_lr_seam/seam.py").read_bytes())
+            self.git(root, "add", "--", *PROMOTION_PATHS,
+                     "scripts/validate_lr_seam.py", "src/flrh_lr_seam/seam.py")
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "candidate")
+            candidate = self.git(root, "rev-parse", "HEAD")
+            candidate_tree = self.git(root, "rev-parse", "HEAD^{tree}")
+
+            self.write_measured_promotion_surfaces(root)
+            self.git(root, "add", "--", *PROMOTION_PATHS)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "measured")
+            measured = self.git(root, "rev-parse", "HEAD")
+            measured_tree = self.git(root, "rev-parse", "HEAD^{tree}")
+            inputs = self.governance_inputs(root)
+            receipt = self.add_receipt(
+                root,
+                self.receipt_payload(
+                    root, candidate_commit=candidate, candidate_tree=candidate_tree,
+                    measured_commit=measured, measured_tree=measured_tree,
+                ),
+            )
+            receipt_bytes = receipt.read_bytes()
+            self.git(root, "add", "--", "README.md",
+                     lr_validator.LR_RECEIPT_RELATIVE)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "receipt")
+
+            validator = root / "scripts/validate_lr_seam.py"
+            validator.write_bytes(validator.read_bytes() + b"# descendant evolution\n")
+            (root / "later.txt").write_text("later\n", encoding="utf-8")
+            self.git(root, "add", "--", "scripts/validate_lr_seam.py", "later.txt")
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "descendant")
+            descendant = self.git(root, "rev-parse", "HEAD")
+
+            lr_validator._validate_promotion_governance(
+                root, *inputs, verify_receipt_git=True
+            )
+
+            self.git(root, "switch", "-c", "frozen-drift")
+            frozen.write_bytes(frozen.read_bytes() + b"# drift\n")
+            self.git(root, "add", "--", "src/flrh_lr_seam/seam.py")
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "frozen drift")
+            with self.assertRaisesRegex(
+                AssertionError, "^measured LR promotion receipt git drift$"
+            ):
+                lr_validator._validate_promotion_governance(
+                    root, *inputs, verify_receipt_git=True
+                )
+
+            self.git(root, "switch", "--detach", descendant)
+            self.git(root, "switch", "-c", "receipt-edit-revert")
+            receipt.write_bytes(receipt_bytes.replace(b"follow-up", b"changed", 1))
+            self.git(root, "add", "--", lr_validator.LR_RECEIPT_RELATIVE)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "edit receipt")
+            receipt.write_bytes(receipt_bytes)
+            self.git(root, "add", "--", lr_validator.LR_RECEIPT_RELATIVE)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "restore receipt")
+            with self.assertRaisesRegex(
+                AssertionError, "^measured LR promotion receipt git drift$"
+            ):
+                lr_validator._validate_promotion_governance(
+                    root, *inputs, verify_receipt_git=True
+                )
+
+            self.git(root, "switch", "--detach", descendant)
+            self.git(root, "switch", "-c", "receipt-delete-readd")
+            receipt.unlink()
+            self.git(root, "add", "-u", "--", lr_validator.LR_RECEIPT_RELATIVE)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "delete receipt")
+            receipt.write_bytes(receipt_bytes)
+            self.git(root, "add", "--", lr_validator.LR_RECEIPT_RELATIVE)
+            self.git(root, "-c", "user.name=LR Test", "-c",
+                     "user.email=lr@example.invalid", "commit", "-m", "readd receipt")
+            with self.assertRaisesRegex(
+                AssertionError, "^measured LR promotion receipt git drift$"
+            ):
+                lr_validator._validate_promotion_governance(
+                    root, *inputs, verify_receipt_git=True
+                )
+
+            with tempfile.TemporaryDirectory(prefix="flrh-lr-descendant-shallow-") as clone_raw:
+                shallow = Path(clone_raw) / "checkout"
+                completed = subprocess.run(
+                    ["git", "clone", "--depth", "2", f"file://{root}", str(shallow)],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+                )
+                self.assertEqual(0, completed.returncode, completed.stderr)
                 shallow_inputs = self.governance_inputs(shallow)
                 with self.assertRaisesRegex(
                     AssertionError, "^measured LR promotion receipt git drift$"
