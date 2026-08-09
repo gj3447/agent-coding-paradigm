@@ -37,6 +37,21 @@ class M3ReactiveTests(unittest.TestCase):
         self.proposal = copy.deepcopy(self.corpus["proposals"]["m1_effect_proposal"])
         self.verdict = copy.deepcopy(self.corpus["verdicts"]["m3_verdict"])
 
+    def test_00_engine_decision_tracks_measured_m3_without_promotion(self):
+        decision = json.loads((ROOT / "spec/engine-decision.v1.json").read_text())
+        rationale = " ".join(decision["rationale"])
+        incremental_gate = next(
+            gate
+            for gate in decision["promotion_gates"]
+            if gate["id"] == "deterministic-incremental-equivalence"
+        )
+
+        self.assertEqual("defer", decision["verdict"])
+        self.assertIn("supplied-value scalar-frontier R", rationale)
+        self.assertIn("pure-R reference functions", decision["boundary"]["state_authority"])
+        self.assertNotIn("Implement M3", " ".join(incremental_gate["prerequisites"]))
+        self.assertEqual("OPEN", incremental_gate["status"])
+
     def command(self, kind: str, **fields):
         return {
             "kind": kind,
