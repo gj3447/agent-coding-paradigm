@@ -92,6 +92,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
 - [M2 validation receipt](research/M2_VALIDATION_2026-08-09.md) — frozen subject tree, full-recompute digests, adversarial gates, and exact CI readback
 - [M3 validation receipt](research/M3_VALIDATION_2026-08-09.md) — frozen subject tree, scalar-frontier digests, clean-process and semantic-mutation gates, and exact CI readback
+- [Direct L-to-R seam validation receipt](research/LR_SEAM_VALIDATION_2026-08-09.md) — frozen measured subject, local evidence, and exact CI readback
 - [Machine-readable engine decision](spec/engine-decision.v1.json) — validated defer decision
 - [M0 manifest](spec/m0-manifest.v1.json) — normative contract set and non-claim boundary
 - [M1 manifest](spec/m1-manifest.v1.json) — bounded pure-F implementation and conformance boundary
