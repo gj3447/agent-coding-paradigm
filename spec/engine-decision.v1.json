@@ -12,9 +12,9 @@
     "adapter-sdk"
   ],
   "rationale": [
-    "Bounded sibling Python reference slices exist for pure F, ground stratified L, and supplied-value scalar-frontier R; no integrated runtime or production consumer exists yet.",
+    "Bounded sibling Python reference slices exist for pure F, ground stratified L, supplied-value scalar-frontier R, and one stateless direct L-to-R projection; no integrated runtime or production consumer exists yet.",
     "Durability, recovery, effect reconciliation, and graph interoperability are specified but unmeasured.",
-    "The smallest justified next step is to bind the direct L-to-R seam or implement durable H mechanics rather than scaffold a broad engine framework."
+    "Direct L-to-R projection is measured while the engine verdict remains defer"
   ],
   "boundary": {
     "owns": "Deterministic transition, fixpoint, unit-delta stabilization, and typed stable-proposal output",
@@ -32,7 +32,7 @@
       "Defining planning or dispatch doctrine",
       "Standardizing one universal graph representation"
     ],
-    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications and stateless pure-F, pure-L, and pure-R reference functions only"
+    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications, stateless pure-F, pure-L, and pure-R reference functions, and one stateless direct L-to-R projection only"
   },
   "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [
@@ -74,7 +74,7 @@
         {"metric": "incremental_recompute_mismatch_count", "operator": "==", "threshold": 0, "unit": "mismatches"}
       ],
       "evidence": [],
-      "prerequisites": ["Use the measured M3 corpus as one input, bind the direct L-to-R seam, and demonstrate persistent incremental reuse before closing the incremental metric."]
+      "prerequisites": ["Use the measured M3 corpus as one input, use the measured direct L-to-R projection, and demonstrate persistent incremental reuse before closing the incremental metric."]
     },
     {
       "id": "operational-durability-requirement",

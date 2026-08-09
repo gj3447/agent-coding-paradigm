@@ -1,10 +1,10 @@
 # Direct L-to-R Projection Seam
 
-> Status: **PROPOSED_PENDING_MEASUREMENT**.
+> Status: **MEASURED_REFERENCE_CONFORMANCE**.
 
 ## Purpose
 
-This adjunct slice proposes one deterministic, stateless projection from an exact
+This adjunct slice measures one deterministic, stateless projection from an exact
 M2 `LFixpointResult` and explicit proposal-to-query bindings into exact M3
 proposal and `EligibilityVerdict` insertion deltas. It is a sibling module; it
 does not widen the measured `flrh_logic.solve_l` or `flrh_reactive.step_r`
@@ -59,26 +59,26 @@ by [`lr-seam-contract.v1.json`](../spec/lr-seam-contract.v1.json) and
 [`lr-seam.v1.schema.json`](../spec/schema/lr-seam.v1.schema.json). Rejection is
 typed, atomic, and contains no partial command or verdict set.
 
-## Candidate admission gate
+## Measurement gate
 
-During candidate assembly, run:
+Run the measured admission gate with:
 
 ```bash
 python3 scripts/validate_lr_seam.py --allow-proposed
 python3 -m unittest tests.test_lr_seam -v
 ```
 
-The proposed gate binds the closed schemas and dependency digests, exact success
+The measured gate binds the closed schemas and dependency digests, exact success
 and rejection goldens, a separately implemented oracle, clean-process replay,
 guarded non-empty paths, source-level semantic mutants, a public
 `solve_l -> project_lr -> step_r` publication chain, and all existing M0–M3
-non-regression gates. Default `validate_lr_seam.py` intentionally refuses this
-status until the candidate is promoted through an exact CI subject and evidence
-readback.
+non-regression gates. Default `validate_lr_seam.py` admits this status only when the contract,
+manifest, claim ledger, public governance surfaces, exact CI command, and frozen
+evidence closure remain coherent.
 
 ## Non-claims
 
-Even a passing proposed gate would not establish general eligibility-rule
+This measured gate does not establish general eligibility-rule
 correctness, proposal provenance truth, frontier truth, persistent incremental L,
 durable R, an integrated F/L/R runtime, H authority or effects, irreversible
 effect safety, production readiness, comparative efficacy, an engine verdict, or

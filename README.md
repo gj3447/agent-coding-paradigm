@@ -2,7 +2,7 @@
 
 함수형·논리형·반응형 프로그래밍을 durable Harness와 typed graph engineering으로 결합하는 agent runtime 연구 저장소.
 
-> Status: **RESEARCH INCUBATOR / SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCES MEASURED / DIRECT L-R PROJECTION PROPOSED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
+> Status: **RESEARCH INCUBATOR / SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCES MEASURED / DIRECT L-R PROJECTION MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
 >
 > Working profile: **FLR-H** — Functional, Logic, Reactive, Harness
 >
@@ -37,7 +37,7 @@ pure F transition ──► FactDelta(+/-) + EffectProposal
                      L fixpoint/materialization
                                │
                                ▼ explicit verdict projection
-                     (direct L-R candidate proposed; M3 remains separately measured)
+                     (direct L-R projection measured; no persistent or integrated runtime)
                                │
                                ▼ frontier passes epoch
                      R StableProposalBatch
@@ -86,7 +86,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M1 pure-F kernel](docs/M1_KERNEL.md) — the first implemented vertical slice, wire contract, replay gate, and non-claims
 - [M2 stratified-L kernel](docs/M2_LOGIC.md) — ground fixpoint, four-valued support, provenance, retraction, and full-recompute oracle boundary
 - [M3 reactive kernel](docs/M3_REACTIVE.md) — measured bounded supplied-value, scalar-frontier, epoch-atomic batch, demand, and backpressure reference
-- [Direct L-to-R projection seam](docs/LR_SEAM.md) — proposed stateless binding from exact M2 materialization state to M3 proposal/verdict deltas
+- [Direct L-to-R projection seam](docs/LR_SEAM.md) — measured bounded stateless binding from exact M2 materialization state to M3 proposal/verdict deltas
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
 - [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
@@ -97,7 +97,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M1 manifest](spec/m1-manifest.v1.json) — bounded pure-F implementation and conformance boundary
 - [M2 manifest](spec/m2-manifest.v1.json) — bounded ground stratified-L implementation and conformance boundary
 - [M3 manifest](spec/m3-manifest.v1.json) — measured bounded scalar-frontier R conformance boundary
-- [Direct L-to-R seam manifest](spec/lr-seam-manifest.v1.json) — proposed projection contract and candidate evidence closure
+- [Direct L-to-R seam manifest](spec/lr-seam-manifest.v1.json) — measured projection contract and exact admission closure
 
 ## Current admission gate
 
@@ -109,7 +109,7 @@ The bounded M2 Python reference slice passed its ground stratified-L gate: ten s
 
 The bounded M3 Python reference slice passed its supplied-value scalar-frontier gate: three frozen success sequences with seven transitions, two full-object rejections, one epoch-atomic publication, 32 seeded order trials, 64 independent-oracle comparisons, 16 slow-consumer trials, and four randomized capacity rejections. Two clean replay, two clean ambient, and two clean semantic-mutation processes reproduced exact canonical output. Thirteen guarded real paths recorded zero ambient or caller-input mutation attempts; fourteen ambient/control mutants and all ten source-level semantic mutants were detected. M3 transports explicit caller-supplied eligibility verdicts; it does not validate them or establish direct M2 integration, persistence, distributed progress truth, H authority, or effect safety.
 
-A separate direct L-to-R projection candidate now binds explicit proposal preconditions to exact four-valued M2 materialization states and constructs M3 proposal/verdict insertion deltas. It remains `PROPOSED_PENDING_MEASUREMENT`: local candidate evidence is not yet a durable CI/receipt-backed conformance claim, and the slice does not establish domain eligibility correctness or an integrated runtime.
+The bounded direct L-to-R Python projection slice passed its frozen gate: eight successful descriptors, twenty-four full-object rejection descriptors, two exact goldens, two permutation-equivalence pairs, eight independent-oracle comparisons, eight public `step_r` publication chains, six clean child processes, ten guarded ambient paths, and fourteen killed semantic mutation axes with zero escapes or invalid mutants. The slice projects explicit query bindings from a complete M2 materialization into paired M3 proposal/verdict insertion deltas; it does not establish domain eligibility correctness, frontier truth, persistent incremental integration, H authority or effects, or an integrated runtime.
 
 Run it with:
 
@@ -126,12 +126,12 @@ python3 -m unittest discover -s tests -v
 The next mechanics gates must prove:
 
 1. a future persistent incremental L evaluator reuses prior closure while remaining equal to clean full recomputation;
-2. the proposed direct L-to-R candidate is independently measured and promoted without weakening the separately measured M2 and M3 contracts;
+2. a direct F/L/R consumer preserves the measured seam bindings and caller-asserted frontier boundary without widening the separately measured M2 and M3 contracts;
 3. crash/restart never turns one logical effect into duplicate real-world mutations;
 4. trace-only, harness-only, or model-self-reported success cannot satisfy `DONE`;
 5. production and harness use the same resolved composition graph modulo enumerated test adapters.
 
-The repository contains separate measured F, L, and R reference mechanisms plus one proposed stateless direct L-to-R projection candidate. The repository still does not contain an integrated F/L/R/H runtime.
+The repository contains separate measured F, L, and R reference mechanisms plus one measured stateless direct L-to-R projection reference. The repository still does not contain an integrated F/L/R/H runtime.
 
 ## Non-claims
 

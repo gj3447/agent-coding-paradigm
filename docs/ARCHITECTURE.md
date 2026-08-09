@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R PROJECTION PROPOSED / H NOT IMPLEMENTED
+> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R PROJECTION MEASURED / H NOT IMPLEMENTED
 
 ## System boundary
 
@@ -40,7 +40,7 @@ Command or AcceptedEvent
   -> AcceptedEvent
 ```
 
-This is the proposed integrated protocol. M2 ends at `LogicFixpoint`. A separate proposed `project_lr` candidate now binds exact M2 fact states and explicit proposal/query relations into the supplied proposal/verdict deltas accepted by the independently measured M3 scalar-frontier reference. That stateless projection is not yet measured and does not establish a persistent or integrated F/L/R runtime. The boundaries after M3, including the future H commit boundary that would atomically accept state/events plus effect-intent/outbox metadata, remain unimplemented. Effect execution would happen after that boundary.
+This remains a proposed integrated protocol. M2 ends at `LogicFixpoint`. The separately measured `project_lr` reference binds exact M2 fact states and explicit proposal/query relations into supplied proposal/verdict deltas accepted by the independently measured M3 scalar-frontier reference. That stateless projection does not establish a persistent or integrated F/L/R runtime. The boundaries after M3, including the future H commit boundary that would atomically accept state/events plus effect-intent/outbox metadata, remain unimplemented. Effect execution would happen after that boundary.
 
 ## Inner and outer loops
 
@@ -96,7 +96,7 @@ execute_effect_shell(authorized_effect)
 
 M1 realizes `step_F` for the version-pinned `flrh.m1.observation-recorded/1` event. The public Python waist is [`step_f`](../src/flrh_kernel/kernel.py); its output schemas are [`m1-kernel.v1.schema.json`](../spec/schema/m1-kernel.v1.schema.json).
 
-M2 separately realizes `solve_l` for one ground/propositional stratified rule profile. It rebuilds a complete derived materialization from the active base ledger on every accepted invocation, exposes four-valued state/conflicts and provenance inside that materialization, and emits the net derived deltas. It does not construct or interpret `EligibilityVerdict`. The proposed sibling `project_lr` candidate applies one frozen, explicit four-valued query mapping to that complete materialization and constructs exact M3 proposal/verdict insertion deltas; it does not infer queries, advance a frontier, or own domain policy. M3 separately realizes the measured bounded supplied-value R contract and still treats verdicts as supplied values. None of these slices owns durable state, a handler registry, adapter, authority, or execution port; H and the integrated runtime remain proposed.
+M2 separately realizes `solve_l` for one ground/propositional stratified rule profile. It rebuilds a complete derived materialization from the active base ledger on every accepted invocation, exposes four-valued state/conflicts and provenance inside that materialization, and emits the net derived deltas. It does not construct or interpret `EligibilityVerdict`. The measured sibling `project_lr` reference applies one frozen, explicit four-valued query mapping to that complete materialization and constructs exact M3 proposal/verdict insertion deltas; it does not infer queries, advance a frontier, or own domain policy. M3 separately realizes the measured bounded supplied-value R contract and still treats verdicts as supplied values. None of these slices owns durable state, a handler registry, adapter, authority, or execution port; H and the integrated runtime remain proposed.
 
 ## Authority and single writers
 

@@ -1,6 +1,6 @@
 {
   "schema_version": "lr-seam-manifest/v1",
-  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
   "normative_contracts": [
     "spec/lr-seam-contract.v1.json",
     "spec/schema/lr-seam.v1.schema.json",
@@ -63,5 +63,5 @@
     "R-LR5 empty null command, declared limits, atomic rejection, permutation determinism, and replay equality",
     "R-LR6 independent oracle equality, ambient denial, semantic mutation sensitivity, and exact golden bytes"
   ],
-  "completion_boundary": "This manifest proposes a direct deterministic Python L to R seam and intended evidence set. Until its completion gate is measured, it is not a conformance receipt and does not establish integrated runtime, H authority or effects, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
+  "completion_boundary": "This manifest records one measured direct deterministic Python L to R seam and frozen evidence set. It is a bounded conformance subject and does not establish integrated runtime, H authority or effects, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
 }

@@ -1,6 +1,6 @@
 # FLR-H Execution Semantics v0
 
-> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R PROJECTION PROPOSED / H NOT IMPLEMENTED / NOT EXTERNAL CANON
+> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R PROJECTION MEASURED / H NOT IMPLEMENTED / NOT EXTERNAL CANON
 
 ## Boundary types
 
@@ -87,7 +87,7 @@ Retraction removes a support derivation, not blindly the derived tuple. If `a ->
 
 The M2 reference realizes this boundary for one finite ground/propositional rule profile through `solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time)`. `LFactDeltaInput.polarity` is the object-language sign; nested `FactDelta.diff` is the support-ledger operation. Each accepted invocation applies the stepwise base-ledger update, then performs a bounded semi-naive full rebuild of the complete derived projection and emits its net change from the prior materialization. The independent oracle agreement is semantic evidence, not evidence of persistent incremental reuse or performance.
 
-M2 deliberately emits no `EligibilityVerdict`. The proposed sibling direct L-to-R seam takes a separately typed, digest-bound query, requires an explicit partition of proposal preconditions, and projects the complete supplied materialization's four-valued state into a frozen `eligible`/`ineligible`/`conflicted` mapping. It neither changes M2 inference nor claims that the supplied query is correct domain policy.
+M2 deliberately emits no `EligibilityVerdict`. The measured sibling direct L-to-R reference takes a separately typed, digest-bound query, requires an explicit partition of proposal preconditions, and projects the complete supplied materialization's four-valued state into a frozen `eligible`/`ineligible`/`conflicted` mapping. It neither changes M2 inference nor claims that the supplied query is correct domain policy.
 
 ## R — reactive semantics
 
@@ -110,7 +110,7 @@ accepted event at epoch t
   -> pure F transition
   -> base FactDelta(+1/-1) + EffectProposal
   -> L semi-naive full-recompute fixpoint at t
-  -> proposed direct projection of explicit query bindings into typed EligibilityVerdict values
+  -> measured direct projection of explicit query bindings into typed EligibilityVerdict values
   -> frontier passes t
   -> R publishes one StableProposalBatch
   -> H policy/capability/approval gate
@@ -136,4 +136,4 @@ Every resumable run pins at least:
 
 Mismatch yields an explicit migration or `CHECKPOINT_INCOMPATIBLE`; it never silently resumes.
 
-The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), the bounded measured M1, M2, and M3 manifests in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json), [`m2-manifest.v1.json`](../spec/m2-manifest.v1.json), and [`m3-manifest.v1.json`](../spec/m3-manifest.v1.json), and the proposed direct projection contract in [`lr-seam-manifest.v1.json`](../spec/lr-seam-manifest.v1.json). This prose is a view of those contracts.
+The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), the bounded measured M1, M2, and M3 manifests in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json), [`m2-manifest.v1.json`](../spec/m2-manifest.v1.json), and [`m3-manifest.v1.json`](../spec/m3-manifest.v1.json), and the bounded measured direct projection contract in [`lr-seam-manifest.v1.json`](../spec/lr-seam-manifest.v1.json). This prose is a view of those contracts.

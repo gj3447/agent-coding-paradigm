@@ -1,6 +1,6 @@
 # Roadmap
 
-> Roadmap status: PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.
+> Roadmap status: M0–M3-LR MEASURED; M4–M7 PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.
 
 ## M0 — Freeze vocabulary and contracts ✅ MEASURED 2026-08-08
 
@@ -40,11 +40,11 @@ Gate: reactive tests 10–15 pass under randomized ordering and slow-consumer in
 
 Receipt boundary: one bounded Python scalar-frontier profile produced three frozen success sequences with seven transitions, two full-object rejections, one epoch-atomic publication, 32 seeded order trials, 64 independent-oracle comparisons, 16 slow-consumer trials, and four randomized capacity rejections. Two clean replay, ambient, and semantic-mutation process profiles reproduced exact canonical output; thirteen guarded real paths recorded zero ambient or caller-input mutation attempts, fourteen ambient/control mutants were caught, and ten exact source-level semantic mutants were killed with zero escapes or invalid mutants. This is standalone supplied-value R mechanics evidence, not eligibility correctness, direct M2 integration, persistent or distributed streaming, H/effect safety, integrated runtime, production, efficacy, engine, or Lakatos evidence.
 
-## M3-LR adjunct — Direct L-to-R projection ⏳ PROPOSED
+## M3-LR adjunct — Direct L-to-R projection ✅ MEASURED
 
 Deliverables: one versioned stateless `project_lr` boundary, explicit proposal/precondition-to-query bindings, frozen four-valued truth projection, exact M3 proposal/verdict insertion deltas, closed typed rejection, independent oracle, guards, semantic mutants, and an unchanged public `step_r` publication chain.
 
-Gate: the proposed contract, corpus, two goldens, clean-process replay, ambient denial, semantic mutation set, and inherited M0–M3 gates pass for an exact candidate subject and CI readback. This adjunct is not M4 and cannot establish domain eligibility correctness, persistent incremental L, durable R, H authority/effects, or an integrated runtime.
+Receipt boundary: one bounded stateless Python projection profile produced eight successful descriptors, twenty-four full-object rejection descriptors, two exact goldens, two equivalence pairs, eight independent-oracle comparisons, six clean child processes, ten guarded ambient paths, fourteen killed semantic axes with zero escapes or invalid mutants, and eight unchanged-public-`step_r` publication chains. This adjunct is not M4 and does not establish domain eligibility correctness, persistent incremental L, durable R, H authority or effects, or an integrated runtime.
 
 ## M4 — Durable H control shell
 
@@ -72,4 +72,4 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Measure and independently read back the proposed direct L-to-R candidate without retroactively widening M1, M2, or M3. Keep eligibility correctness, authority, and external effects outside R; `EffectIntent` remains H-owned for M4. Persistent incremental L maintenance, durable R state, an integrated F/L/R runtime, and the engine decision remain separate open mechanisms.
+Freeze the next H authority and durable-effect boundary without retroactively widening M1, M2, M3, or the measured direct L-to-R projection. Keep eligibility correctness, authority, and external effects outside R; `EffectIntent` remains H-owned for M4. Persistent incremental L maintenance, durable R state, an integrated F/L/R runtime, and the engine decision remain separate open mechanisms.

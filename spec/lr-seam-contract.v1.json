@@ -1,6 +1,6 @@
 {
   "schema_version": "lr-seam-contract/v1",
-  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
   "purpose": "Specify one deterministic direct L to R seam that projects exact EffectProposal preconditions and exact four-valued M2 fact states into paired EligibilityVerdict and M3 insertion deltas without frontier, demand, H, or effect authority.",
   "public_api": "project_lr(l_result,rule_bundle,r_profile,binding_profile,query_batch)",
   "supported_profile": {
