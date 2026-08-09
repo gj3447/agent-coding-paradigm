@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2il-contract.v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "profile_id", "public_api", "pure_persistence", "equivalence", "checkpoint_bindings", "cache_context", "receipt_bindings", "limits", "rejection_precedence", "nonclaims", "internal_dependency_nonclaim"],
+  "properties": {
+    "schema_version": {"const": "m2il-incremental-contract/v1"}, "status": {"const": "PROPOSED_PENDING_MEASUREMENT"}, "profile_id": {"const": "flrh-l-persistent-incremental/1"},
+    "public_api": {"type": "string", "minLength": 1}, "pure_persistence": {"type": "string", "minLength": 1}, "equivalence": {"type": "string", "minLength": 1}, "internal_dependency_nonclaim": {"type": "string", "minLength": 1},
+    "checkpoint_bindings": {"type": "array", "minItems": 5, "maxItems": 5, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "cache_context": {"type": "array", "minItems": 6, "maxItems": 6, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "receipt_bindings": {"type": "array", "minItems": 5, "maxItems": 5, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "limits": {"type": "object", "additionalProperties": false, "required": ["max_active_base_supports", "max_cache_entries", "max_body_evaluations", "max_checkpoint_bytes", "retained_prefixes"], "properties": {"max_active_base_supports": {"const": 10000}, "max_cache_entries": {"const": 65536}, "max_body_evaluations": {"const": 65536}, "max_checkpoint_bytes": {"const": 67108864}, "retained_prefixes": {"const": 1}}},
+    "rejection_precedence": {"const": ["exact M2 rejection pass-through", "MALFORMED_CHECKPOINT", "UNSUPPORTED_PERSISTENT_SCHEMA", "CHECKPOINT_DIGEST_MISMATCH", "CHECKPOINT_BINDING_MISMATCH", "PERSISTENT_BOUNDS_EXCEEDED", "EQUIVALENCE_VIOLATION"]},
+    "nonclaims": {"type": "array", "minItems": 7, "maxItems": 7, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

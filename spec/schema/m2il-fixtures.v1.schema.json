@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2il-fixtures.v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "atoms", "bundles", "deltas", "sequences", "inherited_cases", "limits"],
+  "properties": {
+    "schema_version": {"const": "m2il-fixtures/v1"}, "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "atoms": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Atom"}},
+    "bundles": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Bundle"}},
+    "deltas": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Delta"}},
+    "sequences": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/Sequence"}},
+    "inherited_cases": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "limits": {"type": "object", "additionalProperties": false, "required": ["max_active_base_supports", "max_cache_entries", "max_body_evaluations", "max_checkpoint_bytes"], "properties": {"max_active_base_supports": {"const": 10000}, "max_cache_entries": {"const": 65536}, "max_body_evaluations": {"const": 65536}, "max_checkpoint_bytes": {"const": 67108864}}}
+  },
+  "$defs": {
+    "Atom": {"type": "object", "additionalProperties": false, "required": ["entity"], "properties": {"entity": {"type": "string", "minLength": 1}}},
+    "LiteralRef": {"type": "object", "additionalProperties": false, "required": ["atom_ref", "polarity"], "properties": {"atom_ref": {"type": "string", "minLength": 1}, "polarity": {"enum": ["positive", "negative"]}}},
+    "DefaultRef": {"type": "object", "additionalProperties": false, "required": ["atom_ref", "referenced_stratum"], "properties": {"atom_ref": {"type": "string", "minLength": 1}, "referenced_stratum": {"type": "integer", "minimum": 0}}},
+    "Rule": {"type": "object", "additionalProperties": false, "required": ["rule_id", "stratum", "head", "required", "default_not_positive"], "properties": {"rule_id": {"type": "string", "minLength": 1}, "stratum": {"type": "integer", "minimum": 0}, "head": {"$ref": "#/$defs/LiteralRef"}, "required": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/LiteralRef"}}, "default_not_positive": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/DefaultRef"}}}},
+    "Bundle": {"type": "object", "additionalProperties": false, "required": ["limits", "query_atom_refs", "rules"], "properties": {"limits": {"type": "object", "additionalProperties": false, "required": ["max_rule_firings", "max_derivation_depth"], "properties": {"max_rule_firings": {"type": "integer", "minimum": 1}, "max_derivation_depth": {"type": "integer", "minimum": 1}}}, "query_atom_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "rules": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Rule"}}}},
+    "Delta": {"type": "object", "additionalProperties": false, "required": ["atom_ref", "polarity", "diff", "derivation_id"], "properties": {"atom_ref": {"type": "string", "minLength": 1}, "polarity": {"enum": ["positive", "negative"]}, "diff": {"enum": [-1, 1]}, "derivation_id": {"type": "string", "minLength": 1}}},
+    "Sequence": {"type": "object", "additionalProperties": false, "required": ["id", "bundle_ref", "steps"], "properties": {"id": {"type": "string", "minLength": 1}, "bundle_ref": {"type": "string", "minLength": 1}, "steps": {"type": "array", "minItems": 1, "items": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}}}
+  }
+}

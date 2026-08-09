@@ -1,0 +1,34 @@
+{
+  "schema_version": "m2il-manifest/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "owned_closure": [
+    "docs/M2IL_INCREMENTAL_L.md", "spec/m2il-incremental-contract.v1.json", "spec/m2il-manifest.v1.json",
+    "spec/schema/m2il-incremental.v1.schema.json", "spec/schema/m2il-contract.v1.schema.json", "spec/schema/m2il-fixtures.v1.schema.json", "spec/schema/m2il-manifest.v1.schema.json",
+    "fixtures/m2il/cases.json", "fixtures/m2il/golden/insertion-reuse.fixpoint.json", "fixtures/m2il/golden/retraction-reuse.fixpoint.json",
+    "src/flrh_logic_incremental/__init__.py", "src/flrh_logic_incremental/canonical.py", "src/flrh_logic_incremental/incremental.py",
+    "scripts/m2il_fixtures.py", "scripts/m2il_oracle.py", "scripts/m2il_guard.py", "scripts/check_m2il_ambient.py", "scripts/check_m2il_semantic_mutants.py", "scripts/run_m2il_replay.py", "scripts/validate_m2il.py",
+    "tests/test_m2il_incremental.py", "tests/test_m2il_candidate_gate.py"
+  ],
+  "inherited_sha256_pins": [
+    {"artifact": "spec/m2-logic-contract.v1.json", "sha256": "sha256:65f8ae41c4c5c6c11f8298b77b477d19a31f2b0dc9ede058639183960cf4cd9e"},
+    {"artifact": "spec/m2-manifest.v1.json", "sha256": "sha256:c792eb1fbea2e8e430cd7d0452b8e3ed290f2488dd297b107d3cd5a92f139200"},
+    {"artifact": "spec/schema/m2-logic.v1.schema.json", "sha256": "sha256:a39e152397693b3e1a026c1e561a1c955ba77f753f695f231d8768d80a7c4fa0"},
+    {"artifact": "spec/schema/m2-logic-contract.v1.schema.json", "sha256": "sha256:14d7962411d3127bf07ac03a893042b5c0f47cddb693b63ff54d96601c104b3a"},
+    {"artifact": "spec/schema/m2-fixtures.v1.schema.json", "sha256": "sha256:a63f6cd24e935112f07df25da0002e7d012f1f944bc5a93e287a0a887f36cc92"},
+    {"artifact": "spec/schema/m2-manifest.v1.schema.json", "sha256": "sha256:86cd43ee18f7499b4061fcd3a042dde12eb2de71936235020fff204cfcc52f8a"},
+    {"artifact": "fixtures/m2/cases.json", "sha256": "sha256:e05c59628de8e7c4c6f30613d97fba6a06fb5fb5012b87eae7f0189f2e6e8dcf"},
+    {"artifact": "fixtures/m2/golden/two-support-retraction.fixpoint.json", "sha256": "sha256:5a03b388701f65bb2d179b4388a2f2f5159e3bb8c5fb1b4457f79617d5e372bb"},
+    {"artifact": "fixtures/m2/golden/negative-cycle.rejection.json", "sha256": "sha256:bfb97b8356a2477e7b0764c083f464a1d276d97aa7c8866aa8a7bb1ebc7abfae"},
+    {"artifact": "src/flrh_logic/__init__.py", "sha256": "sha256:94fcebb1aeb5f6fb88819369796114e1970cd395574a34a66bc09eacb715cf37"},
+    {"artifact": "src/flrh_logic/canonical.py", "sha256": "sha256:ace2c768436035396c94d0c2690bd0692380a19e20ae8e9336aa325ee4fad112"},
+    {"artifact": "src/flrh_logic/logic.py", "sha256": "sha256:461f92aa04939690123cd5ff124e05f19abcb51cc9fc332118e6e91e2648da58"},
+    {"artifact": "scripts/m2_fixtures.py", "sha256": "sha256:2aed96890d99b66c3c60e16a13b94aa94b87d45eb21abe3f6ffa45f7a7ac168b"},
+    {"artifact": "scripts/m2_oracle.py", "sha256": "sha256:bc0dfabace9d9dd0d29ce8ea88020b65c649868c188d54261fd339f79fae4acc"},
+    {"artifact": "scripts/validate_m2.py", "sha256": "sha256:371c36d1071b61d25eb644e7ea073fc47e4683fdd04cc82dadabe1ba5e347f27"},
+    {"artifact": "research/M2_VALIDATION_2026-08-09.md", "sha256": "sha256:5f2ae7292fdfbb53de07d5c4aace12b2494259206a87bfc21af51eb0ec19117c"},
+    {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
+    {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
+    {"artifact": "spec/logic-semantics.v0.json", "sha256": "sha256:b727ae4d112b9df93d58d30daa6e4efcade122ec3bc3d84f6ec5b6ba502e2a74"}
+  ],
+  "completion_boundary": "Candidate evidence only. No performance superiority, integrated LR/H, persistent storage, production, engine, comparative efficacy, or Lakatos progress claim."
+}

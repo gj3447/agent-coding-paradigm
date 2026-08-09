@@ -1,0 +1,15 @@
+{
+  "schema_version": "m2il-incremental-contract/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "profile_id": "flrh-l-persistent-incremental/1",
+  "public_api": "step_incremental_l(prior_checkpoint, rule_bundle, fact_delta_inputs, logical_time) -> LPersistentLStep | LPersistentLRejection | exact passed-through M2 LRejection",
+  "pure_persistence": "Explicit checkpoint reuse only; no filesystem, database, clock, RNG, environment, network, subprocess, credentials, model, or tool access.",
+  "equivalence": "A first public M2 pass establishes exact rejection precedence only; its successful payload does not construct the candidate. Candidate construction then precedes a second public M2 differential comparison, and every accepted fixpoint_result is canonical-byte equal.",
+  "checkpoint_bindings": ["contract/profile/canonicalization and inherited M2 versions", "rule bundle digest and through logical time", "complete exact materialization and materialization digest", "canonical sorted evaluation cache", "checkpoint digest"],
+  "cache_context": ["rule id and digest", "bundle digest", "stratum and trigger", "required literal presence and depth", "default positive presence", "completed lower-stratum digest"],
+  "receipt_bindings": ["prior and next checkpoint digests", "oracle and candidate fixpoint digests", "candidate lookups/hits/misses/reused/executed/accounted", "two excluded public M2 full-recompute calls", "reused entry digests"],
+  "limits": {"max_active_base_supports": 10000, "max_cache_entries": 65536, "max_body_evaluations": 65536, "max_checkpoint_bytes": 67108864, "retained_prefixes": 1},
+  "rejection_precedence": ["exact M2 rejection pass-through", "MALFORMED_CHECKPOINT", "UNSUPPORTED_PERSISTENT_SCHEMA", "CHECKPOINT_DIGEST_MISMATCH", "CHECKPOINT_BINDING_MISMATCH", "PERSISTENT_BOUNDS_EXCEEDED", "EQUIVALENCE_VIOLATION"],
+  "nonclaims": ["performance superiority", "integrated LR or H", "persistent storage", "production readiness", "engine promotion", "comparative efficacy", "Lakatos progress"],
+  "internal_dependency_nonclaim": "Pinned M2 private helpers are an adjunct implementation dependency only and do not modify, own, or stabilize M2 internals."
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2il-manifest.v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "owned_closure", "inherited_sha256_pins", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m2il-manifest/v1"}, "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "owned_closure": {"type": "array", "minItems": 22, "maxItems": 22, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "inherited_sha256_pins": {"type": "array", "minItems": 19, "maxItems": 19, "uniqueItems": true, "items": {"type": "object", "additionalProperties": false, "required": ["artifact", "sha256"], "properties": {"artifact": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}}},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  }
+}

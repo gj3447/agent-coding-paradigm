@@ -1,0 +1,59 @@
+{
+  "schema_version": "m2il-fixtures/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "atoms": {
+    "a": {"entity": "m2il:a"}, "b": {"entity": "m2il:b"},
+    "c": {"entity": "m2il:c"}, "x": {"entity": "m2il:x"},
+    "y": {"entity": "m2il:y"}, "z": {"entity": "m2il:z"}, "u": {"entity": "m2il:u"},
+    "candidate": {"entity": "m2il:candidate"},
+    "blocked": {"entity": "m2il:blocked"},
+    "eligible": {"entity": "m2il:eligible"}
+    ,"p": {"entity": "m2il:p"}, "q": {"entity": "m2il:q"}
+  },
+  "bundles": {
+    "disjoint_chain": {
+      "limits": {"max_rule_firings": 1000, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b", "c", "x", "y", "z", "u"],
+      "rules": [
+        {"rule_id": "rule:m2il:b-from-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:m2il:c-from-b", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "b", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:m2il:y-from-x", "stratum": 0, "head": {"atom_ref": "y", "polarity": "positive"}, "required": [{"atom_ref": "x", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:m2il:z-from-y", "stratum": 0, "head": {"atom_ref": "z", "polarity": "positive"}, "required": [{"atom_ref": "y", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "default_flip": {
+      "limits": {"max_rule_firings": 1000, "max_derivation_depth": 8},
+      "query_atom_refs": ["candidate", "blocked", "eligible"],
+      "rules": [
+        {"rule_id": "rule:m2il:eligible", "stratum": 1, "head": {"atom_ref": "eligible", "polarity": "positive"}, "required": [{"atom_ref": "candidate", "polarity": "positive"}], "default_not_positive": [{"atom_ref": "blocked", "referenced_stratum": 0}]}
+      ]
+    },
+    "signed": {
+      "limits": {"max_rule_firings": 1000, "max_derivation_depth": 8},
+      "query_atom_refs": ["p", "q"],
+      "rules": [
+        {"rule_id": "rule:m2il:q-false-from-p-false", "stratum": 0, "head": {"atom_ref": "q", "polarity": "negative"}, "required": [{"atom_ref": "p", "polarity": "negative"}], "default_not_positive": []}
+      ]
+    }
+  },
+  "deltas": {
+    "a+": {"atom_ref": "a", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:a"},
+    "a-": {"atom_ref": "a", "polarity": "positive", "diff": -1, "derivation_id": "derivation:m2il:a"},
+    "x+": {"atom_ref": "x", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:x"},
+    "u+": {"atom_ref": "u", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:u"},
+    "candidate+": {"atom_ref": "candidate", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:candidate"},
+    "blocked+": {"atom_ref": "blocked", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:blocked-positive"},
+    "blocked-": {"atom_ref": "blocked", "polarity": "positive", "diff": -1, "derivation_id": "derivation:m2il:blocked-positive"},
+    "blocked_false+": {"atom_ref": "blocked", "polarity": "negative", "diff": 1, "derivation_id": "derivation:m2il:blocked-negative"}
+    ,"p_false+": {"atom_ref": "p", "polarity": "negative", "diff": 1, "derivation_id": "derivation:m2il:p-negative"}
+    ,"p_false-": {"atom_ref": "p", "polarity": "negative", "diff": -1, "derivation_id": "derivation:m2il:p-negative"}
+    ,"p_true+": {"atom_ref": "p", "polarity": "positive", "diff": 1, "derivation_id": "derivation:m2il:p-positive"}
+  },
+  "sequences": [
+    {"id": "disjoint-chain-bootstrap-noop-unrelated-retract", "bundle_ref": "disjoint_chain", "steps": [["a+", "x+"], [], ["u+"], ["a-"]]},
+    {"id": "default-state-flip", "bundle_ref": "default_flip", "steps": [["candidate+"], ["blocked+"], ["blocked_false+"], ["blocked-"]]},
+    {"id": "signed-body-head-conflict-retract", "bundle_ref": "signed", "steps": [["p_false+"], ["p_true+"], ["p_false-"]]}
+  ],
+  "inherited_cases": ["two-support-retain-then-remove", "positive-cycle-delete", "exact-duplicate-batch-idempotent", "identity-conflict-atomic"],
+  "limits": {"max_active_base_supports": 10000, "max_cache_entries": 65536, "max_body_evaluations": 65536, "max_checkpoint_bytes": 67108864}
+}

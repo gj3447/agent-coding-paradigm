@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2il-incremental.v1.schema.json",
+  "title": "Closed M2-IL public wire values",
+  "oneOf": [
+    {"$ref": "#/$defs/LPersistentLStep"},
+    {"$ref": "#/$defs/LPersistentLRejection"},
+    {"$ref": "#/$defs/LRejection"}
+  ],
+  "$defs": {
+    "Digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "Time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "Count": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "Canonical": {
+      "oneOf": [
+        {"type": "null"}, {"type": "boolean"},
+        {"type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807},
+        {"type": "string"},
+        {"type": "array", "items": {"$ref": "#/$defs/Canonical"}},
+        {"type": "object", "additionalProperties": {"$ref": "#/$defs/Canonical"}}
+      ]
+    },
+    "Literal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "polarity", "atom"],
+      "properties": {"kind": {"const": "LLiteral"}, "polarity": {"enum": ["positive", "negative"]}, "atom": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}}
+    },
+    "AbsenceWitness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "fact_key", "atom", "referenced_stratum", "completed_stratum_digest", "witness_digest"],
+      "properties": {"kind": {"const": "LAbsenceWitness"}, "fact_key": {"$ref": "#/$defs/Digest"}, "atom": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "referenced_stratum": {"$ref": "#/$defs/Count"}, "completed_stratum_digest": {"$ref": "#/$defs/Digest"}, "witness_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "DerivedSupport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "derivation_id", "support_content_digest", "literal", "rule_id", "rule_digest", "premise_literal_keys", "default_absence_witnesses", "rule_set_version", "dataflow_version"],
+      "properties": {"kind": {"const": "LDerivedSupport"}, "derivation_id": {"type": "string"}, "support_content_digest": {"$ref": "#/$defs/Digest"}, "literal": {"$ref": "#/$defs/Literal"}, "rule_id": {"type": "string"}, "rule_digest": {"$ref": "#/$defs/Digest"}, "premise_literal_keys": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Digest"}}, "default_absence_witnesses": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/AbsenceWitness"}}, "rule_set_version": {"type": "string"}, "dataflow_version": {"type": "string"}}
+    },
+    "BaseSupport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "derivation_id", "support_content_digest", "literal", "provenance_delta", "rule_set_version", "dataflow_version"],
+      "properties": {"kind": {"const": "LBaseSupport"}, "derivation_id": {"type": "string"}, "support_content_digest": {"$ref": "#/$defs/Digest"}, "literal": {"$ref": "#/$defs/Literal"}, "provenance_delta": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "rule_set_version": {"type": "string"}, "dataflow_version": {"type": "string"}}
+    },
+    "FactState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "fact_key", "atom", "state", "positive_support_ids", "negative_support_ids"],
+      "properties": {"kind": {"const": "LFactState"}, "fact_key": {"$ref": "#/$defs/Digest"}, "atom": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "state": {"enum": ["NEITHER", "TRUE_ONLY", "FALSE_ONLY", "BOTH"]}, "positive_support_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}, "negative_support_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}
+    },
+    "Conflict": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "conflict_id", "fact_key", "atom", "positive_support_ids", "negative_support_ids"],
+      "properties": {"kind": {"const": "LConflict"}, "conflict_id": {"type": "string"}, "fact_key": {"$ref": "#/$defs/Digest"}, "atom": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "positive_support_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}, "negative_support_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}
+    },
+    "StratumDigest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "stratum", "digest"],
+      "properties": {"kind": {"const": "LStratumDigest"}, "stratum": {"$ref": "#/$defs/Count"}, "digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "DerivedFactDelta": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "polarity", "delta"],
+      "properties": {"kind": {"const": "LFactDeltaInput"}, "schema_version": {"const": "flrh-l-input/1"}, "polarity": {"enum": ["positive", "negative"]}, "delta": {"type": "object", "additionalProperties": false, "required": ["kind", "tuple", "logical_time", "diff", "derivation_id", "causation_id", "provenance_delta", "rule_set_version", "dataflow_version"], "properties": {"kind": {"const": "FactDelta"}, "tuple": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "logical_time": {"$ref": "#/$defs/Time"}, "diff": {"enum": [-1, 1]}, "derivation_id": {"type": "string"}, "causation_id": {"type": "string"}, "provenance_delta": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/Canonical"}}, "rule_set_version": {"type": "string"}, "dataflow_version": {"type": "string"}}}}
+    },
+    "RequiredPresence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["literal_key", "present", "depth"],
+      "properties": {"literal_key": {"$ref": "#/$defs/Digest"}, "present": {"type": "boolean"}, "depth": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Count"}]}}
+    },
+    "DefaultPresence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["positive_literal_key", "positive_present", "referenced_stratum", "completed_lower_stratum_digest"],
+      "properties": {"positive_literal_key": {"$ref": "#/$defs/Digest"}, "positive_present": {"type": "boolean"}, "referenced_stratum": {"$ref": "#/$defs/Count"}, "completed_lower_stratum_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "CacheContext": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "rule_id", "rule_digest", "rule_bundle_digest", "stratum", "trigger", "existing_support", "required_literals", "default_positive_presence"],
+      "properties": {"kind": {"const": "M2ILCacheContext"}, "rule_id": {"type": "string"}, "rule_digest": {"$ref": "#/$defs/Digest"}, "rule_bundle_digest": {"$ref": "#/$defs/Digest"}, "stratum": {"$ref": "#/$defs/Count"}, "trigger": {"type": "string"}, "existing_support": {"type": "boolean"}, "required_literals": {"type": "array", "items": {"$ref": "#/$defs/RequiredPresence"}}, "default_positive_presence": {"type": "array", "items": {"$ref": "#/$defs/DefaultPresence"}}}
+    },
+    "CacheOutcome": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["status", "depth", "support"], "properties": {"status": {"const": "unsatisfied"}, "depth": {"type": "null"}, "support": {"type": "null"}}},
+        {"type": "object", "additionalProperties": false, "required": ["status", "depth", "support"], "properties": {"status": {"const": "satisfied"}, "depth": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807}, "support": {"$ref": "#/$defs/DerivedSupport"}}}
+      ]
+    },
+    "CacheEntry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "context", "context_digest", "outcome", "entry_digest"],
+      "properties": {"kind": {"const": "M2ILEvaluationCacheEntry"}, "context": {"$ref": "#/$defs/CacheContext"}, "context_digest": {"$ref": "#/$defs/Digest"}, "outcome": {"$ref": "#/$defs/CacheOutcome"}, "entry_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "Materialization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_id", "rule_bundle_digest", "rule_set_version", "dataflow_version", "canonicalization_version", "through_logical_time", "base_supports", "derived_supports", "fact_states", "conflicts", "stratum_digests", "materialization_digest"],
+      "properties": {"kind": {"const": "LMaterialization"}, "schema_version": {"const": "flrh-l-materialization/1"}, "contract_version": {"const": "flrh-l-kernel/1"}, "profile_id": {"const": "flrh-l-ground-stratified/1"}, "rule_bundle_digest": {"$ref": "#/$defs/Digest"}, "rule_set_version": {"type": "string"}, "dataflow_version": {"type": "string"}, "canonicalization_version": {"const": "flrh-cjson/1"}, "through_logical_time": {"$ref": "#/$defs/Time"}, "base_supports": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/BaseSupport"}}, "derived_supports": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/DerivedSupport"}}, "fact_states": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/FactState"}}, "conflicts": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Conflict"}}, "stratum_digests": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/StratumDigest"}}, "materialization_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "Fixpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "logical_time", "rule_bundle_digest", "prior_materialization_digest", "input_delta_digests", "next_materialization", "derived_fact_deltas", "stats", "fixpoint_digest"],
+      "properties": {"kind": {"const": "LFixpointResult"}, "schema_version": {"const": "flrh-l-result/1"}, "contract_version": {"const": "flrh-l-kernel/1"}, "logical_time": {"$ref": "#/$defs/Time"}, "rule_bundle_digest": {"$ref": "#/$defs/Digest"}, "prior_materialization_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Digest"}]}, "input_delta_digests": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Digest"}}, "next_materialization": {"$ref": "#/$defs/Materialization"}, "derived_fact_deltas": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/DerivedFactDelta"}}, "stats": {"type": "object", "additionalProperties": false, "required": ["evaluation_mode", "rule_evaluation_count", "rule_firing_count", "worklist_pop_count", "max_derivation_depth"], "properties": {"evaluation_mode": {"const": "full_recompute"}, "rule_evaluation_count": {"$ref": "#/$defs/Count"}, "rule_firing_count": {"$ref": "#/$defs/Count"}, "worklist_pop_count": {"$ref": "#/$defs/Count"}, "max_derivation_depth": {"$ref": "#/$defs/Count"}}}, "fixpoint_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "Checkpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_id", "m2_contract_version", "m2_profile_id", "canonicalization_version", "rule_bundle_digest", "through_logical_time", "materialization", "materialization_digest", "evaluation_cache", "checkpoint_digest"],
+      "properties": {"kind": {"const": "LPersistentLCheckpoint"}, "schema_version": {"const": "flrh-l-persistent-checkpoint/1"}, "contract_version": {"const": "flrh-l-persistent-incremental/1"}, "profile_id": {"const": "flrh-l-persistent-incremental/1"}, "m2_contract_version": {"const": "flrh-l-kernel/1"}, "m2_profile_id": {"const": "flrh-l-ground-stratified/1"}, "canonicalization_version": {"const": "flrh-cjson/1"}, "rule_bundle_digest": {"$ref": "#/$defs/Digest"}, "through_logical_time": {"$ref": "#/$defs/Time"}, "materialization": {"$ref": "#/$defs/Materialization"}, "materialization_digest": {"$ref": "#/$defs/Digest"}, "evaluation_cache": {"type": "array", "maxItems": 65536, "uniqueItems": true, "items": {"$ref": "#/$defs/CacheEntry"}}, "checkpoint_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "Receipt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "prior_checkpoint_digest", "next_checkpoint_digest", "oracle_fixpoint_digest", "candidate_fixpoint_digest", "public_m2_solve_calls", "candidate_cache_lookups", "candidate_cache_hits", "candidate_cache_misses", "reused_candidate_body_evaluations", "executed_candidate_body_evaluations", "accounted_candidate_body_evaluations", "reused_entry_digests", "receipt_digest"],
+      "properties": {"kind": {"const": "M2ILReuseReceipt"}, "prior_checkpoint_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Digest"}]}, "next_checkpoint_digest": {"$ref": "#/$defs/Digest"}, "oracle_fixpoint_digest": {"$ref": "#/$defs/Digest"}, "candidate_fixpoint_digest": {"$ref": "#/$defs/Digest"}, "public_m2_solve_calls": {"const": 2}, "candidate_cache_lookups": {"$ref": "#/$defs/Count"}, "candidate_cache_hits": {"$ref": "#/$defs/Count"}, "candidate_cache_misses": {"$ref": "#/$defs/Count"}, "reused_candidate_body_evaluations": {"$ref": "#/$defs/Count"}, "executed_candidate_body_evaluations": {"$ref": "#/$defs/Count"}, "accounted_candidate_body_evaluations": {"$ref": "#/$defs/Count"}, "reused_entry_digests": {"type": "array", "items": {"$ref": "#/$defs/Digest"}}, "receipt_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "LPersistentLStep": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "fixpoint_result", "next_checkpoint", "reuse_receipt", "step_digest"],
+      "properties": {"kind": {"const": "LPersistentLStep"}, "schema_version": {"const": "flrh-l-persistent-result/1"}, "contract_version": {"const": "flrh-l-persistent-incremental/1"}, "fixpoint_result": {"$ref": "#/$defs/Fixpoint"}, "next_checkpoint": {"$ref": "#/$defs/Checkpoint"}, "reuse_receipt": {"$ref": "#/$defs/Receipt"}, "step_digest": {"$ref": "#/$defs/Digest"}}
+    },
+    "LPersistentLRejection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "code", "path", "logical_time", "rule_bundle_digest", "context"],
+      "properties": {"kind": {"const": "LPersistentLRejection"}, "schema_version": {"const": "flrh-l-persistent-result/1"}, "contract_version": {"const": "flrh-l-persistent-incremental/1"}, "code": {"enum": ["UNSUPPORTED_PERSISTENT_SCHEMA", "MALFORMED_CHECKPOINT", "CHECKPOINT_DIGEST_MISMATCH", "CHECKPOINT_BINDING_MISMATCH", "PERSISTENT_BOUNDS_EXCEEDED", "EQUIVALENCE_VIOLATION"]}, "path": {"type": "string", "pattern": "^/"}, "logical_time": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Time"}]}, "rule_bundle_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Digest"}]}, "context": {"type": "object", "additionalProperties": {"$ref": "#/$defs/Canonical"}}}
+    },
+    "LRejection": {
+      "type": "object", "required": ["kind", "schema_version", "contract_version", "code", "path", "logical_time", "rule_bundle_digest", "context"],
+      "properties": {"kind": {"const": "LRejection"}, "schema_version": {"const": "flrh-l-result/1"}, "contract_version": {"const": "flrh-l-kernel/1"}, "code": {"enum": ["MALFORMED_MATERIALIZATION", "MALFORMED_RULE_BUNDLE", "MALFORMED_FACT_DELTA_INPUT", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_PROFILE", "UNSUPPORTED_MATERIALIZATION_SCHEMA", "UNSUPPORTED_RULE_SCHEMA", "UNSUPPORTED_INPUT_SCHEMA", "UNSUPPORTED_CANONICALIZATION", "RULE_SET_VERSION_MISMATCH", "DATAFLOW_VERSION_MISMATCH", "RULE_BUNDLE_MISMATCH", "LOGICAL_TIME_MISMATCH", "LOGICAL_TIME_REGRESSION", "INVALID_STRATIFICATION", "OUTSIDE_V0_NEGATIVE_RECURSION", "AMBIGUOUS_BATCH_DELTA", "UNKNOWN_DERIVATION", "DERIVATION_IDENTITY_CONFLICT", "DERIVED_SUPPORT_TARGET", "PROVENANCE_INTEGRITY_VIOLATION", "RULE_BUDGET_EXHAUSTED", "DERIVATION_DEPTH_EXCEEDED", "INVARIANT_VIOLATION"]}, "path": {"type": "string", "pattern": "^(/([^/~]|~[01])*)*$"}, "logical_time": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Time"}]}, "rule_bundle_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/Digest"}]}, "context": {"type": "object", "additionalProperties": false, "properties": {"expected": {"$ref": "#/$defs/Canonical"}, "actual": {"$ref": "#/$defs/Canonical"}, "derivation_id": {"type": "string"}, "rule_id": {"type": "string"}, "invariant": {"type": "string", "minLength": 1}, "limit": {"$ref": "#/$defs/Count"}, "observed": {"$ref": "#/$defs/Count"}, "source_stratum": {"$ref": "#/$defs/Count"}, "target_stratum": {"$ref": "#/$defs/Count"}, "support_content_digest": {"$ref": "#/$defs/Digest"}}}}, "additionalProperties": false
+    }
+  }
+}
