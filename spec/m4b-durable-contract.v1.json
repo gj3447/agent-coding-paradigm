@@ -1,0 +1,33 @@
+{
+  "schema_version": "m4b-durable-contract/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "purpose": "Specify a bounded SQLite L_RT durability reference for supplied exact M0 EffectIntent values.",
+  "public_api": ["DurableHarness", "FakeAdapter", "verify_run"],
+  "owned_mechanism": [
+    "Generation and compare-and-swap lease fencing, including a second fence check before receipt/checkpoint commit after external I/O",
+    "Exact M4AApprovalRequestPreimage and M4AApprovalPreimage recomputation plus atomic one-time approval consumption, EffectIntent persistence, receipt binding, checkpoint update, and outbox insertion",
+    "Attempt persistence before adapter I/O and destination reconciliation before retry after uncertain or started attempts",
+    "Exact frozen M0 ActionReceipt construction from committed command/input/platform binding, explicit output/trace/outcome observation, and RFC 3339 conversion of the injected epoch clock under flrh-cjson/1 canonicalization",
+    "Atomic receipt and terminal-attempt/checkpoint persistence, checkpoint quarantine, and reproducible no-progress windows that cannot terminalize with pending effects",
+    "Pending interrupts are typed-idempotent, reject new effects and rounds, but permit reconcile/dispatch recovery of already-committed effects before the interrupt is honored; terminal runs reject new interrupts",
+    "Per-run max_pending and max_attempts bounds capped by profile ceilings 1024 and 16",
+    "Independent verification checks every attempt transition and orphan approvals; the SQLite approval-to-intent link is deferred but foreign-key constrained",
+    "Exact ordered manifest closure with SHA-256 pins for inherited M0 canonical/protocol and semantic M4A dependencies"
+  ],
+  "sqlite_profile": {
+    "tables": "STRICT",
+    "foreign_keys": true,
+    "journal_mode": "WAL",
+    "synchronous": "FULL",
+    "trusted_schema": false,
+    "writer_transaction": "BEGIN IMMEDIATE"
+  },
+  "effect_semantics": {
+    "transport": "at-least-once-capable outbox",
+    "duplicate_rule": "exact stable bytes are idempotent; same identity with different bytes conflicts",
+    "unknown_rule": "query destination evidence before any retry",
+    "exactly_once_claim": false
+  },
+  "fault_tests": [16,17,18,19,20,21,22,23,24,25],
+  "completion_boundary": "PROPOSED simulated SQLite and FakeAdapter evidence only. M4B accepts exact schema-shaped M0 EffectIntent values but does not establish their policy correctness, integrated FLR behavior, real-destination safety, production readiness, comparative efficacy, or engine promotion."
+}

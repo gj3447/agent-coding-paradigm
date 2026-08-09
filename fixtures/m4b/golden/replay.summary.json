@@ -1,0 +1,6 @@
+{
+  "adapter":{"apply_count":1,"mutation_count":1,"query_count":0},
+  "kind":"M4BReplaySummary",
+  "status":"active",
+  "verification":{"errors":[],"intent_count":1,"kind":"M4BVerificationReport","pending_count":0,"receipt_count":1,"run_id":"run:m4b:replay","valid":true}
+}

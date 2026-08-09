@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4b-fixtures.v1.schema.json",
+  "type":"object","additionalProperties":false,"required":["schema_version","status","fault_tests","approval_mutations","subprocess_cutpoints"],
+  "properties":{
+    "schema_version":{"const":"m4b-fixtures/v1"},"status":{"const":"PROPOSED_PENDING_MEASUREMENT"},
+    "fault_tests":{"const":[16,17,18,19,20,21,22,23,24,25]},
+    "approval_mutations":{"const":["expired","revoked","replayed","wrong_nonce","wrong_action","wrong_destination","wrong_authority","wrong_visibility","wrong_version","wrong_run_correlation"]},
+    "subprocess_cutpoints":{"const":["before_intent","after_intent","after_external_success"]}
+  }
+}

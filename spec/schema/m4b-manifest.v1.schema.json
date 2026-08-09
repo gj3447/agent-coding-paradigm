@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4b-manifest.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","status","normative_contracts","schemas","schema_bindings","inherited_dependencies","fixture","goldens","reference_implementation","tools","documentation","public_api","completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m4b-manifest/v1"},
+    "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "normative_contracts": {"const": ["spec/m4b-durable-contract.v1.json","spec/m4b-manifest.v1.json"]},
+    "schemas": {"const": ["spec/schema/m4b-durable-contract.v1.schema.json","spec/schema/m4b-fixtures.v1.schema.json","spec/schema/m4b-manifest.v1.schema.json"]},
+    "schema_bindings": {"const": [
+      {"artifact":"spec/m4b-durable-contract.v1.json","schema":"spec/schema/m4b-durable-contract.v1.schema.json"},
+      {"artifact":"spec/m4b-manifest.v1.json","schema":"spec/schema/m4b-manifest.v1.schema.json"},
+      {"artifact":"fixtures/m4b/cases.json","schema":"spec/schema/m4b-fixtures.v1.schema.json"}
+    ]},
+    "inherited_dependencies": {
+      "type": "array", "minItems": 18, "maxItems": 18, "uniqueItems": true,
+      "prefixItems": [
+        {"$ref":"#/$defs/Protocol"},
+        {"$ref":"#/$defs/Canonicalization"},
+        {"$ref":"#/$defs/KernelInit"},
+        {"$ref":"#/$defs/KernelCanonical"},
+        {"$ref":"#/$defs/M4AContract"},
+        {"$ref":"#/$defs/M4AManifest"},
+        {"$ref":"#/$defs/M4AAuthoritySchema"},
+        {"$ref":"#/$defs/M4AContractSchema"},
+        {"$ref":"#/$defs/M4AFixtureSchema"},
+        {"$ref":"#/$defs/M4AManifestSchema"},
+        {"$ref":"#/$defs/M4AInit"},
+        {"$ref":"#/$defs/M4ACanonical"},
+        {"$ref":"#/$defs/M4AAuthority"},
+        {"$ref":"#/$defs/M4ACases"},
+        {"$ref":"#/$defs/M4ALowGolden"},
+        {"$ref":"#/$defs/M4ARequestGolden"},
+        {"$ref":"#/$defs/M4AGrantedGolden"},
+        {"$ref":"#/$defs/M4AFixtureLoader"}
+      ],
+      "items": false
+    },
+    "fixture": {"const": "fixtures/m4b/cases.json"},
+    "goldens": {"const": ["fixtures/m4b/golden/replay.summary.json"]},
+    "reference_implementation": {"const": ["src/flrh_harness/__init__.py","src/flrh_harness/adapter.py","src/flrh_harness/canonical.py","src/flrh_harness/harness.py","src/flrh_harness/verifier.py"]},
+    "tools": {"const": ["scripts/m4b_crash_worker.py","scripts/m4b_fixtures.py","scripts/run_m4b_replay.py","scripts/check_m4b_ambient.py","scripts/check_m4b_crashes.py","scripts/check_m4b_adversarial_sensitivity.py","scripts/validate_m4b.py","tests/test_m4b_durable.py","tests/test_m4b_candidate_gate.py"]},
+    "documentation": {"const": ["docs/M4B_DURABLE.md"]},
+    "public_api": {"const": ["DurableHarness","FakeAdapter","verify_run"]},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "Dependency": {"type":"object","additionalProperties":false,"required":["artifact","sha256"],"properties":{"artifact":{"type":"string"},"sha256":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"}}},
+    "Protocol": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/schema/protocol.v1.schema.json"}}},
+    "Canonicalization": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/canonicalization.v1.json"}}},
+    "KernelInit": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"src/flrh_kernel/__init__.py"}}},
+    "KernelCanonical": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"src/flrh_kernel/canonical.py"}}},
+    "M4AContract": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/m4a-authority-contract.v1.json"}}},
+    "M4AManifest": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/m4a-manifest.v1.json"}}},
+    "M4AAuthoritySchema": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/schema/m4a-authority.v1.schema.json"}}},
+    "M4AContractSchema": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/schema/m4a-contract.v1.schema.json"}}},
+    "M4AFixtureSchema": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/schema/m4a-fixtures.v1.schema.json"}}},
+    "M4AManifestSchema": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"spec/schema/m4a-manifest.v1.schema.json"}}},
+    "M4AInit": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"src/flrh_authority/__init__.py"}}},
+    "M4ACanonical": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"src/flrh_authority/canonical.py"}}},
+    "M4AAuthority": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"src/flrh_authority/authority.py"}}},
+    "M4ACases": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"fixtures/m4a/cases.json"}}},
+    "M4ALowGolden": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"fixtures/m4a/golden/low-risk.projection.json"}}},
+    "M4ARequestGolden": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"fixtures/m4a/golden/approval-request.projection.json"}}},
+    "M4AGrantedGolden": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"fixtures/m4a/golden/approval-granted.projection.json"}}},
+    "M4AFixtureLoader": {"$ref":"#/$defs/Dependency","properties":{"artifact":{"const":"scripts/m4a_fixtures.py"}}}
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "m4b-manifest/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "normative_contracts": [
+    "spec/m4b-durable-contract.v1.json",
+    "spec/m4b-manifest.v1.json"
+  ],
+  "schemas": [
+    "spec/schema/m4b-durable-contract.v1.schema.json",
+    "spec/schema/m4b-fixtures.v1.schema.json",
+    "spec/schema/m4b-manifest.v1.schema.json"
+  ],
+  "schema_bindings": [
+    {"artifact": "spec/m4b-durable-contract.v1.json", "schema": "spec/schema/m4b-durable-contract.v1.schema.json"},
+    {"artifact": "spec/m4b-manifest.v1.json", "schema": "spec/schema/m4b-manifest.v1.schema.json"},
+    {"artifact": "fixtures/m4b/cases.json", "schema": "spec/schema/m4b-fixtures.v1.schema.json"}
+  ],
+  "inherited_dependencies": [
+    {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
+    {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
+    {"artifact": "src/flrh_kernel/__init__.py", "sha256": "sha256:f79da3595f0ee92e6b2c8133bd909d853efa1e3eb649b17468c87ae307a78cbf"},
+    {"artifact": "src/flrh_kernel/canonical.py", "sha256": "sha256:24f42e4d0d7355ed027fa4b684ca2c7e0a283c98ff51d3669be3f771c77ca602"},
+    {"artifact": "spec/m4a-authority-contract.v1.json", "sha256": "sha256:213dbe26bd3e797e02426f995cc970e418537fe56d4c9d5e18e150b46e6248c8"},
+    {"artifact": "spec/m4a-manifest.v1.json", "sha256": "sha256:f7c28fe415a7419f5d6d7fd9186ec4aa2aac0ce1a9912347ef768ac953cd29a3"},
+    {"artifact": "spec/schema/m4a-authority.v1.schema.json", "sha256": "sha256:7aad6449f33c3feccc10555c857e7c42975808f076df80f1e464c28a1b519090"},
+    {"artifact": "spec/schema/m4a-contract.v1.schema.json", "sha256": "sha256:59a04bd646bc981d507a07d14d3433a724399209666b8df7e01662f56c2f9c58"},
+    {"artifact": "spec/schema/m4a-fixtures.v1.schema.json", "sha256": "sha256:929b923ad9f4c35110e66a1965dc5b45c8aa38bf6e6af8252eee8fd05c5f44fa"},
+    {"artifact": "spec/schema/m4a-manifest.v1.schema.json", "sha256": "sha256:5f2f078c4c008208697d6626ceaa64c8be8fad66d9a051210dd05d0f9abed9e2"},
+    {"artifact": "src/flrh_authority/__init__.py", "sha256": "sha256:5903032f9517112e137e2e735a017ed932d15ca731f6d18ffc1356b829c141ed"},
+    {"artifact": "src/flrh_authority/canonical.py", "sha256": "sha256:45ed699224c8a551228af2e831d6637e32d4348391512b0c220e2ae7ad3c45b9"},
+    {"artifact": "src/flrh_authority/authority.py", "sha256": "sha256:ffa62285080d494c52dbc6966e971b879af24549d6fb128a0772f6b807c4ac37"},
+    {"artifact": "fixtures/m4a/cases.json", "sha256": "sha256:b84b35b730b4c0825948714b24923a411202722c628650e42b6ef9fb491f6af6"},
+    {"artifact": "fixtures/m4a/golden/low-risk.projection.json", "sha256": "sha256:2c0b9e206c02acb50b5ca4a459bdf65029b08939c93337138923930da8af1e9b"},
+    {"artifact": "fixtures/m4a/golden/approval-request.projection.json", "sha256": "sha256:a45a4f5232ebbab3cae8265f7261019bb9dbebf285facb5a7768eab274ae1b9f"},
+    {"artifact": "fixtures/m4a/golden/approval-granted.projection.json", "sha256": "sha256:cc763c5606ee54a259353beea8bfc5304ce0cf0d0cc196c7e3e810dd2eb8513a"},
+    {"artifact": "scripts/m4a_fixtures.py", "sha256": "sha256:eb7aea7d6cf8b48c30713cfb777c2b6f2642716d5d9acdc62bfb24ef691dc76b"}
+  ],
+  "fixture": "fixtures/m4b/cases.json",
+  "goldens": ["fixtures/m4b/golden/replay.summary.json"],
+  "reference_implementation": [
+    "src/flrh_harness/__init__.py",
+    "src/flrh_harness/adapter.py",
+    "src/flrh_harness/canonical.py",
+    "src/flrh_harness/harness.py",
+    "src/flrh_harness/verifier.py"
+  ],
+  "tools": [
+    "scripts/m4b_crash_worker.py",
+    "scripts/m4b_fixtures.py",
+    "scripts/run_m4b_replay.py",
+    "scripts/check_m4b_ambient.py",
+    "scripts/check_m4b_crashes.py",
+    "scripts/check_m4b_adversarial_sensitivity.py",
+    "scripts/validate_m4b.py",
+    "tests/test_m4b_durable.py",
+    "tests/test_m4b_candidate_gate.py"
+  ],
+  "documentation": ["docs/M4B_DURABLE.md"],
+  "public_api": ["DurableHarness", "FakeAdapter", "verify_run"],
+  "completion_boundary": "PROPOSED only; bounded SQLite/FakeAdapter evidence does not establish M4A policy correctness, integrated FLR behavior, real-destination safety, exactly-once delivery, production readiness, comparative efficacy, engine promotion, or scientific validity."
+}

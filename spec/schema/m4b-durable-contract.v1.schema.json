@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4b-durable-contract.v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version","status","purpose","public_api","owned_mechanism","sqlite_profile","effect_semantics","fault_tests","completion_boundary"],
+  "properties": {
+    "schema_version": {"const":"m4b-durable-contract/v1"},
+    "status": {"const":"PROPOSED_PENDING_MEASUREMENT"},
+    "purpose": {"type":"string","minLength":1},
+    "public_api": {"const":["DurableHarness","FakeAdapter","verify_run"]},
+    "owned_mechanism": {"type":"array","minItems":4,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+    "sqlite_profile": {"type":"object","additionalProperties":false,"required":["tables","foreign_keys","journal_mode","synchronous","trusted_schema","writer_transaction"],"properties":{"tables":{"const":"STRICT"},"foreign_keys":{"const":true},"journal_mode":{"const":"WAL"},"synchronous":{"const":"FULL"},"trusted_schema":{"const":false},"writer_transaction":{"const":"BEGIN IMMEDIATE"}}},
+    "effect_semantics": {"type":"object","additionalProperties":false,"required":["transport","duplicate_rule","unknown_rule","exactly_once_claim"],"properties":{"transport":{"type":"string"},"duplicate_rule":{"type":"string"},"unknown_rule":{"type":"string"},"exactly_once_claim":{"const":false}}},
+    "fault_tests": {"const":[16,17,18,19,20,21,22,23,24,25]},
+    "completion_boundary": {"type":"string","minLength":1}
+  }
+}
