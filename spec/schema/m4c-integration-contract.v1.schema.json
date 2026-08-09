@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4c-integration-contract.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_version", "status", "profile_id", "purpose", "pipeline", "fsm_projection", "constraints", "verification", "typed_failure", "non_claims", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m4c-integration-contract/v1"},
+    "contract_version": {"const": "flrh-m4c-integration/1"},
+    "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "profile_id": {"const": "flrh-m4c-single-effect-reference/1"},
+    "purpose": {"type": "string", "minLength": 1},
+    "pipeline": {"const": ["flrh_kernel.step_f", "flrh_logic.solve_l", "flrh_lr_seam.project_lr", "flrh_reactive.step_r", "flrh_authority.project_h_intent", "flrh_harness.DurableHarness"]},
+    "fsm_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "transitions", "trace_claim", "outer_reducer_executed", "stop_state", "terminal_claim"],
+      "properties": {
+        "source": {"const": "spec/run-fsm.v1.json"},
+        "transitions": {"const": [
+          {"from": "INIT", "event": "START", "to": "INGEST"},
+          {"from": "INGEST", "event": "EVENT_ACCEPTED", "to": "STABILIZE"},
+          {"from": "STABILIZE", "event": "EPOCH_STABLE", "to": "PLAN_EFFECTS"},
+          {"from": "PLAN_EFFECTS", "event": "EFFECT_AUTHORIZED", "to": "COMMIT_INTENT"},
+          {"from": "COMMIT_INTENT", "event": "INTENT_COMMITTED", "to": "EXECUTE"},
+          {"from": "EXECUTE", "event": "ATTEMPT_RECORDED", "to": "RECONCILE"},
+          {"from": "RECONCILE", "event": "EFFECT_RESULT_CONFIRMED", "to": "HONOR_PENDING_INTERRUPT"}
+        ]},
+        "trace_claim": {"const": "FSM_CONFORMANCE_PROJECTION_ONLY"},
+        "outer_reducer_executed": {"const": false},
+        "stop_state": {"const": "HONOR_PENDING_INTERRUPT"},
+        "terminal_claim": {"const": "SLICE_CONFORMED"}
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prior_materialization_must_be_null", "adapter_profile", "max_pending_intents", "max_attempts_per_intent", "r_frontier_rule", "demand_batches"],
+      "properties": {
+        "prior_materialization_must_be_null": {"const": true},
+        "adapter_profile": {"const": "FakeAdapter"},
+        "max_pending_intents": {"const": 1},
+        "max_attempts_per_intent": {"const": 3},
+        "r_frontier_rule": {"const": "strictly_greater_than_epoch"},
+        "demand_batches": {"const": 1}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_api_only", "independent_verifier", "checks", "crash_profile"],
+      "properties": {
+        "public_api_only": {"const": true},
+        "independent_verifier": {"const": "scripts/m4c_verifier.py"},
+        "checks": {"const": ["public_f_reexecution", "public_l_reexecution", "public_lr_reexecution", "public_r_reexecution", "public_h_reexecution", "exact_action_receipt_schema_and_binding", "detached_durable_consistency_receipt", "source_bound_fsm_evidence_projection", "real_subprocess_crash_recovery_when_selected"]},
+        "crash_profile": {"const": "after_external_success_then_query_reconcile_without_second_mutation"}
+      }
+    },
+    "typed_failure": {
+      "const": {"kind": "M4CVerificationFailure", "code": "INTEGRATION_BINDING_MISMATCH", "state_preserving": true}
+    },
+    "non_claims": {
+      "type": "array", "minItems": 9, "maxItems": 9, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "completion_boundary": {"type": "string", "minLength": 1}
+  }
+}

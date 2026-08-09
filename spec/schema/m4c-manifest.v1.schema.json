@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4c-manifest.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "normative_contracts", "schemas", "schema_bindings", "inherited_dependencies", "fixture", "reference_implementation", "tools", "documentation", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m4c-manifest/v1"},
+    "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "normative_contracts": {"const": ["spec/m4c-integration-contract.v1.json", "spec/m4c-manifest.v1.json"]},
+    "schemas": {"const": ["spec/schema/m4c-integration-contract.v1.schema.json", "spec/schema/m4c-fixtures.v1.schema.json", "spec/schema/m4c-manifest.v1.schema.json"]},
+    "schema_bindings": {"const": [
+      {"artifact": "spec/m4c-integration-contract.v1.json", "schema": "spec/schema/m4c-integration-contract.v1.schema.json"},
+      {"artifact": "spec/m4c-manifest.v1.json", "schema": "spec/schema/m4c-manifest.v1.schema.json"},
+      {"artifact": "fixtures/m4c/cases.json", "schema": "spec/schema/m4c-fixtures.v1.schema.json"}
+    ]},
+    "inherited_dependencies": {
+      "type": "array", "minItems": 18, "maxItems": 18, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["artifact", "sha256"],
+        "properties": {"artifact": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+      }
+    },
+    "fixture": {"const": "fixtures/m4c/cases.json"},
+    "reference_implementation": {"const": ["scripts/m4c_verifier.py"]},
+    "tools": {"const": ["scripts/m4c_fixtures.py", "scripts/run_m4c_replay.py", "scripts/check_m4c_sensitivity.py", "scripts/validate_m4c.py", "tests/test_m4c_integration.py", "tests/test_m4c_candidate_gate.py"]},
+    "documentation": {"const": ["docs/M4C_INTEGRATED_SLICE.md"]},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  }
+}

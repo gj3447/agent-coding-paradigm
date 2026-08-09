@@ -1,0 +1,36 @@
+{
+  "schema_version": "m4c-manifest/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "normative_contracts": ["spec/m4c-integration-contract.v1.json", "spec/m4c-manifest.v1.json"],
+  "schemas": ["spec/schema/m4c-integration-contract.v1.schema.json", "spec/schema/m4c-fixtures.v1.schema.json", "spec/schema/m4c-manifest.v1.schema.json"],
+  "schema_bindings": [
+    {"artifact": "spec/m4c-integration-contract.v1.json", "schema": "spec/schema/m4c-integration-contract.v1.schema.json"},
+    {"artifact": "spec/m4c-manifest.v1.json", "schema": "spec/schema/m4c-manifest.v1.schema.json"},
+    {"artifact": "fixtures/m4c/cases.json", "schema": "spec/schema/m4c-fixtures.v1.schema.json"}
+  ],
+  "inherited_dependencies": [
+    {"artifact": "spec/run-fsm.v1.json", "sha256": "sha256:043d8038f8bf91d7f60c2b57f7fcf788e25684eed6409f184b607fae227537ea"},
+    {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
+    {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
+    {"artifact": "spec/m1-kernel-contract.v1.json", "sha256": "sha256:593bd94c634dc826d000764fa384507b82c371e776ef36677d131894973bf772"},
+    {"artifact": "spec/m1-manifest.v1.json", "sha256": "sha256:07064055e63b7e6de37060672a82bfd7d2aa2f5045596189dd6454552e409cbd"},
+    {"artifact": "fixtures/m1/cases.json", "sha256": "sha256:456f9a07de72a3800866c56a18be9450e6865b1bfcef33f58b0e0fbef06ec57b"},
+    {"artifact": "fixtures/m1/golden/observe-with-effect.transition.json", "sha256": "sha256:cd1360e0db9024cc6b03abde4a4d28e56aea82f901577bd2c4eae0cbdb5700b8"},
+    {"artifact": "spec/m2-logic-contract.v1.json", "sha256": "sha256:65f8ae41c4c5c6c11f8298b77b477d19a31f2b0dc9ede058639183960cf4cd9e"},
+    {"artifact": "spec/m2-manifest.v1.json", "sha256": "sha256:c792eb1fbea2e8e430cd7d0452b8e3ed290f2488dd297b107d3cd5a92f139200"},
+    {"artifact": "spec/m3-reactive-contract.v1.json", "sha256": "sha256:c4bd93be23eccaa232c4f8b0e1f6e4047f9ed572625238fe3f4ee601b74fa297"},
+    {"artifact": "spec/m3-manifest.v1.json", "sha256": "sha256:c316151d051b1b1c4d547e32678f494c2473c1d6d50f96fad9c878ec3be337cf"},
+    {"artifact": "spec/lr-seam-contract.v1.json", "sha256": "sha256:64e89e638231cdc3fb0616fc64765aa12f89f1cca7488327268ec84e75bc3bff"},
+    {"artifact": "spec/lr-seam-manifest.v1.json", "sha256": "sha256:ad82acbdf5d7204cd6f7bc481f6003de9bdfba6741fb0030b769c6db4c370dca"},
+    {"artifact": "scripts/lr_seam_fixtures.py", "sha256": "sha256:7add64c2f30c7f0a4af46ed6626425e2f8e048c582c4228822f43d3a1678c2ce"},
+    {"artifact": "spec/m4a-authority-contract.v1.json", "sha256": "sha256:213dbe26bd3e797e02426f995cc970e418537fe56d4c9d5e18e150b46e6248c8"},
+    {"artifact": "spec/m4a-manifest.v1.json", "sha256": "sha256:f7c28fe415a7419f5d6d7fd9186ec4aa2aac0ce1a9912347ef768ac953cd29a3"},
+    {"artifact": "spec/m4b-durable-contract.v1.json", "sha256": "sha256:23c4d24171e804d7cd6e9f23806f1fc17ec1f4be0def3069b61b396e46253063"},
+    {"artifact": "spec/m4b-manifest.v1.json", "sha256": "sha256:dcf3acbd807e63b209ddd25eae2f7e40b61a1b3783afc74eef9d9f83f835c09d"}
+  ],
+  "fixture": "fixtures/m4c/cases.json",
+  "reference_implementation": ["scripts/m4c_verifier.py"],
+  "tools": ["scripts/m4c_fixtures.py", "scripts/run_m4c_replay.py", "scripts/check_m4c_sensitivity.py", "scripts/validate_m4c.py", "tests/test_m4c_integration.py", "tests/test_m4c_candidate_gate.py"],
+  "documentation": ["docs/M4C_INTEGRATED_SLICE.md"],
+  "completion_boundary": "PROPOSED only; one bounded singleton public chain over full-recompute L and FakeAdapter, stopping at HONOR_PENDING_INTERRUPT with SLICE_CONFORMED. No outer SUCCEEDED, persistent incremental L, real destination, production runtime, engine promotion, efficacy, or Lakatos-progress claim."
+}

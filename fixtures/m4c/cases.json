@@ -1,0 +1,46 @@
+{
+  "schema_version": "m4c-fixtures/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "replay_modes": ["happy", "crash_after_external_success"],
+  "sensitivity_paths": [
+    "/l_input_deltas/0/delta/causation_id",
+    "/lr_projection/l_materialization_digest",
+    "/r_published_batch/effect_proposals/0/proposal_id",
+    "/h_projection/intent/proposal_id",
+    "/receipt_binding/command_digest",
+    "/action_receipt/intent_id",
+    "/m4b_verification/pending_count",
+    "/trace/2/event",
+    "/evidence_digest",
+    "/f_transition/fact_deltas/0/tuple/artifact_digest",
+    "/l_result/stats/rule_firing_count",
+    "/f_transition/effect_proposals/0/proposal_id",
+    "/h_projection/intent/intent_id",
+    "/accepted_event",
+    "/recovery",
+    "/f_transition/transition_digest"
+  ],
+  "fsm_trace": [
+    {"from": "INIT", "event": "START", "to": "INGEST"},
+    {"from": "INGEST", "event": "EVENT_ACCEPTED", "to": "STABILIZE"},
+    {"from": "STABILIZE", "event": "EPOCH_STABLE", "to": "PLAN_EFFECTS"},
+    {"from": "PLAN_EFFECTS", "event": "EFFECT_AUTHORIZED", "to": "COMMIT_INTENT"},
+    {"from": "COMMIT_INTENT", "event": "INTENT_COMMITTED", "to": "EXECUTE"},
+    {"from": "EXECUTE", "event": "ATTEMPT_RECORDED", "to": "RECONCILE"},
+    {"from": "RECONCILE", "event": "EFFECT_RESULT_CONFIRMED", "to": "HONOR_PENDING_INTERRUPT"}
+  ],
+  "expected": {
+    "status": "SLICE_CONFORMED",
+    "outer_fsm_stop_state": "HONOR_PENDING_INTERRUPT",
+    "trace_claim": "FSM_CONFORMANCE_PROJECTION_ONLY",
+    "outer_reducer_executed": false,
+    "durable_run_status": "active",
+    "intent_count": 1,
+    "receipt_count": 1,
+    "pending_count": 0,
+    "apply_count": 1,
+    "mutation_count": 1,
+    "crash_process_model": "subprocess_os_exit_reopen",
+    "crash_worker_exit_code": 86
+  }
+}
