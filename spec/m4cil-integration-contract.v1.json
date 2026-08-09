@@ -1,0 +1,87 @@
+{
+  "schema_version": "m4cil-integration-contract/v1",
+  "contract_version": "flrh-m4cil-integration/1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "profile_id": "flrh-m4cil-single-effect-incremental-reference/1",
+  "purpose": "Bind one live public F to two-prefix persistent incremental L to LR to R to M4A to M4B reference path, including real checkpoint reuse and crash reconciliation, without asserting outer-run completion.",
+  "pipeline": [
+    "flrh_kernel.step_f",
+    "flrh_logic_incremental.step_incremental_l.bootstrap",
+    "flrh_logic_incremental.step_incremental_l.reuse",
+    "flrh_lr_seam.project_lr",
+    "flrh_reactive.step_r",
+    "flrh_authority.project_h_intent",
+    "flrh_harness.DurableHarness"
+  ],
+  "incremental_lineage": {
+    "bootstrap_prior_checkpoint": null,
+    "bootstrap_logical_time": 1,
+    "reuse_logical_time": 2,
+    "reuse_input_deltas": [],
+    "minimum_candidate_cache_hits": 1,
+    "maximum_reuse_candidate_body_evaluations": 0,
+    "public_m2_solve_calls_per_incremental_step": 2,
+    "public_m2_calls_excluded_from_candidate_counters": true,
+    "lr_input": "reuse_logic_step.fixpoint_result"
+  },
+  "fsm_projection": {
+    "source": "spec/run-fsm.v1.json",
+    "transitions": [
+      {"from": "INIT", "event": "START", "to": "INGEST"},
+      {"from": "INGEST", "event": "EVENT_ACCEPTED", "to": "STABILIZE"},
+      {"from": "STABILIZE", "event": "EPOCH_STABLE", "to": "PLAN_EFFECTS"},
+      {"from": "PLAN_EFFECTS", "event": "EFFECT_AUTHORIZED", "to": "COMMIT_INTENT"},
+      {"from": "COMMIT_INTENT", "event": "INTENT_COMMITTED", "to": "EXECUTE"},
+      {"from": "EXECUTE", "event": "ATTEMPT_RECORDED", "to": "RECONCILE"},
+      {"from": "RECONCILE", "event": "EFFECT_RESULT_CONFIRMED", "to": "HONOR_PENDING_INTERRUPT"}
+    ],
+    "trace_claim": "FSM_CONFORMANCE_PROJECTION_ONLY",
+    "outer_reducer_executed": false,
+    "stop_state": "HONOR_PENDING_INTERRUPT",
+    "terminal_claim": "SLICE_CONFORMED"
+  },
+  "constraints": {
+    "adapter_profile": "FakeAdapter",
+    "max_pending_intents": 1,
+    "max_attempts_per_intent": 3,
+    "r_frontier_rule": "strictly_greater_than_final_incremental_epoch",
+    "demand_batches": 1,
+    "crash_point": "after_external_success",
+    "crash_worker_exit_code": 86
+  },
+  "verification": {
+    "independent_verifier": "scripts/m4cil_verifier.py",
+    "source_reexecution": true,
+    "checks": [
+      "public_f_reexecution",
+      "public_incremental_l_bootstrap_reexecution",
+      "public_incremental_l_checkpoint_reuse_reexecution",
+      "incremental_checkpoint_lineage",
+      "exact_m2_compatible_fixpoint_to_lr_binding",
+      "public_lr_r_h_reexecution",
+      "durable_checkpoint_incremental_lineage",
+      "exact_action_receipt_binding",
+      "source_derived_fsm_evidence_projection",
+      "real_subprocess_crash_recovery_when_selected"
+    ],
+    "sensitivity_cases": 16,
+    "clean_processes": 4
+  },
+  "typed_failures": [
+    "M4CILReplayRejection",
+    "M4CILVerificationFailure"
+  ],
+  "non_claims": [
+    "outer FSM SUCCEEDED or full run completion",
+    "general persistent incremental runtime",
+    "filesystem or database persistence for L checkpoints",
+    "reduced total runtime or performance superiority",
+    "multi-event or multi-effect scheduling",
+    "durable R state",
+    "real destination safety or exactly-once delivery",
+    "integrated production runtime",
+    "engine promotion",
+    "comparative efficacy or Lakatos progress"
+  ],
+  "completion_boundary": "PROPOSED only; a bounded two-prefix M2-IL checkpoint-reuse path feeds its exact M2-compatible fixpoint into the existing LR to R to H to durable crash/reconcile reference path. It ends at HONOR_PENDING_INTERRUPT with SLICE_CONFORMED and makes no performance, persistence, production, engine, efficacy, scientific-progress, or outer-completion claim."
+}

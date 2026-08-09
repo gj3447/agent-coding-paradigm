@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4cil-fixtures.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "profile_id", "replay_modes", "expected", "sensitivity_cases", "non_claims"],
+  "properties": {
+    "schema_version": {"const": "m4cil-fixtures/v1"},
+    "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "profile_id": {"const": "flrh-m4cil-single-effect-incremental-reference/1"},
+    "replay_modes": {"const": ["happy", "crash_after_external_success"]},
+    "expected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "outer_fsm_stop_state", "trace_claim", "outer_reducer_executed", "durable_run_status", "bootstrap_logical_time", "reuse_logical_time", "minimum_candidate_cache_hits", "executed_candidate_body_evaluations", "public_m2_solve_calls_per_incremental_step", "intent_count", "receipt_count", "pending_count", "happy_apply_count", "happy_query_count", "crash_apply_count", "crash_query_count", "mutation_count", "crash_process_model", "crash_worker_exit_code"],
+      "properties": {
+        "status": {"const": "SLICE_CONFORMED"}, "outer_fsm_stop_state": {"const": "HONOR_PENDING_INTERRUPT"},
+        "trace_claim": {"const": "FSM_CONFORMANCE_PROJECTION_ONLY"}, "outer_reducer_executed": {"const": false}, "durable_run_status": {"const": "active"},
+        "bootstrap_logical_time": {"const": 1}, "reuse_logical_time": {"const": 2}, "minimum_candidate_cache_hits": {"const": 1},
+        "executed_candidate_body_evaluations": {"const": 0}, "public_m2_solve_calls_per_incremental_step": {"const": 2},
+        "intent_count": {"const": 1}, "receipt_count": {"const": 1}, "pending_count": {"const": 0},
+        "happy_apply_count": {"const": 1}, "happy_query_count": {"const": 0}, "crash_apply_count": {"const": 1}, "crash_query_count": {"const": 1},
+        "mutation_count": {"const": 1}, "crash_process_model": {"const": "subprocess_os_exit_reopen"}, "crash_worker_exit_code": {"const": 86}
+      }
+    },
+    "sensitivity_cases": {"type": "array", "minItems": 16, "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "non_claims": {"const": ["outer FSM SUCCEEDED or full run completion", "general persistent incremental runtime", "filesystem or database persistence for L checkpoints", "reduced total runtime or performance superiority", "multi-event or multi-effect scheduling", "durable R state", "real destination safety or exactly-once delivery", "integrated production runtime", "engine promotion", "comparative efficacy or Lakatos progress"]}
+  }
+}

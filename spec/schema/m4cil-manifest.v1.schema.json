@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m4cil-manifest.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "profile_id", "owned_closure", "inherited_sha256_pins", "source_subjects", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m4cil-manifest/v1"},
+    "status": {"const": "PROPOSED_PENDING_MEASUREMENT"},
+    "profile_id": {"const": "flrh-m4cil-single-effect-incremental-reference/1"},
+    "owned_closure": {"const": ["docs/M4CIL_INTEGRATED_INCREMENTAL_SLICE.md", "fixtures/m4cil/cases.json", "scripts/check_m4cil_sensitivity.py", "scripts/m4cil_fixtures.py", "scripts/m4cil_verifier.py", "scripts/run_m4cil_replay.py", "scripts/validate_m4cil.py", "spec/m4cil-integration-contract.v1.json", "spec/m4cil-manifest.v1.json", "spec/schema/m4cil-fixtures.v1.schema.json", "spec/schema/m4cil-integration-contract.v1.schema.json", "spec/schema/m4cil-manifest.v1.schema.json", "tests/test_m4cil_candidate_gate.py", "tests/test_m4cil_integration.py"]},
+    "inherited_sha256_pins": {
+      "type": "array", "minItems": 36, "maxItems": 36, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["artifact", "sha256"],
+        "properties": {"artifact": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+      }
+    },
+    "source_subjects": {
+      "type": "object", "additionalProperties": false,
+      "required": ["m4c_mechanics_commit", "m2il_mechanics_commit"],
+      "properties": {"m4c_mechanics_commit": {"const": "b387a0cb8ffe9acde58abcd295e7692f1d17ad54"}, "m2il_mechanics_commit": {"const": "62622b3ddccb02970ede9d336a9eec31957adeda"}}
+    },
+    "completion_boundary": {"const": "Candidate evidence only. No outer completion, total-runtime performance, persistent L storage, real destination, production, engine, comparative efficacy, or Lakatos progress claim."}
+  }
+}
