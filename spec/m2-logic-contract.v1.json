@@ -1,0 +1,142 @@
+{
+  "schema_version": "m2-logic-contract/v1",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
+  "purpose": "Measure one deterministic ground stratified L-kernel slice over exact protocol FactDelta inputs without absorbing reactive publication, authority, or effects.",
+  "public_api": "solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time) -> LFixpointResult | LRejection",
+  "supported_profile": {
+    "contract": "flrh-l-kernel/1",
+    "profile_id": "flrh-l-ground-stratified/1",
+    "rule_schema": "flrh-l-rules/1",
+    "input_schema": "flrh-l-input/1",
+    "materialization_schema": "flrh-l-materialization/1",
+    "result_schema": "flrh-l-result/1",
+    "canonicalization": "flrh-cjson/1",
+    "logic_semantics": "logic-semantics/v0"
+  },
+  "owned_mechanism": [
+    "Validate one explicit versioned rule bundle, an optional prior materialization, exact protocol FactDelta wrappers, and caller-supplied logical time.",
+    "Maintain named positive and negative base supports, derive one support per satisfied ground rule, and compute the bounded least fixpoint by completed stratum.",
+    "Project every queried atom to NEITHER, TRUE_ONLY, FALSE_ONLY, or BOTH and expose BOTH as a closed conflict object.",
+    "Return a fresh complete materialization and net derived FactDelta changes or a closed typed rejection without mutating caller inputs."
+  ],
+  "excluded_policy_and_authority": [
+    "EligibilityVerdict construction or interpretation",
+    "Reactive scheduling, readiness, frontier or watermark publication, demand, queues, backpressure, and late-event policy",
+    "StableProposalBatch, capability, approval, EffectIntent, dispatch, receipt, retry, compensation, and reconciliation",
+    "Persistence, clocks, randomness, network, filesystem, credentials, adapters, registries, plugins, models, and tools",
+    "General variables, unification, function symbols, aggregates, rule generation, well-founded semantics, stable-model choice, and negative recursion"
+  ],
+  "rule_profile_invariants": [
+    "Every rule and literal is fully ground and propositional: atoms are finite non-empty canonical JSON objects and no variable or substitution field exists in the wire schema.",
+    "Every rule has at least one required_body or default_not_positive_body item; an unconditional rule is MALFORMED_RULE_BUNDLE because it has no base-support or completed-absence root in this profile.",
+    "Required positive or explicitly negative literals may depend only on facts produced in the same or a lower stratum; a dependency on a higher stratum is INVALID_STRATIFICATION.",
+    "Every default_not_positive dependency names a referenced_stratum strictly below the consuming rule stratum and that stratum must contain every producer for the referenced atom.",
+    "A negative dependency cycle is OUTSIDE_V0_NEGATIVE_RECURSION; positive recursion within a stratum is evaluated by a bounded least-fixpoint worklist.",
+    "Default negation succeeds exactly when positive support for its atom is absent after the referenced lower stratum is complete, including NEITHER and FALSE_ONLY but excluding TRUE_ONLY and BOTH.",
+    "Rule IDs and digests are unique; duplicate body literals, duplicate query atoms, and ambiguous producers or declared strata are rejected before evaluation.",
+    "Rule, body, query, support, state, conflict, witness, stratum, input-digest, and emitted-delta collections are set-like at this profile boundary and canonical-byte sorted in every accepted or emitted representation."
+  ],
+  "version_and_time_invariants": [
+    "The rule bundle, prior materialization, every FactDelta, every support, and the next materialization have one exact rule_set_version and dataflow_version.",
+    "The contract, profile, schema, and canonicalization versions must be exact supported values; there is no ambient registry fallback or upcast.",
+    "Every input FactDelta logical_time equals the explicit invocation logical_time.",
+    "A non-null prior through_logical_time may stay equal or advance but may not exceed invocation logical_time; the next through_logical_time equals invocation logical_time.",
+    "A non-null prior materialization must bind the exact incoming rule_bundle_digest; rule migration is outside M2 v1."
+  ],
+  "support_and_retraction_invariants": [
+    "LFactDeltaInput wraps an exact protocol FactDelta unchanged and adds only explicit positive or negative polarity.",
+    "Atom and caller provenance members are opaque inert data; names resembling policy, capability, approval, risk, or execution fields grant no authority and are never interpreted by L.",
+    "FactDelta diff +1 inserts one named base support. An exact repeated +1 with the same derivation identity and stable support content is idempotent, not multiplicity.",
+    "FactDelta diff -1 targets the opaque derivation_id of an existing prior base support and must reproduce that support's stable content. Operation time and causation may differ because neither belongs to stable support content.",
+    "A -1 targeting no prior support is UNKNOWN_DERIVATION; a -1 targeting an L-derived support is DERIVED_SUPPORT_TARGET; a reused derivation identity with different stable content is DERIVATION_IDENTITY_CONFLICT.",
+    "Mixed +1 and -1 operations for one derivation identity in one invocation, or more than one -1 for that identity, atomically reject as AMBIGUOUS_BATCH_DELTA before evaluation; only exact duplicate +1 operations collapse idempotently.",
+    "Removing one base support preserves a literal while any base or derived support of that polarity remains, and removes the affected derived reverse closure only when rule satisfaction or a completed-stratum absence witness changes.",
+    "Derived supports cannot be inserted or retracted by callers; they are a complete deterministic projection of base supports and the pinned rule bundle."
+  ],
+  "truth_and_materialization_invariants": [
+    "A fact_key binds only an atom. A literal key binds the atom plus polarity.",
+    "NEITHER has no positive and no negative support; TRUE_ONLY has positive and no negative support; FALSE_ONLY has no positive and negative support; BOTH has both.",
+    "fact_states contains exactly all query atoms and all atoms with base or derived support, once per fact_key.",
+    "conflicts contains exactly the BOTH fact states with identical fact_key, atom, and positive and negative support ID sets.",
+    "Every support ID appears exactly once across base_supports and derived_supports and exactly once in the matching polarity list of its fact state.",
+    "Every derived support refers to one rule in the exact bundle, binds that rule's head, has all and only required_body literal keys, and has all and only default absence witnesses.",
+    "Each absence witness binds a lower completed stratum digest in the same materialization and an atom with no positive support in that completed stratum.",
+    "Every derived support has a finite proof to base supports or completed-lower-stratum absence witnesses; rootless positive recursive support is forbidden.",
+    "stratum_digests contains one entry for every declared rule or referenced default-negation stratum and commits its completed support and state projection.",
+    "The returned derived_fact_deltas are the sorted net +1 and -1 changes to derived supports relative to the prior materialization; input base deltas are not echoed."
+  ],
+  "canonical_preimages": {
+    "rule": ["kind:M2RulePreimage", "contract_version", "profile_id", "rule_id", "stratum", "head", "ordered_required_body", "ordered_default_not_positive_body"],
+    "rule_bundle": ["kind:M2RuleBundlePreimage", "contract_version", "profile_id", "rule_set_version", "dataflow_version", "canonicalization_version", "limits", "ordered_query_atoms", "ordered_rules"],
+    "fact_key": ["kind:M2FactKeyPreimage", "contract_version", "atom"],
+    "literal_key": ["kind:M2LiteralKeyPreimage", "contract_version", "literal"],
+    "base_support_content": ["kind:M2BaseSupportContentPreimage", "contract_version", "profile_id", "literal", "provenance_delta", "rule_set_version", "dataflow_version"],
+    "absence_witness": ["kind:M2AbsenceWitnessPreimage", "contract_version", "fact_key", "atom", "referenced_stratum", "completed_stratum_digest"],
+    "derived_support_content": ["kind:M2DerivedSupportContentPreimage", "contract_version", "profile_id", "literal", "rule_id", "rule_digest", "ordered_premise_literal_keys", "ordered_default_absence_witness_digests", "rule_set_version", "dataflow_version"],
+    "conflict": ["kind:M2ConflictPreimage", "contract_version", "fact_key", "atom", "ordered_positive_support_ids", "ordered_negative_support_ids"],
+    "stratum": ["kind:M2StratumPreimage", "contract_version", "profile_id", "rule_bundle_digest", "stratum", "ordered_base_supports", "ordered_derived_supports", "ordered_fact_states"],
+    "input_delta": ["kind:M2InputDeltaPreimage", "contract_version", "fact_delta_input"],
+    "materialization": ["kind:M2MaterializationPreimage", "contract_version", "materialization_without_materialization_digest"],
+    "derived_delta_causation": ["kind:M2InvocationPreimage", "contract_version", "logical_time", "rule_bundle_digest", "prior_materialization_digest", "ordered_input_delta_digests"],
+    "fixpoint": ["kind:M2FixpointPreimage", "contract_version", "fixpoint_result_without_fixpoint_digest"]
+  },
+  "identity_and_digest_rules": [
+    "Every sha256 field is lowercase sha256:<64-hex> over the flrh-cjson/1 canonical bytes of the named preimage.",
+    "rule_id is caller-supplied opaque identity and rule_digest binds it with the complete rule preimage; duplicate rule_id with different rule bytes is MALFORMED_RULE_BUNDLE.",
+    "A base support keeps the caller's opaque derivation_id; support_content_digest binds its stable base-support preimage and deliberately excludes diff, logical_time, causation_id, and derivation_id.",
+    "A derived support derivation_id is derivation:<64-hex of its derived-support-content preimage> and support_content_digest is the corresponding sha256 digest.",
+    "A derived support is per ground rule satisfaction, not per Cartesian combination of supporting derivation IDs; premise_literal_keys and absence witness digests are its complete provenance inputs.",
+    "witness_digest, conflict_id, stratum digest, rule_bundle_digest, materialization_digest, input_delta_digests, and fixpoint_digest bind exactly their declared preimages.",
+    "input_delta_digests is the canonical-byte-sorted set after exact duplicate +1 collapse; every other repeated or mixed-sign identity is rejected before this projection.",
+    "Every emitted derived FactDelta causation_id is logic:<64-hex of the derived_delta_causation preimage>; its derivation_id is the affected derived support identity, tuple is the support atom, polarity is carried by LFactDeltaInput, diff is the net support change, and all version and logical-time fields match the invocation.",
+    "Every emitted derived FactDelta provenance_delta is exactly {kind:LDerivedProvenanceDelta, rule_id, rule_digest, premise_literal_keys, default_absence_witness_digests, support_content_digest} for the affected derived support, with both collections canonical-byte sorted.",
+    "Canonicalization rejects floats, non-finite values, non-string object keys, invalid Unicode, non-NFC strings, and any value outside the signed-64-bit integer domain before hashing."
+  ],
+  "limits": {
+    "max_fact_delta_inputs": 10000,
+    "max_rule_firings_ceiling": 1000,
+    "max_derivation_depth_ceiling": 8,
+    "declared_budget_rule": "Each invocation admits at most 10000 raw FactDelta inputs before exact duplicate collapse. Each bundle declares positive evaluation limits no greater than the ceilings, and the kernel must honor smaller declared limits exactly."
+  },
+  "rejection_codes": [
+    "MALFORMED_MATERIALIZATION",
+    "MALFORMED_RULE_BUNDLE",
+    "MALFORMED_FACT_DELTA_INPUT",
+    "CANONICALIZATION_VIOLATION",
+    "UNSUPPORTED_CONTRACT_VERSION",
+    "UNSUPPORTED_PROFILE",
+    "UNSUPPORTED_MATERIALIZATION_SCHEMA",
+    "UNSUPPORTED_RULE_SCHEMA",
+    "UNSUPPORTED_INPUT_SCHEMA",
+    "UNSUPPORTED_CANONICALIZATION",
+    "RULE_SET_VERSION_MISMATCH",
+    "DATAFLOW_VERSION_MISMATCH",
+    "RULE_BUNDLE_MISMATCH",
+    "LOGICAL_TIME_MISMATCH",
+    "LOGICAL_TIME_REGRESSION",
+    "INVALID_STRATIFICATION",
+    "OUTSIDE_V0_NEGATIVE_RECURSION",
+    "AMBIGUOUS_BATCH_DELTA",
+    "UNKNOWN_DERIVATION",
+    "DERIVATION_IDENTITY_CONFLICT",
+    "DERIVED_SUPPORT_TARGET",
+    "PROVENANCE_INTEGRITY_VIOLATION",
+    "RULE_BUDGET_EXHAUSTED",
+    "DERIVATION_DEPTH_EXCEEDED",
+    "INVARIANT_VIOLATION"
+  ],
+  "rejection_invariants": [
+    "Validation and rejection precedence is deterministic and independent of mapping insertion order or collection order.",
+    "Every rejection has only the closed code, JSON Pointer path, nullable logical_time, nullable trusted rule_bundle_digest, and closed context vocabulary declared by the wire schema.",
+    "A rejection returns no partial materialization or derived delta, exposes no stack or ambient data, and leaves every caller input byte-for-byte unchanged."
+  ],
+  "completion_gate": [
+    "The contract, manifest, wire schema, fixture schema, corpus, and every success and rejection golden validate under Draft 2020-12 with format checking and exact inherited dependency digests.",
+    "Logic tests 4 through 9 cover four states, explicit and default negation, positive recursion, negative-cycle rejection, independent support retraction, provenance closure, exact smaller budget boundaries, and M1 exact FactDelta seam.",
+    "Every stepwise ledger-update success materialization and derived-delta net equals an independently constructed clean full recomputation oracle after excluding only numeric evaluation counters declared non-semantic; evaluation_mode remains bound and is always full_recompute in M2.",
+    "Input and rule permutations, including malformed set-like collections and mapping insertion order, produce byte-identical canonical results or typed rejections; the exact 10000-input ceiling is admitted and 10001 is rejected before evaluation; two clean processes with distinct hash seed, timezone, cwd, and ambient environment reproduce every frozen case and exact golden.",
+    "Malformed, unconditional-rule, mismatched, identity-conflicting, unknown, derived-target, budget, depth, provenance, and stratification counterexamples return their closed typed rejection without mutation.",
+    "Every accepted and emitted nested FactDelta validates against the exact pinned protocol schema, and no EligibilityVerdict, StableProposalBatch, EffectIntent, capability, approval, execution, or receipt object is emitted."
+  ],
+  "completion_boundary": "Passing M2 measures only the declared Python ground/propositional stratified-L reference slice, frozen corpus, canonical identities, bounded worklist, stepwise-ledger-versus-independent-full-recompute oracle, and tested environments. Persistent incremental maintenance, R scheduling or frontier mechanics, EligibilityVerdict policy, H authority or effects, persistence, integrated runtime behavior, production readiness, comparative efficacy, engine promotion, and Lakatos progress remain unjudged."
+}

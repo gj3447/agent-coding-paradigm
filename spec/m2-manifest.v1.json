@@ -1,0 +1,83 @@
+{
+  "schema_version": "m2-manifest/v1",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
+  "normative_contracts": [
+    "spec/m2-logic-contract.v1.json",
+    "spec/schema/m2-logic.v1.schema.json",
+    "spec/m2-manifest.v1.json"
+  ],
+  "inherited_normative_dependencies": [
+    {
+      "artifact": "spec/schema/protocol.v1.schema.json",
+      "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"
+    },
+    {
+      "artifact": "spec/canonicalization.v1.json",
+      "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"
+    },
+    {
+      "artifact": "spec/logic-semantics.v0.json",
+      "sha256": "sha256:b727ae4d112b9df93d58d30daa6e4efcade122ec3bc3d84f6ec5b6ba502e2a74"
+    },
+    {
+      "artifact": "spec/schema/m1-kernel.v1.schema.json",
+      "sha256": "sha256:3f914944c9a7f0084fa0f725923489d8cd6feb5e70d510ffa5d54b5c20395c4d"
+    }
+  ],
+  "inherited_fixture_dependencies": [
+    {
+      "artifact": "fixtures/m1/golden/observe-with-effect.transition.json",
+      "sha256": "sha256:cd1360e0db9024cc6b03abde4a4d28e56aea82f901577bd2c4eae0cbdb5700b8"
+    }
+  ],
+  "self_validating_schemas": [
+    "spec/schema/m2-logic.v1.schema.json",
+    "spec/schema/m2-logic-contract.v1.schema.json",
+    "spec/schema/m2-fixtures.v1.schema.json",
+    "spec/schema/m2-manifest.v1.schema.json"
+  ],
+  "schema_bindings": [
+    {
+      "artifact": "spec/m2-logic-contract.v1.json",
+      "schema": "spec/schema/m2-logic-contract.v1.schema.json"
+    },
+    {
+      "artifact": "spec/m2-manifest.v1.json",
+      "schema": "spec/schema/m2-manifest.v1.schema.json"
+    },
+    {
+      "artifact": "fixtures/m2/cases.json",
+      "schema": "spec/schema/m2-fixtures.v1.schema.json"
+    }
+  ],
+  "conformance_fixture": "fixtures/m2/cases.json",
+  "golden_outputs": [
+    "fixtures/m2/golden/two-support-retraction.fixpoint.json",
+    "fixtures/m2/golden/negative-cycle.rejection.json"
+  ],
+  "reference_implementation": [
+    "src/flrh_logic/__init__.py",
+    "src/flrh_logic/canonical.py",
+    "src/flrh_logic/logic.py"
+  ],
+  "non_normative_tools": [
+    "scripts/m1_guard.py",
+    "scripts/validate_m0.py",
+    "scripts/m2_fixtures.py",
+    "scripts/m2_oracle.py",
+    "scripts/m2_guard.py",
+    "scripts/check_m2_ambient.py",
+    "scripts/run_m2_replay.py",
+    "scripts/validate_m2.py",
+    "tests/test_m2_logic.py"
+  ],
+  "mechanics_tests": [
+    "L4 exact M1 FactDelta seam, four-state materialization, and explicit conflict projection",
+    "L5 ground stratified required and default-not-positive rule evaluation with completed lower-stratum absence witnesses",
+    "L6 deterministic positive-recursive least fixpoint with exact caller-declared firing and depth budgets",
+    "L7 independent base support retraction, derived reverse closure, opaque target checks, and closed batch ambiguity",
+    "L8 literal-key provenance, derivation identity, stratum digest, and rootless-support integrity",
+    "L9 stepwise ledger materialization and derived-delta net equality with independent clean full recomputation under input and rule permutations"
+  ],
+  "completion_boundary": "M2 measures only the declared Python ground/propositional stratified-L reference slice, frozen corpus, canonical identities, bounded worklist, stepwise-ledger-versus-independent-full-recompute oracle, guarded surfaces, and tested environments. Persistent incremental maintenance, R scheduling or frontier mechanics, EligibilityVerdict policy, H authority or effects, persistence, integrated runtime behavior, production readiness, comparative efficacy, engine promotion, and Lakatos progress remain unjudged."
+}

@@ -63,4 +63,4 @@ The semantic oracle reconstructs the entire successful transition and every froz
 
 ## What M1 does not establish
 
-M1 does not implement or validate L fixpoint semantics, R scheduling/frontiers, H durability/effect closure, graph mechanics, crash recovery, real consumers, comparative efficacy, production readiness, originality, or Lakatos progress. The engine verdict remains deferred.
+M1 itself does not implement or validate L fixpoint semantics, R scheduling/frontiers, H durability/effect closure, graph mechanics, crash recovery, real consumers, comparative efficacy, production readiness, originality, or Lakatos progress. The sibling M2 slice now measures one bounded L profile without widening this M1 boundary. The engine verdict remains deferred.

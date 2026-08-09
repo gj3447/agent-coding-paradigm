@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M1 PURE-F REFERENCE MECHANICS MEASURED / L-R-H NOT IMPLEMENTED
+> Status: M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / R-H NOT IMPLEMENTED
 
 ## System boundary
 
@@ -31,7 +31,8 @@ Command or AcceptedEvent
   -> Decision: DomainEvent[] | Rejection
   -> Evolution: Snapshot x DomainEvent -> Snapshot
   -> FactDelta[] + EffectProposal[]
-  -> LogicFixpoint + EligibilityVerdict[]
+  -> LogicFixpoint
+  -> future typed EligibilityVerdict[] seam
   -> StableProposalBatch
   -> H policy/capability/approval gate
   -> EffectIntent[] | Rejection[]
@@ -39,7 +40,7 @@ Command or AcceptedEvent
   -> AcceptedEvent
 ```
 
-The commit boundary atomically accepts state/events plus effect intent/outbox metadata. Effect execution happens after that boundary.
+This is the proposed integrated protocol. M2 ends at `LogicFixpoint`; the typed eligibility seam and every later boundary remain unimplemented. The future H commit boundary atomically accepts state/events plus effect intent/outbox metadata. Effect execution happens after that boundary.
 
 ## Inner and outer loops
 
@@ -77,8 +78,8 @@ The outer loop terminates only with a typed outcome and evidence closure.
 step_F(snapshot, accepted_event)
   -> FTransition(next_snapshot, fact_deltas, effect_proposals) | FRejection
 
-solve_L(rule_set_version, materialization, fact_deltas, logical_time)
-  -> FixpointResult(derived_deltas, eligibility_verdicts, conflicts, provenance)
+solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time)
+  -> LFixpointResult(next_materialization, derived_fact_deltas) | LRejection
 
 propagate_R(dataflow_version, derived_deltas, frontier, demand)
   -> StableProposalBatch(effect_proposals, eligibility_verdicts, invalidations)
@@ -90,7 +91,9 @@ execute_effect_shell(authorized_effect)
   -> ActionReceipt | UnknownOutcome
 ```
 
-M1 realizes only `step_F` for the version-pinned `flrh.m1.observation-recorded/1` event. The public Python waist is [`step_f`](../src/flrh_kernel/kernel.py); its output schemas are [`m1-kernel.v1.schema.json`](../spec/schema/m1-kernel.v1.schema.json). It owns no durable state, handler registry, adapter, scheduler, authority, or execution port. The wider interfaces remain proposed until their own milestones pass.
+M1 realizes `step_F` for the version-pinned `flrh.m1.observation-recorded/1` event. The public Python waist is [`step_f`](../src/flrh_kernel/kernel.py); its output schemas are [`m1-kernel.v1.schema.json`](../spec/schema/m1-kernel.v1.schema.json).
+
+M2 separately realizes `solve_l` for one ground/propositional stratified rule profile. It rebuilds a complete derived materialization from the active base ledger on every accepted invocation, exposes four-valued state/conflicts and provenance inside that materialization, and emits the net derived deltas. It does not construct or interpret `EligibilityVerdict`; a future typed eligibility seam must be specified before R may combine proposals with logic results. Neither slice owns durable state, a handler registry, adapter, scheduler, authority, or execution port. R, H, and the integrated interfaces remain proposed until their milestones pass.
 
 ## Authority and single writers
 

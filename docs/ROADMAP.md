@@ -24,11 +24,13 @@ Gate: purity and replay tests 1–3 pass in two clean processes.
 
 Receipt boundary: one Python reference event profile produced seven schema-checked successful transitions, including mixed uppercase/lowercase RFC 3339 markers, nineteen closed typed rejections, seven sensitivity mutations, and two exact canonical result goldens. A two-step sequence and every frozen case produced byte-identical, independently canonicalized output across 54 spawned replay runs forming 27 comparisons in two distinct environment profiles. Two additional fresh processes locked filesystem reads before an `importlib` metadata-bearing import from precompiled source through a memory loader: eight explicit guarded categories and three audit-hook-only probes passed 11 positive self-tests, ten import-metadata checks passed, the kernel recorded zero attempts, and eight deliberate ambient/mutation mutants were caught. This is bounded reference-mechanism evidence, not a universal purity proof or an integrated runtime result.
 
-## M2 — Stratified L kernel
+## M2 — Stratified L kernel ✅ MEASURED 2026-08-09
 
 Deliverables: facts/rules/materialization, semi-naive worklist, four-valued conflict state, derivation/provenance tracking, retraction.
 
-Gate: logic tests 4–9 pass and incremental results equal full recomputation.
+Gate: logic tests 4–9 pass and stepwise delta-ledger results equal an independent clean full recomputation.
+
+Receipt boundary: one Python ground/propositional profile produced ten successful materializations, fourteen closed typed rejections, three sequences with nine total steps, two permutation-equivalence pairs, and two exact canonical goldens. Every accepted step matched an independent naive full-recompute oracle. Two environment profiles produced 66 spawned runs forming 33 byte comparisons with zero mismatches. Two locked-import processes passed eleven guard self-tests and ten import-metadata checks; thirteen deliberate mutants were caught, and four non-empty kernel paths recorded zero ambient or caller-input mutation attempts. The evaluator intentionally rebuilds the complete derived projection on every invocation; persistent incremental maintenance, R/H integration, and engine promotion remain open.
 
 ## M3 — Signed-delta R kernel
 
@@ -62,4 +64,4 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Start M2 as one stratified-logic vertical slice over the M1 `FactDelta` seam: materialization, deterministic semi-naive worklist, four-valued support/conflict, provenance, and retraction versus clean full recomputation. Keep R and H out of that slice. `EffectIntent` remains H-owned for M4, and the engine decision remains deferred.
+Start M3 as one signed-delta reactive vertical slice over the measured M2 derived-delta seam: scalar logical epochs/frontiers, stable publication, deterministic ordering, bounded demand/queues, backpressure, and explicit late-event policy. Keep authority and external effects out of R. `EffectIntent` remains H-owned for M4, persistent incremental L maintenance remains a separate open mechanism, and the engine decision remains deferred.

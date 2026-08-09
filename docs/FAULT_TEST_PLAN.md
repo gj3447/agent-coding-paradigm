@@ -1,14 +1,14 @@
 # Mechanics Admission and Fault Test Plan
 
-> Status: PROPOSED. These tests admit mechanics only; they do not prove comparative efficacy.
+> Status: F TESTS 1–3 AND L TESTS 4–9 MEASURED BY M1/M2; R, H, GRAPH, AND EFFICACY TESTS PROPOSED. These tests admit mechanics only; they do not prove comparative efficacy.
 
-## F — purity and replay
+## F — purity and replay ✅ M1 MEASURED 2026-08-08
 
 1. The same snapshot, accepted event, and versions produce the same transition digest.
 2. Reducer access to clock, RNG, filesystem, network, credentials, and model/tool calls is blocked.
 3. Malformed and incompatible inputs yield typed rejection with no mutation.
 
-## L — fixpoint, contradiction, provenance, retraction
+## L — fixpoint, contradiction, provenance, retraction ✅ M2 MEASURED 2026-08-09
 
 4. Shuffled rule/worklist order produces the same fixpoint digest.
 5. The selected semantics handles `p :- not q; q :- not p` exactly as specified or rejects it as outside v0.

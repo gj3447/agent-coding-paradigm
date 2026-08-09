@@ -1,6 +1,6 @@
 # FLR-H Execution Semantics v0
 
-> Status: M1 PURE-F REFERENCE MECHANICS MEASURED / L-R-H NOT IMPLEMENTED / NOT EXTERNAL CANON
+> Status: M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / R-H NOT IMPLEMENTED / NOT EXTERNAL CANON
 
 ## Boundary types
 
@@ -85,6 +85,10 @@ Default negation succeeds when positive support is absent in a completed lower s
 
 Retraction removes a support derivation, not blindly the derived tuple. If `a -> c` and `b -> c`, retracting `a` must retain `c` through `b`. The final support removal retracts `c` and its affected reverse closure.
 
+The M2 reference realizes this boundary for one finite ground/propositional rule profile through `solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time)`. `LFactDeltaInput.polarity` is the object-language sign; nested `FactDelta.diff` is the support-ledger operation. Each accepted invocation applies the stepwise base-ledger update, then performs a bounded semi-naive full rebuild of the complete derived projection and emits its net change from the prior materialization. The independent oracle agreement is semantic evidence, not evidence of persistent incremental reuse or performance.
+
+M2 deliberately emits no `EligibilityVerdict`. Proposal eligibility needs a separately typed, digest-bound query whose ownership at the L/R seam remains proposed.
+
 ## R — reactive semantics
 
 R consumes versioned unit deltas shaped as `(tuple, logical_time, diff)` where `diff ∈ {-1,+1}`. `+1` inserts one named derivation support and `-1` retracts that same identity; repeated byte-identical insertion is idempotent, not multiplicity. R owns dependency readiness, invalidation, timer/watermark inputs, demand, bounded queues, and backpressure policy.
@@ -105,7 +109,8 @@ Model output may propose goals, commands, facts, rules, or diagnostics. It canno
 accepted event at epoch t
   -> pure F transition
   -> base FactDelta(+1/-1) + EffectProposal
-  -> L semi-naive fixpoint + EligibilityVerdict at t
+  -> L semi-naive full-recompute fixpoint at t
+  -> future typed eligibility seam (not implemented by M2)
   -> frontier passes t
   -> R publishes one StableProposalBatch
   -> H policy/capability/approval gate
@@ -131,4 +136,4 @@ Every resumable run pins at least:
 
 Mismatch yields an explicit migration or `CHECKPOINT_INCOMPATIBLE`; it never silently resumes.
 
-The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), and the bounded M1 contracts in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json). This prose is a view of those contracts.
+The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), and the bounded M1 and M2 contracts in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json) and [`m2-manifest.v1.json`](../spec/m2-manifest.v1.json). This prose is a view of those contracts.

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2-logic-contract.v1.schema.json",
+  "title": "M2 stratified logic kernel contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "purpose",
+    "public_api",
+    "supported_profile",
+    "owned_mechanism",
+    "excluded_policy_and_authority",
+    "rule_profile_invariants",
+    "version_and_time_invariants",
+    "support_and_retraction_invariants",
+    "truth_and_materialization_invariants",
+    "canonical_preimages",
+    "identity_and_digest_rules",
+    "limits",
+    "rejection_codes",
+    "rejection_invariants",
+    "completion_gate",
+    "completion_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "m2-logic-contract/v1"},
+    "status": {
+      "enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]
+    },
+    "purpose": {"$ref": "#/$defs/Text"},
+    "public_api": {
+      "const": "solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time) -> LFixpointResult | LRejection"
+    },
+    "supported_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "profile_id",
+        "rule_schema",
+        "input_schema",
+        "materialization_schema",
+        "result_schema",
+        "canonicalization",
+        "logic_semantics"
+      ],
+      "properties": {
+        "contract": {"const": "flrh-l-kernel/1"},
+        "profile_id": {"const": "flrh-l-ground-stratified/1"},
+        "rule_schema": {"const": "flrh-l-rules/1"},
+        "input_schema": {"const": "flrh-l-input/1"},
+        "materialization_schema": {"const": "flrh-l-materialization/1"},
+        "result_schema": {"const": "flrh-l-result/1"},
+        "canonicalization": {"const": "flrh-cjson/1"},
+        "logic_semantics": {"const": "logic-semantics/v0"}
+      }
+    },
+    "owned_mechanism": {"$ref": "#/$defs/Texts"},
+    "excluded_policy_and_authority": {"$ref": "#/$defs/Texts"},
+    "rule_profile_invariants": {"$ref": "#/$defs/Texts"},
+    "version_and_time_invariants": {"$ref": "#/$defs/Texts"},
+    "support_and_retraction_invariants": {"$ref": "#/$defs/Texts"},
+    "truth_and_materialization_invariants": {"$ref": "#/$defs/Texts"},
+    "canonical_preimages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule",
+        "rule_bundle",
+        "fact_key",
+        "literal_key",
+        "base_support_content",
+        "absence_witness",
+        "derived_support_content",
+        "conflict",
+        "stratum",
+        "input_delta",
+        "materialization",
+        "derived_delta_causation",
+        "fixpoint"
+      ],
+      "properties": {
+        "rule": {"$ref": "#/$defs/Projection"},
+        "rule_bundle": {"$ref": "#/$defs/Projection"},
+        "fact_key": {"$ref": "#/$defs/Projection"},
+        "literal_key": {"$ref": "#/$defs/Projection"},
+        "base_support_content": {"$ref": "#/$defs/Projection"},
+        "absence_witness": {"$ref": "#/$defs/Projection"},
+        "derived_support_content": {"$ref": "#/$defs/Projection"},
+        "conflict": {"$ref": "#/$defs/Projection"},
+        "stratum": {"$ref": "#/$defs/Projection"},
+        "input_delta": {"$ref": "#/$defs/Projection"},
+        "materialization": {"$ref": "#/$defs/Projection"},
+        "derived_delta_causation": {"$ref": "#/$defs/Projection"},
+        "fixpoint": {"$ref": "#/$defs/Projection"}
+      }
+    },
+    "identity_and_digest_rules": {"$ref": "#/$defs/Texts"},
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_fact_delta_inputs", "max_rule_firings_ceiling", "max_derivation_depth_ceiling", "declared_budget_rule"],
+      "properties": {
+        "max_fact_delta_inputs": {"const": 10000},
+        "max_rule_firings_ceiling": {"const": 1000},
+        "max_derivation_depth_ceiling": {"const": 8},
+        "declared_budget_rule": {"$ref": "#/$defs/Text"}
+      }
+    },
+    "rejection_codes": {
+      "const": [
+        "MALFORMED_MATERIALIZATION",
+        "MALFORMED_RULE_BUNDLE",
+        "MALFORMED_FACT_DELTA_INPUT",
+        "CANONICALIZATION_VIOLATION",
+        "UNSUPPORTED_CONTRACT_VERSION",
+        "UNSUPPORTED_PROFILE",
+        "UNSUPPORTED_MATERIALIZATION_SCHEMA",
+        "UNSUPPORTED_RULE_SCHEMA",
+        "UNSUPPORTED_INPUT_SCHEMA",
+        "UNSUPPORTED_CANONICALIZATION",
+        "RULE_SET_VERSION_MISMATCH",
+        "DATAFLOW_VERSION_MISMATCH",
+        "RULE_BUNDLE_MISMATCH",
+        "LOGICAL_TIME_MISMATCH",
+        "LOGICAL_TIME_REGRESSION",
+        "INVALID_STRATIFICATION",
+        "OUTSIDE_V0_NEGATIVE_RECURSION",
+        "AMBIGUOUS_BATCH_DELTA",
+        "UNKNOWN_DERIVATION",
+        "DERIVATION_IDENTITY_CONFLICT",
+        "DERIVED_SUPPORT_TARGET",
+        "PROVENANCE_INTEGRITY_VIOLATION",
+        "RULE_BUDGET_EXHAUSTED",
+        "DERIVATION_DEPTH_EXCEEDED",
+        "INVARIANT_VIOLATION"
+      ]
+    },
+    "rejection_invariants": {"$ref": "#/$defs/Texts"},
+    "completion_gate": {"$ref": "#/$defs/Texts"},
+    "completion_boundary": {"$ref": "#/$defs/Text"}
+  },
+  "$defs": {
+    "Text": {"type": "string", "minLength": 1},
+    "Texts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/Text"}
+    },
+    "Projection": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "prefixItems": [{"type": "string", "pattern": "^kind:M2[A-Za-z]+Preimage$"}],
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

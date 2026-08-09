@@ -1,6 +1,6 @@
 {
   "schema_version": "claim-ledger/v1",
-  "updated_at": "2026-08-08T10:12:52Z",
+  "updated_at": "2026-08-09T01:28:37Z",
   "claims": [
     {
       "id": "responsibility-separation",
@@ -88,6 +88,26 @@
         "Any frozen case produces different canonical result bytes across the declared clean-process profiles.",
         "The kernel mutates a caller input or accesses a guarded ambient authority surface.",
         "F emits EffectIntent, execution authority, approval, a final effect idempotency key, or an execution receipt."
+      ]
+    },
+    {
+      "id": "m2-stratified-l-mechanics",
+      "statement": "The bounded Python reference implements the frozen M2 ground stratified-L semantics with byte-stable full recomputation, four-valued support, provenance, typed rejection, and retraction on the declared corpus.",
+      "epistemic_status": "MEASURED",
+      "disposition": "active",
+      "scope": "one Python ground/propositional rule profile, ten successes, fourteen full-object rejections, three sequences with nine steps, an independent naive semantic oracle, two local clean-process profiles, two guarded-import processes, four non-empty guarded kernel paths, and thirteen deliberate control mutants; not persistent incremental maintenance, general Datalog, R/H, or integrated runtime evidence",
+      "evidence": [
+        "spec/m2-manifest.v1.json",
+        "fixtures/m2/cases.json",
+        "fixtures/m2/golden/two-support-retraction.fixpoint.json",
+        "fixtures/m2/golden/negative-cycle.rejection.json",
+        "scripts/validate_m2.py",
+        "tests/test_m2_logic.py"
+      ],
+      "falsifiers": [
+        "Any frozen case or sequence produces a different canonical result across the declared clean-process profiles or independent semantic oracle.",
+        "Support, conflict, provenance, retraction, or closed typed-rejection behavior diverges from the frozen contract.",
+        "L mutates a caller input, accesses a guarded ambient authority surface, or emits an R/H-owned object."
       ]
     }
   ]

@@ -1,0 +1,1 @@
+{"code":"OUTSIDE_V0_NEGATIVE_RECURSION","context":{"rule_id":"rule:b-not-a","source_stratum":0,"target_stratum":0},"contract_version":"flrh-l-kernel/1","kind":"LRejection","logical_time":1,"path":"/rule_bundle/rules","rule_bundle_digest":"sha256:69fe82d1ae71a24728da8b154a2bbd8a44cd4f692106eafdcff00f32ba6ca5b1","schema_version":"flrh-l-result/1"}

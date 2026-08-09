@@ -1,0 +1,164 @@
+{
+  "schema_version": "m2-fixtures/1",
+  "m1_positive_seam": {
+    "causation_id": "evt:m1:effect",
+    "dataflow_version": "dataflow/0",
+    "derivation_id": "derivation:0d7743ea7fae5a26bceb553d84464cc2e70e65654295f0ce1e2ef5958151ab80",
+    "diff": 1,
+    "kind": "FactDelta",
+    "logical_time": 1,
+    "provenance_delta": {
+      "observation_digest": "sha256:de22786af34ef83e6570426c50e978c41da6d6e00d38630f05260017396a81c9",
+      "source_event_id": "evt:m1:effect"
+    },
+    "rule_set_version": "rules/0",
+    "tuple": {
+      "object_digest": "sha256:de22786af34ef83e6570426c50e978c41da6d6e00d38630f05260017396a81c9",
+      "predicate": "observation_recorded",
+      "subject": "work:1"
+    }
+  },
+  "atoms": {
+    "a": {"predicate": "a", "subject": "item:1"},
+    "b": {"predicate": "b", "subject": "item:1"},
+    "c": {"predicate": "c", "subject": "item:1"},
+    "d": {"predicate": "d", "subject": "item:1"},
+    "neither": {"predicate": "truth_probe", "subject": "neither"},
+    "true_only": {"predicate": "truth_probe", "subject": "true"},
+    "false_only": {"predicate": "truth_probe", "subject": "false"},
+    "both": {"predicate": "truth_probe", "subject": "both"},
+    "candidate": {"predicate": "candidate", "subject": "item:1"},
+    "seed": {"predicate": "seed", "subject": "item:1"},
+    "mid": {"predicate": "mid", "subject": "item:1"},
+    "blocked": {"predicate": "blocked", "subject": "item:1"},
+    "eligible": {"predicate": "eligible", "subject": "item:1"},
+    "authority_shaped": {"approval_required": true, "capability": "opaque:caller-data", "effect_intent": {"kind": "EffectIntent", "receipt": "opaque:atom-receipt"}, "kind": "ActionReceipt", "predicate": "opaque_authority_payload", "subject": "item:authority-shaped"}
+  },
+  "base_fact_delta_inputs": {
+    "a_positive": {"atom_ref": "a", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:a"},
+    "a_positive_retract": {"atom_ref": "a", "polarity": "positive", "diff": -1, "derivation_id": "derivation:base:a"},
+    "a_positive_duplicate": {"atom_ref": "a", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:a"},
+    "a_identity_conflict": {"atom_ref": "b", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:a"},
+    "unknown_retract": {"atom_ref": "d", "polarity": "positive", "diff": -1, "derivation_id": "derivation:missing"},
+    "b_positive": {"atom_ref": "b", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:b"},
+    "b_positive_retract": {"atom_ref": "b", "polarity": "positive", "diff": -1, "derivation_id": "derivation:base:b"},
+    "true_positive": {"atom_ref": "true_only", "polarity": "positive", "diff": 1, "derivation_id": "derivation:truth:true"},
+    "false_negative": {"atom_ref": "false_only", "polarity": "negative", "diff": 1, "derivation_id": "derivation:truth:false"},
+    "both_positive": {"atom_ref": "both", "polarity": "positive", "diff": 1, "derivation_id": "derivation:truth:both-positive"},
+    "both_negative": {"atom_ref": "both", "polarity": "negative", "diff": 1, "derivation_id": "derivation:truth:both-negative"},
+    "candidate_positive": {"atom_ref": "candidate", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:candidate"},
+    "seed_positive": {"atom_ref": "seed", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:seed"},
+    "blocked_positive": {"atom_ref": "blocked", "polarity": "positive", "diff": 1, "derivation_id": "derivation:truth:blocked-positive"},
+    "blocked_negative": {"atom_ref": "blocked", "polarity": "negative", "diff": 1, "derivation_id": "derivation:truth:blocked-negative"},
+    "authority_shaped_positive": {"atom_ref": "authority_shaped", "polarity": "positive", "diff": 1, "derivation_id": "derivation:base:authority-shaped", "provenance_delta": {"approval_digest": "opaque:caller-provenance", "capability": "opaque:not-an-authority-grant", "kind": "EffectIntent", "receipt": {"authority_digest": "opaque:caller-nested-provenance"}}},
+    "a_derived_id_collision": {"atom_ref": "a", "polarity": "positive", "diff": 1, "derivation_id": "derivation:18cb2e5a834a0ba8feac7a31c7f591237c24c1fb5af0244e234de736da0eb316"}
+  },
+  "base_rule_bundles": {
+    "m1_empty": {"rule_set_version": "rules/0", "dataflow_version": "dataflow/0", "limits": {"max_rule_firings": 8, "max_derivation_depth": 8}, "query_atom_refs": [], "rules": []},
+    "empty": {"limits": {"max_rule_firings": 8, "max_derivation_depth": 8}, "query_atom_refs": ["a"], "rules": []},
+    "truth_states": {"limits": {"max_rule_firings": 8, "max_derivation_depth": 8}, "query_atom_refs": ["neither", "true_only", "false_only", "both"], "rules": []},
+    "two_supports": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b", "c", "d"],
+      "rules": [
+        {"rule_id": "rule:c-from-a", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:c-from-b", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "b", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:d-from-c", "stratum": 0, "head": {"atom_ref": "d", "polarity": "positive"}, "required": [{"atom_ref": "c", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "positive_cycle": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b", "c"],
+      "rules": [
+        {"rule_id": "rule:b-from-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:c-from-b", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "b", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:a-from-c", "stratum": 0, "head": {"atom_ref": "a", "polarity": "positive"}, "required": [{"atom_ref": "c", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "lower_stratum_default": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 8},
+      "query_atom_refs": ["mid", "blocked", "eligible"],
+      "rules": [
+        {"rule_id": "rule:mid-from-seed", "stratum": 0, "head": {"atom_ref": "mid", "polarity": "positive"}, "required": [{"atom_ref": "seed", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:blocked-from-mid", "stratum": 0, "head": {"atom_ref": "blocked", "polarity": "positive"}, "required": [{"atom_ref": "mid", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:eligible-if-not-blocked", "stratum": 1, "head": {"atom_ref": "eligible", "polarity": "positive"}, "required": [{"atom_ref": "candidate", "polarity": "positive"}], "default_not_positive": [{"atom_ref": "blocked", "referenced_stratum": 0}]}
+      ]
+    },
+    "negative_cycle": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b"],
+      "rules": [
+        {"rule_id": "rule:a-not-b", "stratum": 0, "head": {"atom_ref": "a", "polarity": "positive"}, "required": [], "default_not_positive": [{"atom_ref": "b", "referenced_stratum": 0}]},
+        {"rule_id": "rule:b-not-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [], "default_not_positive": [{"atom_ref": "a", "referenced_stratum": 0}]}
+      ]
+    },
+    "firing_budget_one": {
+      "limits": {"max_rule_firings": 1, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b", "c"],
+      "rules": [
+        {"rule_id": "rule:b-from-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:c-from-a", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "depth_budget_one": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 1},
+      "query_atom_refs": ["a", "b", "c"],
+      "rules": [
+        {"rule_id": "rule:b-from-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:c-from-b", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "b", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "one_firing_exact": {
+      "limits": {"max_rule_firings": 1, "max_derivation_depth": 1},
+      "query_atom_refs": ["a", "b"],
+      "rules": [
+        {"rule_id": "rule:b-from-a", "stratum": 0, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    },
+    "invalid_stratification": {
+      "limits": {"max_rule_firings": 8, "max_derivation_depth": 8},
+      "query_atom_refs": ["a", "b", "c"],
+      "rules": [
+        {"rule_id": "rule:b-from-a-higher", "stratum": 1, "head": {"atom_ref": "b", "polarity": "positive"}, "required": [{"atom_ref": "a", "polarity": "positive"}], "default_not_positive": []},
+        {"rule_id": "rule:c-from-b-lower", "stratum": 0, "head": {"atom_ref": "c", "polarity": "positive"}, "required": [{"atom_ref": "b", "polarity": "positive"}], "default_not_positive": []}
+      ]
+    }
+  },
+  "success_cases": [
+    {"id": "m1-positive-seam", "bundle_ref": "m1_empty", "delta_refs": ["$m1_positive_seam"], "expected_states": {"observation_recorded": "TRUE_ONLY"}},
+    {"id": "four-truth-states", "bundle_ref": "truth_states", "delta_refs": ["true_positive", "false_negative", "both_positive", "both_negative"], "expected_states": {"neither": "NEITHER", "true_only": "TRUE_ONLY", "false_only": "FALSE_ONLY", "both": "BOTH"}},
+    {"id": "two-supports-and-downstream", "bundle_ref": "two_supports", "delta_refs": ["a_positive", "b_positive"], "expected_states": {"a": "TRUE_ONLY", "b": "TRUE_ONLY", "c": "TRUE_ONLY", "d": "TRUE_ONLY"}, "expected_positive_support_counts": {"c": 2, "d": 1}},
+    {"id": "lower-stratum-completes-before-default-negation", "bundle_ref": "lower_stratum_default", "delta_refs": ["candidate_positive", "seed_positive"], "expected_states": {"mid": "TRUE_ONLY", "blocked": "TRUE_ONLY", "eligible": "NEITHER"}},
+    {"id": "default-negation-after-empty-lower-stratum", "bundle_ref": "lower_stratum_default", "delta_refs": ["candidate_positive"], "expected_states": {"mid": "NEITHER", "blocked": "NEITHER", "eligible": "TRUE_ONLY"}, "expected_positive_support_counts": {"eligible": 1}},
+    {"id": "default-negation-accepts-false-only", "bundle_ref": "lower_stratum_default", "delta_refs": ["candidate_positive", "blocked_negative"], "expected_states": {"blocked": "FALSE_ONLY", "eligible": "TRUE_ONLY"}, "expected_positive_support_counts": {"eligible": 1}, "expected_negative_support_counts": {"blocked": 1}},
+    {"id": "default-negation-rejects-both", "bundle_ref": "lower_stratum_default", "delta_refs": ["candidate_positive", "blocked_positive", "blocked_negative"], "expected_states": {"blocked": "BOTH", "eligible": "NEITHER"}, "expected_positive_support_counts": {"blocked": 1}, "expected_negative_support_counts": {"blocked": 1}},
+    {"id": "exact-duplicate-batch-idempotent", "bundle_ref": "empty", "delta_refs": ["a_positive", "a_positive_duplicate"], "expected_states": {"a": "TRUE_ONLY"}, "expected_positive_support_counts": {"a": 1}},
+    {"id": "exact-budget-boundary", "bundle_ref": "one_firing_exact", "delta_refs": ["a_positive"], "expected_states": {"a": "TRUE_ONLY", "b": "TRUE_ONLY"}, "expected_positive_support_counts": {"b": 1}},
+    {"id": "opaque-authority-shaped-data-is-inert", "bundle_ref": "empty", "delta_refs": ["authority_shaped_positive"], "expected_states": {"a": "NEITHER", "authority_shaped": "TRUE_ONLY"}, "expected_positive_support_counts": {"authority_shaped": 1}}
+  ],
+  "rejection_cases": [
+    {"id": "negative-cycle", "bundle_ref": "negative_cycle", "delta_refs": [], "expected_code": "OUTSIDE_V0_NEGATIVE_RECURSION", "expected_path": "/rule_bundle/rules", "expected_rule_bundle_digest": "supplied", "expected_context": {"rule_id": "rule:b-not-a", "source_stratum": 0, "target_stratum": 0}},
+    {"id": "unknown-retraction", "bundle_ref": "empty", "delta_refs": ["unknown_retract"], "expected_code": "UNKNOWN_DERIVATION", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:missing"}},
+    {"id": "identity-conflict-atomic", "bundle_ref": "empty", "delta_refs": ["a_positive", "a_identity_conflict"], "expected_code": "DERIVATION_IDENTITY_CONFLICT", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:base:a"}},
+    {"id": "mixed-valid-invalid-retraction-atomic", "bundle_ref": "empty", "delta_refs": ["a_positive", "unknown_retract"], "expected_code": "UNKNOWN_DERIVATION", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:missing"}},
+    {"id": "mixed-add-retract-same-id-atomic", "bundle_ref": "empty", "delta_refs": ["a_positive", "a_positive_retract"], "expected_code": "AMBIGUOUS_BATCH_DELTA", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:base:a"}},
+    {"id": "double-retract-same-batch-atomic", "bundle_ref": "empty", "delta_refs": ["a_positive_retract", "a_positive_retract"], "expected_code": "AMBIGUOUS_BATCH_DELTA", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:base:a"}},
+    {"id": "firing-budget", "bundle_ref": "firing_budget_one", "delta_refs": ["a_positive"], "expected_code": "RULE_BUDGET_EXHAUSTED", "expected_path": "/rule_bundle/limits/max_rule_firings", "expected_rule_bundle_digest": "supplied", "expected_context": {"limit": 1, "observed": 2}},
+    {"id": "depth-budget", "bundle_ref": "depth_budget_one", "delta_refs": ["a_positive"], "expected_code": "DERIVATION_DEPTH_EXCEEDED", "expected_path": "/rule_bundle/limits/max_derivation_depth", "expected_rule_bundle_digest": "supplied", "expected_context": {"limit": 1, "observed": 2}},
+    {"id": "malformed-rule-kind", "bundle_ref": "one_firing_exact", "delta_refs": [], "mutations": [{"target": "rule_bundle", "path": ["rules", 0, "kind"], "value": "NotLRule"}], "expected_code": "MALFORMED_RULE_BUNDLE", "expected_path": "/rule_bundle/rules/0/kind", "expected_rule_bundle_digest": null, "expected_context": {}},
+    {"id": "unconditional-rule", "bundle_ref": "one_firing_exact", "delta_refs": [], "mutations": [{"target": "rule_bundle", "path": ["rules", 0, "required_body"], "value": []}], "expected_code": "MALFORMED_RULE_BUNDLE", "expected_path": "/rule_bundle/rules/0", "expected_rule_bundle_digest": null, "expected_context": {"invariant": "rule_requires_evidence_or_completed_absence_root"}},
+    {"id": "rule-set-version-mismatch", "bundle_ref": "empty", "delta_refs": ["a_positive"], "mutations": [{"target": "fact_delta_inputs", "path": [0, "delta", "rule_set_version"], "value": "rules/mismatch/1"}], "expected_code": "RULE_SET_VERSION_MISMATCH", "expected_path": "/fact_delta_inputs/0/delta/rule_set_version", "expected_rule_bundle_digest": "supplied", "expected_context": {"expected": "rules/m2-test/1", "actual": "rules/mismatch/1"}},
+    {"id": "derived-support-target", "bundle_ref": "one_firing_exact", "delta_refs": ["a_derived_id_collision"], "expected_code": "DERIVED_SUPPORT_TARGET", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:18cb2e5a834a0ba8feac7a31c7f591237c24c1fb5af0244e234de736da0eb316"}},
+    {"id": "rule-provenance-integrity", "bundle_ref": "one_firing_exact", "delta_refs": [], "mutations": [{"target": "rule_bundle", "path": ["rules", 0, "rule_digest"], "value": "sha256:0000000000000000000000000000000000000000000000000000000000000000"}], "expected_code": "PROVENANCE_INTEGRITY_VIOLATION", "expected_path": "/rule_bundle/rules/0/rule_digest", "expected_rule_bundle_digest": null, "expected_context": {"expected": "sha256:788b4fb6bd6f66d5cdb7450e2cc07efb1cb05ce50cfc76cd169a003cee04540f", "actual": "sha256:0000000000000000000000000000000000000000000000000000000000000000", "rule_id": "rule:b-from-a"}},
+    {"id": "invalid-positive-stratification", "bundle_ref": "invalid_stratification", "delta_refs": [], "expected_code": "INVALID_STRATIFICATION", "expected_path": "/rule_bundle/rules", "expected_rule_bundle_digest": "supplied", "expected_context": {"rule_id": "rule:c-from-b-lower", "source_stratum": 1, "target_stratum": 0}}
+  ],
+  "sequences": [
+    {"id": "two-support-retain-then-remove", "bundle_ref": "two_supports", "steps": [["a_positive", "b_positive"], ["a_positive_retract"], ["b_positive_retract"]]},
+    {"id": "positive-cycle-delete", "bundle_ref": "positive_cycle", "steps": [["a_positive"], ["a_positive_retract"]]},
+    {"id": "duplicate-then-double-retract", "bundle_ref": "empty", "steps": [["a_positive"], ["a_positive_duplicate"], ["a_positive_retract"], ["a_positive_retract"]], "expected_terminal_rejection": {"expected_code": "UNKNOWN_DERIVATION", "expected_path": "/fact_delta_inputs", "expected_rule_bundle_digest": "supplied", "expected_context": {"derivation_id": "derivation:base:a"}}}
+  ],
+  "equivalence_pairs": [
+    {"id": "rule-order", "bundle_ref": "two_supports", "delta_refs": ["a_positive", "b_positive"], "reverse_rules": true, "reverse_deltas": false},
+    {"id": "input-order", "bundle_ref": "two_supports", "delta_refs": ["a_positive", "b_positive"], "reverse_rules": false, "reverse_deltas": true}
+  ]
+}

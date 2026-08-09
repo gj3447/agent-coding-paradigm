@@ -2,7 +2,7 @@
 
 함수형·논리형·반응형 프로그래밍을 durable Harness와 typed graph engineering으로 결합하는 agent runtime 연구 저장소.
 
-> Status: **RESEARCH INCUBATOR / M1 PURE-F REFERENCE MECHANICS MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
+> Status: **RESEARCH INCUBATOR / M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
 >
 > Working profile: **FLR-H** — Functional, Logic, Reactive, Harness
 >
@@ -34,7 +34,10 @@ AcceptedEvent
 pure F transition ──► FactDelta(+/-) + EffectProposal
                                │
                                ▼
-                     L fixpoint + EligibilityVerdict
+                     L fixpoint/materialization
+                               │
+                               ▼ future typed eligibility seam
+                     (M2 stops above; R/H below are unimplemented)
                                │
                                ▼ frontier passes epoch
                      R StableProposalBatch
@@ -54,7 +57,7 @@ pure F transition ──► FactDelta(+/-) + EffectProposal
                                └──► next accepted event
 ```
 
-The inner loop stabilizes facts and deltas. The outer loop closes real-world effects and evidence. An empty queue is not success, a model final answer is not success, and a trace span marked `OK` is not success.
+This is the target runtime shape, not the current implementation. The inner loop stabilizes facts and deltas. The outer loop closes real-world effects and evidence. An empty queue is not success, a model final answer is not success, and a trace span marked `OK` is not success.
 
 ## Graph profile
 
@@ -80,13 +83,15 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [Claims and Status](docs/CLAIMS_AND_STATUS.md) — what is and is not supported
 - [Roadmap](docs/ROADMAP.md) — M0 through comparative efficacy work
 - [M0 contract and test boundary](docs/M0_CONTRACT.md) — what kind of theory this is, what passed, and what remains untested
-- [M1 pure-F kernel](docs/M1_KERNEL.md) — the one implemented vertical slice, wire contract, replay gate, and non-claims
+- [M1 pure-F kernel](docs/M1_KERNEL.md) — the first implemented vertical slice, wire contract, replay gate, and non-claims
+- [M2 stratified-L kernel](docs/M2_LOGIC.md) — ground fixpoint, four-valued support, provenance, retraction, and full-recompute oracle boundary
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
 - [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
 - [Machine-readable engine decision](spec/engine-decision.v1.json) — validated defer decision
 - [M0 manifest](spec/m0-manifest.v1.json) — normative contract set and non-claim boundary
 - [M1 manifest](spec/m1-manifest.v1.json) — bounded pure-F implementation and conformance boundary
+- [M2 manifest](spec/m2-manifest.v1.json) — bounded ground stratified-L implementation and conformance boundary
 
 ## Current admission gate
 
@@ -94,24 +99,27 @@ The pinned M0 checker passed on 2026-08-08 for the declared contract corpus: nin
 
 The bounded M1 Python reference slice also passed its declared gate: seven schema-checked successful transitions, including mixed uppercase/lowercase RFC 3339 markers, nineteen typed rejections, seven sensitivity mutations, one two-step replay, two exact canonical result goldens, and 54 spawned clean-process replay executions forming 27 byte-equality comparisons with zero mismatches. Two additional fresh processes locked filesystem reads before performing an `importlib` metadata-bearing import from precompiled source through a memory loader; eight explicit guarded categories and three audit-hook-only probes passed 11 positive self-tests, ten import-metadata checks passed, the kernel recorded zero attempts, and eight deliberate ambient/mutation mutants were caught. This evidence covers one observation event profile and the named CPython surfaces; it is not a universal purity proof.
 
+The bounded M2 Python reference slice passed its ground stratified-L gate: ten successful cases, fourteen full-object typed rejections, three sequences with nine total steps, two exact goldens, two permutation-equivalence pairs, and an independent naive semantic oracle. Two clean profiles produced 66 spawned executions forming 33 byte comparisons with zero mismatches. Two guarded processes passed eleven self-tests and ten import-metadata checks; thirteen control mutants were caught, and four non-empty kernel paths recorded zero ambient or caller-input mutation attempts. The delta interface applies a stepwise base ledger, but M2 deliberately rebuilds the complete derived projection on every accepted invocation; persistent incremental maintenance is not claimed.
+
 Run it with:
 
 ```bash
 python3 -m pip install -r requirements-m0.txt
 python3 scripts/validate_m0.py
 python3 scripts/validate_m1.py
+python3 scripts/validate_m2.py
 python3 -m unittest discover -s tests -v
 ```
 
 The next mechanics gates must prove:
 
-1. incremental L insert/delete/retract converges to the same result as clean full recomputation;
+1. a future persistent incremental L evaluator reuses prior closure while remaining equal to clean full recomputation;
 2. R never publishes an irreversible-effect candidate before the logical frontier passes;
 3. crash/restart never turns one logical effect into duplicate real-world mutations;
 4. trace-only, harness-only, or model-self-reported success cannot satisfy `DONE`;
 5. production and harness use the same resolved composition graph modulo enumerated test adapters.
 
-The repository now contains one executable pure-F reference mechanism, contracts, and test oracles. It still does not contain an integrated F/L/R/H runtime.
+The repository now contains separate executable F and L reference mechanisms, contracts, and independent test oracles. It still does not contain an integrated F/L/R/H runtime.
 
 ## Non-claims
 

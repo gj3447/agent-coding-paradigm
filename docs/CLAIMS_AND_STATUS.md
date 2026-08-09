@@ -1,6 +1,6 @@
 # Claims and Status
 
-Updated: 2026-08-08
+Updated: 2026-08-09
 
 ## Current claims
 
@@ -8,21 +8,22 @@ Updated: 2026-08-08
 |---|---|---|
 | the pinned checker returns PASS for the declared M0 schemas and fixtures | MEASURED | checker-relative local conformance; no global consistency proof or runtime |
 | the bounded Python M1 reference implements a deterministic pure-F transition with typed rejection and inert proposals for the frozen event profile | MEASURED | seven schema-checked success cases including mixed uppercase/lowercase RFC 3339 markers, nineteen full-rejection fixture oracles, seven sensitivity mutations, two exact goldens, one two-step replay, 54 clean replay runs forming 27 comparisons plus two guarded-import runs, eight explicit categories plus three audit-only probes, ten import-metadata checks, and eight detected control mutants; no universal purity or integrated-runtime claim |
+| the bounded Python M2 reference implements the frozen ground stratified-L semantics with four-valued support, provenance, typed rejection, and retraction | MEASURED | ten successes, fourteen full-object rejections, three sequences/nine steps, two equivalence pairs, two exact goldens, independent naive full-recompute oracle equality, 66 clean runs/33 comparisons, eleven guard self-tests, ten import-metadata checks, thirteen detected mutants, and four guarded non-empty kernel paths with zero ambient or mutation attempts; no persistent incremental-maintenance, R/H, or integrated-runtime claim |
 | F/L/R/H responsibilities can be specified without collapsing into one LLM loop | PROPOSED | architecture plus machine contracts; no runtime |
-| signed deltas and scalar logical frontiers provide a plausible L-to-R narrow waist | HYPOTHESIS | executable fixture semantics; no incremental implementation |
+| signed deltas and scalar logical frontiers provide a plausible L-to-R narrow waist | HYPOTHESIS | M2 exercises signed L inputs and outputs, but persistent incremental maintenance and R frontier mechanics are not implemented |
 | typed graph federation avoids several category errors of a soup graph | HYPOTHESIS | machine-validated graph-kind/envelope shapes; no graph implementation |
 | H should own continuation and effect/evidence closure | PROPOSED | validated abstract FSM/loop; no crash/recovery evidence |
 | the repository is ready to be called a reusable engine | DEFERRED | no executable consumer, durability proof, or recovery evidence |
 | FLR-H improves agent outcomes | UNSUPPORTED | no held-out equal-budget comparison |
 | FLR-H is original or an industry standard | UNSUPPORTED | no prior-art exhaustion or standards process |
-| FLR-H is production-ready | UNSUPPORTED | only one bounded pure-F reference slice exists; L/R/H, durability, graphs, and operational trials remain open |
+| FLR-H is production-ready | UNSUPPORTED | only separate bounded F and L reference slices exist; R/H, durability, graphs, integration, and operational trials remain open |
 
 ## Falsifiers
 
 The proposal must be downgraded if any of these persist after reasonable repair:
 
 - real coding tasks repeatedly require hidden ambient effects inside F;
-- incremental L/R results disagree with clean recomputation;
+- stepwise L results or a future persistent incremental L/R implementation disagree with clean recomputation;
 - separating semantic, dependency, composition, trace, provenance, and schema graphs loses required information or makes round-trip impossible;
 - independent implementations cannot agree on the same conformance corpus;
 - H cannot prevent duplicate mutation or false terminal state across crash/resume;

@@ -13,13 +13,13 @@ Four claim levels must remain separate:
 | Level | Question | Current state |
 |---|---|---|
 | Formal design | Do the current F/L/R/H artifacts satisfy their closed schemas, encoded invariants, and declared fixtures? | M0 checker conformance measured |
-| Mechanism | Can independent code implement those contracts deterministically, incrementally, durably, and safely? | bounded M1 pure-F reference measured; M2–M5 not implemented |
+| Mechanism | Can independent code implement those contracts deterministically, incrementally, durably, and safely? | bounded M1 pure-F and M2 ground stratified-L references measured; persistent incremental maintenance and M3–M5 not implemented |
 | Comparative efficacy | Does full FLR-H improve held-out coding-agent outcomes over a simpler equal-budget control? | Unpreregistered and unjudged |
 | Paradigm/standard | Is the abstraction independently adopted, stable across implementations, and worth teaching as a general paradigm? | Unsupported |
 
 M0 therefore records **checker-relative contract conformance**. It does not prove global logical consistency, implementation feasibility, or practical usefulness.
 
-M1 subsequently added one bounded implementation result without changing this historical M0 boundary. See [`M1_KERNEL.md`](M1_KERNEL.md) for the implemented seam and its narrower claims.
+M1 and M2 subsequently added two bounded sibling implementation results without changing this historical M0 boundary. See [`M1_KERNEL.md`](M1_KERNEL.md) and [`M2_LOGIC.md`](M2_LOGIC.md) for their implemented seams and narrower claims.
 
 ## Lakatos framing
 
@@ -72,7 +72,7 @@ The Python checker is non-normative and replaceable. A second implementation sho
 | Milestone | Decisive test | What would falsify or downgrade it? |
 |---|---|---|
 | M1 Functional ✅ | replay/property tests in two clean processes | measured for the frozen reference profile; any byte mismatch or ambient attempt reopens it |
-| M2 Logic | incremental insert/delete/retract versus clean recomputation | support, conflict, or provenance diverges |
+| M2 Logic ✅ | stepwise insert/retract ledger versus independent clean recomputation | measured for the frozen ground profile; any support, conflict, provenance, rejection, or canonical-byte divergence reopens it |
 | M3 Reactive | randomized order, frontier, slow-consumer, and backpressure tests | intermediate effects leak or queues grow outside bounds |
 | M4 Harness | crash injection around intent/send/receipt plus cancellation and fencing | duplicate confirmed mutation or false `SUCCEEDED` |
 | M5 Graph | round-trip, migration, resolver, and composition-mutation tests | required identity is lost or forbidden wiring passes |

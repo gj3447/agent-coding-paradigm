@@ -12,9 +12,9 @@
     "adapter-sdk"
   ],
   "rationale": [
-    "One bounded Python pure-F reference slice exists; no integrated runtime or production consumer exists yet.",
+    "Bounded sibling Python reference slices exist for pure F and ground stratified L; no integrated runtime or production consumer exists yet.",
     "Durability, recovery, effect reconciliation, and graph interoperability are specified but unmeasured.",
-    "The smallest justified next step is a stratified-logic mechanics slice rather than a broad engine framework."
+    "The smallest justified next step is a signed-delta reactive mechanics slice rather than a broad engine framework."
   ],
   "boundary": {
     "owns": "Deterministic transition, fixpoint, unit-delta stabilization, and typed stable-proposal output",
@@ -32,7 +32,7 @@
       "Defining planning or dispatch doctrine",
       "Standardizing one universal graph representation"
     ],
-    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications and a stateless pure-F reference only"
+    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications and stateless pure-F and pure-L reference functions only"
   },
   "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [
@@ -74,7 +74,7 @@
         {"metric": "incremental_recompute_mismatch_count", "operator": "==", "threshold": 0, "unit": "mismatches"}
       ],
       "evidence": [],
-      "prerequisites": ["Implement M1 through M3 and freeze their conformance corpora."]
+      "prerequisites": ["Implement M3, freeze its conformance corpus, and demonstrate persistent incremental reuse before closing the incremental metric."]
     },
     {
       "id": "operational-durability-requirement",
