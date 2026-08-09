@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/lr-seam.v1.schema.json",
+  "title": "Direct L to R projection seam",
+  "oneOf": [
+    {"$ref": "#/$defs/LRBindingProfile"},
+    {"$ref": "#/$defs/LRQueryBatch"},
+    {"$ref": "#/$defs/LRProjectionResult"},
+    {"$ref": "#/$defs/LRProjectionRejection"}
+  ],
+  "$defs": {
+    "Id": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Id"},
+    "Version": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Version"},
+    "Digest": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Digest"},
+    "CanonicalValue": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2-logic.v1.schema.json#/$defs/CanonicalValue"},
+    "NullableDigest": {"oneOf": [{"$ref": "#/$defs/Digest"}, {"type": "null"}]},
+    "NullableLogicalTime": {"oneOf": [{"type": "integer", "minimum": 0, "maximum": 9223372036854775807}, {"type": "null"}]},
+    "LRBindingProfile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_id", "rule_set_version", "dataflow_version", "canonicalization_version", "proposal_source_id", "verdict_source_id", "neither_policy", "conflict_policy", "limits", "profile_digest"],
+      "properties": {
+        "kind": {"const": "LRBindingProfile"},
+        "schema_version": {"const": "flrh-lr-profile/1"},
+        "contract_version": {"const": "flrh-lr-seam/1"},
+        "profile_id": {"const": "flrh-lr-four-valued/1"},
+        "rule_set_version": {"$ref": "#/$defs/Version"},
+        "dataflow_version": {"$ref": "#/$defs/Version"},
+        "canonicalization_version": {"const": "flrh-cjson/1"},
+        "proposal_source_id": {"$ref": "#/$defs/Id"},
+        "verdict_source_id": {"$ref": "#/$defs/Id"},
+        "neither_policy": {"const": "deny_unproven"},
+        "conflict_policy": {"const": "emit_conflicted"},
+        "limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["max_queries", "max_fact_requirements_per_query"],
+          "properties": {
+            "max_queries": {"type": "integer", "minimum": 1, "maximum": 1024},
+            "max_fact_requirements_per_query": {"type": "integer", "minimum": 1, "maximum": 64}
+          }
+        },
+        "profile_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "LRFactRequirement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "precondition_id", "literal"],
+      "properties": {
+        "kind": {"const": "LRFactRequirement"},
+        "precondition_id": {"$ref": "#/$defs/Id"},
+        "literal": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m2-logic.v1.schema.json#/$defs/LLiteral"}
+      }
+    },
+    "LRProjectionQuery": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "proposal", "fact_requirements", "frontier_precondition_ids", "query_digest"],
+      "properties": {
+        "kind": {"const": "LRProjectionQuery"},
+        "proposal": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EffectProposal"},
+        "fact_requirements": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/LRFactRequirement"}},
+        "frontier_precondition_ids": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/Id"}},
+        "query_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "LRQueryBatch": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "binding_profile_digest", "l_fixpoint_digest", "rule_bundle_digest", "r_profile_digest", "queries", "query_batch_digest"],
+      "properties": {
+        "kind": {"const": "LRQueryBatch"},
+        "schema_version": {"const": "flrh-lr-query/1"},
+        "contract_version": {"const": "flrh-lr-seam/1"},
+        "binding_profile_digest": {"$ref": "#/$defs/Digest"},
+        "l_fixpoint_digest": {"$ref": "#/$defs/Digest"},
+        "rule_bundle_digest": {"$ref": "#/$defs/Digest"},
+        "r_profile_digest": {"$ref": "#/$defs/Digest"},
+        "queries": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/LRProjectionQuery"}},
+        "query_batch_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "LRProjectionResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "logical_time", "binding_profile_digest", "l_fixpoint_digest", "l_materialization_digest", "query_batch_digest", "r_profile_digest", "verdicts", "command", "projection_digest"],
+      "properties": {
+        "kind": {"const": "LRProjectionResult"},
+        "schema_version": {"const": "flrh-lr-result/1"},
+        "contract_version": {"const": "flrh-lr-seam/1"},
+        "logical_time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "binding_profile_digest": {"$ref": "#/$defs/Digest"},
+        "l_fixpoint_digest": {"$ref": "#/$defs/Digest"},
+        "l_materialization_digest": {"$ref": "#/$defs/Digest"},
+        "query_batch_digest": {"$ref": "#/$defs/Digest"},
+        "r_profile_digest": {"$ref": "#/$defs/Digest"},
+        "verdicts": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EligibilityVerdict"}},
+        "command": {"oneOf": [{"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m3-reactive.v1.schema.json#/$defs/RApplyDeltaBatch"}, {"type": "null"}]},
+        "projection_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "LRProjectionRejection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "code", "path", "logical_time", "binding_profile_digest", "l_fixpoint_digest", "query_batch_digest", "r_profile_digest", "context"],
+      "properties": {
+        "kind": {"const": "LRProjectionRejection"},
+        "schema_version": {"const": "flrh-lr-result/1"},
+        "contract_version": {"const": "flrh-lr-seam/1"},
+        "code": {"enum": ["MALFORMED_L_RESULT", "MALFORMED_RULE_BUNDLE", "MALFORMED_R_PROFILE", "MALFORMED_BINDING_PROFILE", "MALFORMED_QUERY_BATCH", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_SCHEMA", "UNSUPPORTED_PROFILE", "UNSUPPORTED_CANONICALIZATION", "DIGEST_MISMATCH", "VERSION_MISMATCH", "PROFILE_MISMATCH", "QUERY_ATOM_NOT_DECLARED", "FACT_STATE_NOT_FOUND", "PRECONDITION_BINDING_MISMATCH", "DUPLICATE_PROPOSAL", "LIMIT_EXCEEDED", "INVARIANT_VIOLATION"]},
+        "path": {"type": "string", "pattern": "^(?:|(?:/(?:[^~/]|~0|~1)*)*)$"},
+        "logical_time": {"$ref": "#/$defs/NullableLogicalTime"},
+        "binding_profile_digest": {"$ref": "#/$defs/NullableDigest"},
+        "l_fixpoint_digest": {"$ref": "#/$defs/NullableDigest"},
+        "query_batch_digest": {"$ref": "#/$defs/NullableDigest"},
+        "r_profile_digest": {"$ref": "#/$defs/NullableDigest"},
+        "context": {"$ref": "#/$defs/RejectionContext"}
+      }
+    },
+    "RejectionContext": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "expected": {"$ref": "#/$defs/CanonicalValue"},
+        "actual": {"$ref": "#/$defs/CanonicalValue"},
+        "invariant": {"type": "string", "minLength": 1},
+        "proposal_id": {"$ref": "#/$defs/Id"},
+        "precondition_id": {"$ref": "#/$defs/Id"},
+        "source_id": {"$ref": "#/$defs/Id"},
+        "truth_state": {"enum": ["TRUE_ONLY", "FALSE_ONLY", "BOTH", "NEITHER"]},
+        "limit": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "observed": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807}
+      }
+    }
+  }
+}

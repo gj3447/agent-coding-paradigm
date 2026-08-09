@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/lr-seam-contract.v1.schema.json",
+  "title": "Direct L to R projection seam contract",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "purpose", "public_api", "supported_profile", "owned_mechanism", "excluded_policy_and_authority", "binding_invariants", "truth_mapping", "output_invariants", "canonical_preimages", "identity_and_digest_rules", "limits", "rejection_codes", "completion_gate", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "lr-seam-contract/v1"},
+    "status": {"enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]},
+    "purpose": {"$ref": "#/$defs/Text"},
+    "public_api": {"const": "project_lr(l_result,rule_bundle,r_profile,binding_profile,query_batch)"},
+    "supported_profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "profile_id", "profile_schema", "query_schema", "result_schema", "canonicalization"],
+      "properties": {
+        "contract": {"const": "flrh-lr-seam/1"}, "profile_id": {"const": "flrh-lr-four-valued/1"},
+        "profile_schema": {"const": "flrh-lr-profile/1"}, "query_schema": {"const": "flrh-lr-query/1"},
+        "result_schema": {"const": "flrh-lr-result/1"}, "canonicalization": {"const": "flrh-cjson/1"}
+      }
+    },
+    "owned_mechanism": {"$ref": "#/$defs/Texts"},
+    "excluded_policy_and_authority": {"$ref": "#/$defs/Texts"},
+    "binding_invariants": {"$ref": "#/$defs/Texts"},
+    "truth_mapping": {
+      "const": {
+        "positive_literal": {
+          "TRUE_ONLY": {"outcome": "satisfied", "evidence": "positive_support_ids"},
+          "FALSE_ONLY": {"outcome": "unsatisfied", "evidence": "negative_support_ids"},
+          "BOTH": {"outcome": "conflict", "evidence": "union_positive_and_negative_support_ids"},
+          "NEITHER": {"outcome": "unsatisfied", "evidence": "empty"}
+        },
+        "negative_literal": {
+          "TRUE_ONLY": {"outcome": "unsatisfied", "evidence": "positive_support_ids"},
+          "FALSE_ONLY": {"outcome": "satisfied", "evidence": "negative_support_ids"},
+          "BOTH": {"outcome": "conflict", "evidence": "union_positive_and_negative_support_ids"},
+          "NEITHER": {"outcome": "unsatisfied", "evidence": "empty"}
+        },
+        "aggregation": {"all_satisfied": "eligible", "any_conflict": "conflicted", "otherwise": "ineligible"}
+      }
+    },
+    "output_invariants": {"$ref": "#/$defs/Texts"},
+    "canonical_preimages": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile", "query", "query_batch", "verdict", "value", "delivery", "projection"],
+      "properties": {"profile": {"$ref": "#/$defs/Projection"}, "query": {"$ref": "#/$defs/Projection"}, "query_batch": {"$ref": "#/$defs/Projection"}, "verdict": {"$ref": "#/$defs/Projection"}, "value": {"$ref": "#/$defs/M3Projection"}, "delivery": {"$ref": "#/$defs/M3Projection"}, "projection": {"$ref": "#/$defs/Projection"}}
+    },
+    "identity_and_digest_rules": {"$ref": "#/$defs/Texts"},
+    "limits": {"const": {"max_queries_ceiling": 1024, "max_fact_requirements_per_query_ceiling": 64}},
+    "rejection_codes": {"const": ["MALFORMED_L_RESULT", "MALFORMED_RULE_BUNDLE", "MALFORMED_R_PROFILE", "MALFORMED_BINDING_PROFILE", "MALFORMED_QUERY_BATCH", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_SCHEMA", "UNSUPPORTED_PROFILE", "UNSUPPORTED_CANONICALIZATION", "DIGEST_MISMATCH", "VERSION_MISMATCH", "PROFILE_MISMATCH", "QUERY_ATOM_NOT_DECLARED", "FACT_STATE_NOT_FOUND", "PRECONDITION_BINDING_MISMATCH", "DUPLICATE_PROPOSAL", "LIMIT_EXCEEDED", "INVARIANT_VIOLATION"]},
+    "completion_gate": {"$ref": "#/$defs/Texts"},
+    "completion_boundary": {"$ref": "#/$defs/Text"}
+  },
+  "$defs": {
+    "Text": {"type": "string", "minLength": 1},
+    "Texts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/Text"}},
+    "Projection": {"type": "array", "minItems": 2, "uniqueItems": true, "prefixItems": [{"type": "string", "pattern": "^kind:LR[A-Za-z]+Preimage$"}], "items": {"type": "string", "minLength": 1}},
+    "M3Projection": {"type": "array", "minItems": 2, "uniqueItems": true, "prefixItems": [{"type": "string", "pattern": "^kind:M3(?:Value|Delivery)Preimage$"}], "items": {"type": "string", "minLength": 1}}
+  }
+}

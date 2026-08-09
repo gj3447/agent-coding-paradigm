@@ -1,0 +1,16 @@
+{
+  "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+  "code": "PRECONDITION_BINDING_MISMATCH",
+  "context": {
+    "invariant": "exact_precondition_partition",
+    "proposal_id": "proposal:lr:golden-mismatch"
+  },
+  "contract_version": "flrh-lr-seam/1",
+  "kind": "LRProjectionRejection",
+  "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+  "logical_time": 7,
+  "path": "/query_batch/queries/0",
+  "query_batch_digest": null,
+  "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+  "schema_version": "flrh-lr-result/1"
+}

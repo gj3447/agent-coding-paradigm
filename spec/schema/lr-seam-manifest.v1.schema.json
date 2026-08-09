@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/lr-seam-manifest.v1.schema.json",
+  "title": "Direct L to R seam conformance manifest",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "normative_contracts", "inherited_normative_dependencies", "inherited_fixture_dependencies", "self_validating_schemas", "schema_bindings", "conformance_fixture", "golden_outputs", "reference_implementation", "non_normative_tools", "mechanics_tests", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "lr-seam-manifest/v1"},
+    "status": {"enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]},
+    "normative_contracts": {"const": ["spec/lr-seam-contract.v1.json", "spec/schema/lr-seam.v1.schema.json", "spec/lr-seam-manifest.v1.json"]},
+    "inherited_normative_dependencies": {"type": "array", "minItems": 8, "maxItems": 8, "prefixItems": [{"$ref": "#/$defs/Protocol"}, {"$ref": "#/$defs/Canonicalization"}, {"$ref": "#/$defs/M2Contract"}, {"$ref": "#/$defs/M2Schema"}, {"$ref": "#/$defs/M2Manifest"}, {"$ref": "#/$defs/M3Contract"}, {"$ref": "#/$defs/M3Schema"}, {"$ref": "#/$defs/M3Manifest"}], "items": false},
+    "inherited_fixture_dependencies": {"type": "array", "minItems": 2, "maxItems": 2, "prefixItems": [{"$ref": "#/$defs/M1Golden"}, {"$ref": "#/$defs/M2Golden"}], "items": false},
+    "self_validating_schemas": {"const": ["spec/schema/lr-seam.v1.schema.json", "spec/schema/lr-seam-contract.v1.schema.json", "spec/schema/lr-seam-fixtures.v1.schema.json", "spec/schema/lr-seam-manifest.v1.schema.json"]},
+    "schema_bindings": {"const": [
+      {"artifact": "spec/lr-seam-contract.v1.json", "schema": "spec/schema/lr-seam-contract.v1.schema.json"},
+      {"artifact": "spec/lr-seam-manifest.v1.json", "schema": "spec/schema/lr-seam-manifest.v1.schema.json"},
+      {"artifact": "fixtures/lr-seam/cases.json", "schema": "spec/schema/lr-seam-fixtures.v1.schema.json"}
+    ]},
+    "conformance_fixture": {"const": "fixtures/lr-seam/cases.json"},
+    "golden_outputs": {"const": ["fixtures/lr-seam/golden/eligible.projection.json", "fixtures/lr-seam/golden/mismatch.rejection.json"]},
+    "reference_implementation": {"const": ["src/flrh_lr_seam/__init__.py", "src/flrh_lr_seam/canonical.py", "src/flrh_lr_seam/seam.py"]},
+    "non_normative_tools": {"const": ["scripts/lr_seam_fixtures.py", "scripts/lr_seam_oracle.py", "scripts/run_lr_seam_replay.py", "scripts/lr_seam_guard.py", "scripts/check_lr_seam_ambient.py", "scripts/check_lr_seam_semantic_mutants.py", "scripts/validate_lr_seam.py", "tests/test_lr_seam.py", "scripts/validate_m0.py", "scripts/validate_m1.py", "scripts/validate_m2.py", "scripts/validate_m3.py"]},
+    "mechanics_tests": {"type": "array", "minItems": 6, "maxItems": 6, "uniqueItems": true, "items": {"type": "string", "pattern": "^R-LR[1-6] "}},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "Digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "Dependency": {"type": "object", "additionalProperties": false, "required": ["artifact", "sha256"], "properties": {"artifact": {"type": "string"}, "sha256": {"$ref": "#/$defs/Digest"}}},
+    "Protocol": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/protocol.v1.schema.json"}}}]},
+    "Canonicalization": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/canonicalization.v1.json"}}}]},
+    "M2Contract": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m2-logic-contract.v1.json"}}}]},
+    "M2Schema": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/m2-logic.v1.schema.json"}}}]},
+    "M2Manifest": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m2-manifest.v1.json"}}}]},
+    "M3Contract": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m3-reactive-contract.v1.json"}}}]},
+    "M3Schema": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/m3-reactive.v1.schema.json"}}}]},
+    "M3Manifest": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m3-manifest.v1.json"}}}]},
+    "M1Golden": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "fixtures/m1/golden/observe-with-effect.transition.json"}}}]},
+    "M2Golden": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "fixtures/m2/golden/two-support-retraction.fixpoint.json"}}}]}
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+  "command": {
+    "dataflow_version": "dataflow/0",
+    "deltas": [
+      {
+        "dataflow_version": "dataflow/0",
+        "delivery_id": "delivery:9366bf90baf356cc7f057c1c20771300f2c2b0bd8448e3b9d01d52ce9cce5486",
+        "diff": 1,
+        "kind": "RValueDelta",
+        "logical_time": 7,
+        "schema_version": "flrh-r-value-delta/1",
+        "source_id": "source:lr:verdict",
+        "value": {
+          "cause_id": "cause:lr:a147ab4e34bf1e18e65b5eca52083b56c096e8984bd127d52594dd17bbf68a3d",
+          "kind": "EligibilityVerdict",
+          "proposal_id": "proposal:lr:eligible-golden",
+          "rule_set_version": "rules/lr-test/1",
+          "status": "eligible",
+          "support_derivation_ids": [
+            "derivation:lr:true"
+          ],
+          "verdict_id": "verdict:lr:a147ab4e34bf1e18e65b5eca52083b56c096e8984bd127d52594dd17bbf68a3d"
+        },
+        "value_digest": "sha256:f4138289e59afa7f0561de37ed830040ecc8933f2bf48d6f4fbe75b12f906562",
+        "value_kind": "eligibility_verdict"
+      },
+      {
+        "dataflow_version": "dataflow/0",
+        "delivery_id": "delivery:ebcdc1e4554815472bc67aa8104afdcc18d82c58d42f0421fea0cdc6137f96c0",
+        "diff": 1,
+        "kind": "RValueDelta",
+        "logical_time": 7,
+        "schema_version": "flrh-r-value-delta/1",
+        "source_id": "source:lr:proposal",
+        "value": {
+          "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+          "cause_id": "cause:lr:proposal:eligible-golden",
+          "correlation_id": "run:m1:1",
+          "declared_risk_hint": "high_risk_external",
+          "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+          "effect_type": "artifact.publish",
+          "goal_id": "goal:m1:publish",
+          "kind": "EffectProposal",
+          "obligation_id": "obligation:m1:publish",
+          "preconditions": [
+            "precondition:lr:eligible-golden"
+          ],
+          "proposal_dedup_key": "proposal-dedup:lr:eligible-golden",
+          "proposal_id": "proposal:lr:eligible-golden",
+          "versions": {
+            "canonicalization": "flrh-cjson/1",
+            "composition_profile": "composition/0",
+            "dataflow": "dataflow/0",
+            "event_schema": "flrh-f-event/1",
+            "gate": "m1-gate/1",
+            "graph_schema": "graph/0",
+            "model": "none/0",
+            "oracle": "m1-oracle/1",
+            "resolver": "resolver/0",
+            "rule_set": "rules/lr-test/1",
+            "state_schema": "flrh-f-state/1",
+            "tool": "publisher/1",
+            "workflow": "flrh-workflow/0.1"
+          }
+        },
+        "value_digest": "sha256:bb317dc202050add7923c05e8f026645fc6cebf73240cb7a809796b0513524de",
+        "value_kind": "effect_proposal"
+      }
+    ],
+    "kind": "RApplyDeltaBatch",
+    "profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+    "schema_version": "flrh-r-command/1"
+  },
+  "contract_version": "flrh-lr-seam/1",
+  "kind": "LRProjectionResult",
+  "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+  "l_materialization_digest": "sha256:70ff20fbc90375a3ddcf38149df8d561af22f1bea2fa56c8bf98974b2988a81a",
+  "logical_time": 7,
+  "projection_digest": "sha256:825ca51f5e923f866b4df16d439fa8d04924a3094f2f968f611713b68acf7b8a",
+  "query_batch_digest": "sha256:2fba39ca6a863bb76e186b3c9b5b028a885c37cde06bc6ba13a326fd08a81e99",
+  "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+  "schema_version": "flrh-lr-result/1",
+  "verdicts": [
+    {
+      "cause_id": "cause:lr:a147ab4e34bf1e18e65b5eca52083b56c096e8984bd127d52594dd17bbf68a3d",
+      "kind": "EligibilityVerdict",
+      "proposal_id": "proposal:lr:eligible-golden",
+      "rule_set_version": "rules/lr-test/1",
+      "status": "eligible",
+      "support_derivation_ids": [
+        "derivation:lr:true"
+      ],
+      "verdict_id": "verdict:lr:a147ab4e34bf1e18e65b5eca52083b56c096e8984bd127d52594dd17bbf68a3d"
+    }
+  ]
+}

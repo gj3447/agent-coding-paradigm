@@ -1,0 +1,640 @@
+{
+  "binding_profile": {
+    "factory": "materialize_binding_profile",
+    "kwargs": {
+      "dataflow_version": "dataflow/0",
+      "max_fact_requirements_per_query": 4,
+      "max_queries": 8,
+      "rule_set_version": "rules/lr-test/1"
+    }
+  },
+  "equivalence_pairs": [
+    {
+      "comparison": "full_result_bytes",
+      "id": "equivalence:permutation-full-result",
+      "left_success_case_ref": "success:permutation-left",
+      "right_success_case_ref": "success:permutation-right"
+    },
+    {
+      "comparison": "command_bytes",
+      "id": "equivalence:clean-process-command",
+      "left_success_case_ref": "success:eligible-golden",
+      "right_success_case_ref": "success:eligible-golden"
+    }
+  ],
+  "goldens": [
+    {
+      "id": "golden:eligible-projection",
+      "kind": "LRProjectionResult",
+      "path": "fixtures/lr-seam/golden/eligible.projection.json"
+    },
+    {
+      "id": "golden:mismatch-rejection",
+      "kind": "LRProjectionRejection",
+      "path": "fixtures/lr-seam/golden/mismatch.rejection.json"
+    }
+  ],
+  "l_results": {
+    "actual-m1-chain": {
+      "fact_delta_set": "m1-observe-with-effect",
+      "factory": "solve_l",
+      "logical_time": 1,
+      "prior_materialization": null,
+      "rule_bundle_ref": "actual-m1-chain"
+    },
+    "truth-four": {
+      "fact_delta_set": "truth-four-supports",
+      "factory": "solve_l",
+      "logical_time": 7,
+      "prior_materialization": null,
+      "rule_bundle_ref": "truth-four"
+    }
+  },
+  "query_batches": {
+    "actual-chain": {
+      "fact_precondition_ids": [
+        "constraint:artifact-ready"
+      ],
+      "factory": "m1_chain",
+      "frontier_precondition_ids": [
+        "frontier:1"
+      ]
+    },
+    "eligible-golden": {
+      "factory": "eligible_golden",
+      "truth_cases": [
+        "positive_TRUE_ONLY"
+      ]
+    },
+    "empty": {
+      "factory": "empty_query_batch",
+      "truth_cases": []
+    },
+    "limit-n": {
+      "count": 8,
+      "factory": "query_limit"
+    },
+    "multi-aggregation": {
+      "factory": "multi_aggregation",
+      "truth_cases": [
+        "positive_TRUE_ONLY+negative_FALSE_ONLY",
+        "positive_TRUE_ONLY+positive_BOTH"
+      ]
+    },
+    "permutation-left": {
+      "factory": "permutation",
+      "variant": "canonical"
+    },
+    "permutation-right": {
+      "factory": "permutation",
+      "variant": "reversed_queries_requirements_and_nested_sets"
+    },
+    "truth-matrix": {
+      "factory": "truth_matrix",
+      "truth_cases": [
+        "positive_TRUE_ONLY",
+        "positive_FALSE_ONLY",
+        "positive_BOTH",
+        "positive_NEITHER",
+        "negative_TRUE_ONLY",
+        "negative_FALSE_ONLY"
+      ]
+    }
+  },
+  "r_profile": {
+    "factory": "materialize_r_profile",
+    "kwargs": {
+      "dataflow_version": "dataflow/0",
+      "max_deltas_per_command": 32
+    }
+  },
+  "rejection_cases": [
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "PRECONDITION_BINDING_MISMATCH",
+        "context": {
+          "invariant": "exact_precondition_partition",
+          "proposal_id": "proposal:lr:orphan"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:orphan-precondition",
+      "mutation": "orphan_precondition"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "PRECONDITION_BINDING_MISMATCH",
+        "context": {
+          "invariant": "disjoint_precondition_bindings",
+          "proposal_id": "proposal:lr:overlap"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:overlap-precondition",
+      "mutation": "fact_frontier_overlap"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "PRECONDITION_BINDING_MISMATCH",
+        "context": {
+          "invariant": "unique_fact_precondition_id",
+          "proposal_id": "proposal:lr:duplicate-binding"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0/fact_requirements",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:duplicate-precondition",
+      "mutation": "duplicate_requirement_precondition"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "QUERY_ATOM_NOT_DECLARED",
+        "context": {
+          "precondition_id": "precondition:undeclared",
+          "proposal_id": "proposal:lr:undeclared"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0/fact_requirements/0/literal/atom",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:undeclared-query-atom",
+      "mutation": "undeclared_query_atom"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "DIGEST_MISMATCH",
+        "context": {
+          "actual": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "expected": "sha256:a34c99f81ff91696492b1584d1264c5e9f7200b76168c86a0360d99be64f58bd"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/query_batch_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:query-batch-digest",
+      "mutation": "query_batch_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "VERSION_MISMATCH",
+        "context": {
+          "actual": "rules/wrong/1",
+          "expected": "rules/lr-test/1",
+          "proposal_id": "proposal:lr:version"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0/proposal/versions/rule_set",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:proposal-rule-version",
+      "mutation": "proposal_rule_version_mismatch"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "DUPLICATE_PROPOSAL",
+        "context": {
+          "proposal_id": "proposal:lr:duplicate-proposal"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/1/proposal/proposal_id",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:duplicate-proposal",
+      "mutation": "duplicate_proposal_id"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "LIMIT_EXCEEDED",
+        "context": {
+          "limit": 8,
+          "observed": 9
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:max-queries-n-plus-one",
+      "mutation": "max_queries_plus_one"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "LIMIT_EXCEEDED",
+        "context": {
+          "limit": 4,
+          "observed": 5,
+          "proposal_id": "proposal:lr:req-limit"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0/fact_requirements",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:max-requirements-n-plus-one",
+      "mutation": "max_requirements_plus_one"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "PRECONDITION_BINDING_MISMATCH",
+        "context": {
+          "invariant": "exact_precondition_partition",
+          "proposal_id": "proposal:lr:golden-mismatch"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/queries/0",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:golden-mismatch",
+      "mutation": "exact_partition_mismatch"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "DIGEST_MISMATCH",
+        "context": {
+          "actual": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "expected": "sha256:7384b0e24e317482f17c69ce79a16624f1cdd47a1c7ff964154ebe731d33462d"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": null,
+        "logical_time": null,
+        "path": "/rule_bundle/rule_bundle_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:rule-bundle-digest",
+      "mutation": "rule_bundle_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "DIGEST_MISMATCH",
+        "context": {
+          "actual": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "expected": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": null,
+        "logical_time": null,
+        "path": "/l_result/fixpoint_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:l-fixpoint-digest",
+      "mutation": "l_fixpoint_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "PROFILE_MISMATCH",
+        "context": {
+          "actual": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "expected": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/r_profile/profile_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:r-profile-digest",
+      "mutation": "r_profile_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "PROFILE_MISMATCH",
+        "context": {
+          "actual": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "expected": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/binding_profile/profile_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:binding-profile-digest",
+      "mutation": "binding_profile_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "VERSION_MISMATCH",
+        "context": {
+          "actual": "dataflow/wrong/1",
+          "expected": "dataflow/0"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/binding_profile/dataflow_version",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:binding-dataflow-version",
+      "mutation": "binding_dataflow_version_mismatch"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "DIGEST_MISMATCH",
+        "context": {
+          "actual": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "expected": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7,
+        "path": "/query_batch/binding_profile_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:query-binding-digest",
+      "mutation": "query_binding_digest_flip"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "CANONICALIZATION_VIOLATION",
+        "context": {
+          "invariant": "FLOAT_FORBIDDEN"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": null,
+        "logical_time": null,
+        "path": "/queries/0/proposal/destination_digest",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:canonical-float",
+      "mutation": "canonical_float_in_query"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "FACT_STATE_NOT_FOUND",
+        "context": {
+          "precondition_id": "precondition:missing",
+          "proposal_id": "proposal:lr:missing"
+        },
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:53bd7a1473afcece524818e561b3ff3c16a4a04a4b689fcc6947c6dbd71f1813",
+        "logical_time": 7,
+        "path": "/query_batch/queries/fact_requirements/literal/atom",
+        "query_batch_digest": "sha256:5af78692a65fc929a0dd350d21da85d85420571d58c63cd1e242ba6c1e3cdb2c",
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:missing-fact-state",
+      "mutation": "remove_declared_neither_fact_and_redigest_l"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "MALFORMED_L_RESULT",
+        "context": {},
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": null,
+        "logical_time": null,
+        "path": "/l_result/derived_fact_deltas/0",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:schema-invalid-derived-delta",
+      "mutation": "redigest_l_with_derived_fact_delta_string"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": null,
+        "code": "MALFORMED_L_RESULT",
+        "context": {},
+        "contract_version": "flrh-lr-seam/1",
+        "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": null,
+        "logical_time": null,
+        "path": "/l_result/stats/rule_firing_count",
+        "query_batch_digest": null,
+        "r_profile_digest": null,
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:schema-invalid-rule-firing-count",
+      "mutation": "redigest_l_with_rule_firing_count_1001"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "VERSION_MISMATCH",
+        "context": {"actual": "rules/wrong/diagnostic", "expected": "rules/lr-test/1", "proposal_id": "proposal:lr:diag-version"},
+        "contract_version": "flrh-lr-seam/1", "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7, "path": "/query_batch/queries/0/proposal/versions/rule_set",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:diagnostic-query-order-left",
+      "mutation": "diagnostic_query_order_left"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "VERSION_MISMATCH",
+        "context": {"actual": "rules/wrong/diagnostic", "expected": "rules/lr-test/1", "proposal_id": "proposal:lr:diag-version"},
+        "contract_version": "flrh-lr-seam/1", "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7, "path": "/query_batch/queries/0/proposal/versions/rule_set",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:diagnostic-query-order-right",
+      "mutation": "diagnostic_query_order_right"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "QUERY_ATOM_NOT_DECLARED",
+        "context": {"precondition_id": "precondition:diag:nested-a", "proposal_id": "proposal:lr:diag-nested"},
+        "contract_version": "flrh-lr-seam/1", "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7, "path": "/query_batch/queries/0/fact_requirements/0/literal/atom",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:diagnostic-nested-order-left",
+      "mutation": "diagnostic_nested_requirement_order_left"
+    },
+    {
+      "expected": {
+        "binding_profile_digest": "sha256:588304ac00d3d30a7466ec8c3928acbcccc0af16c15c05ed89990a60411bc3b3",
+        "code": "QUERY_ATOM_NOT_DECLARED",
+        "context": {"precondition_id": "precondition:diag:nested-a", "proposal_id": "proposal:lr:diag-nested"},
+        "contract_version": "flrh-lr-seam/1", "kind": "LRProjectionRejection",
+        "l_fixpoint_digest": "sha256:e16dfadc7828dad76193597a8512d752058eae9f217f2b9492208afd1618af90",
+        "logical_time": 7, "path": "/query_batch/queries/0/fact_requirements/0/literal/atom",
+        "query_batch_digest": null,
+        "r_profile_digest": "sha256:19f7a4bc9f04b7302f99df908b2f4d5abf1d632104cdee64140a068892bd64c4",
+        "schema_version": "flrh-lr-result/1"
+      },
+      "id": "reject:diagnostic-nested-order-right",
+      "mutation": "diagnostic_nested_requirement_order_right"
+    }
+  ],
+  "rule_bundle": {
+    "factory": "truth_fixture_inputs",
+    "fixture_id": "truth-four",
+    "logical_time": 7
+  },
+  "schema_version": "lr-seam-fixtures/1",
+  "success_cases": [
+    {
+      "expected": {
+        "path": "fixtures/lr-seam/golden/eligible.projection.json",
+        "source": "golden"
+      },
+      "id": "success:eligible-golden",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "eligible-golden"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:truth-matrix",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "truth-matrix"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:multi-aggregation",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "multi-aggregation"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:empty",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "empty"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:limit-n",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "limit-n"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:permutation-left",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "permutation-left"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:permutation-right",
+      "l_result_ref": "truth-four",
+      "query_batch_ref": "permutation-right"
+    },
+    {
+      "expected": {
+        "source": "oracle"
+      },
+      "id": "success:actual-chain",
+      "l_result_ref": "actual-m1-chain",
+      "query_batch_ref": "actual-chain"
+    }
+  ]
+}

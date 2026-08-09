@@ -1,0 +1,83 @@
+{
+  "schema_version": "lr-seam-contract/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "purpose": "Specify one deterministic direct L to R seam that projects exact EffectProposal preconditions and exact four-valued M2 fact states into paired EligibilityVerdict and M3 insertion deltas without frontier, demand, H, or effect authority.",
+  "public_api": "project_lr(l_result,rule_bundle,r_profile,binding_profile,query_batch)",
+  "supported_profile": {
+    "contract": "flrh-lr-seam/1",
+    "profile_id": "flrh-lr-four-valued/1",
+    "profile_schema": "flrh-lr-profile/1",
+    "query_schema": "flrh-lr-query/1",
+    "result_schema": "flrh-lr-result/1",
+    "canonicalization": "flrh-cjson/1"
+  },
+  "owned_mechanism": [
+    "Validate and bind one exact LFixpointResult, LRuleBundle, RDataflowProfile, LRBindingProfile, and LRQueryBatch before any output is produced.",
+    "Project each declared query atom through the frozen four-valued truth table and bind exact M2 support derivation identifiers as EligibilityVerdict evidence.",
+    "For a non-empty query batch, emit exactly one proposal insertion delta and one verdict insertion delta per proposal; for an empty query batch, emit an empty verdict set and a null command."
+  ],
+  "excluded_policy_and_authority": [
+    "New proposals, inferred preconditions, query planning, undeclared atom lookup, rule evaluation beyond the supplied M2 fixpoint, and any rewrite of protocol EffectProposal values",
+    "R frontier advancement, demand grants, stabilization, publication, retraction, persistence, clocks, randomness, filesystem, network, environment, subprocess, credentials, models, plugins, and tools",
+    "H authorization, EffectIntent creation, dispatch, execution, retries, compensation, reconciliation, receipts, irreversible-effect safety, production readiness, comparative efficacy, engine promotion, and Lakatos progress"
+  ],
+  "binding_invariants": [
+    "The union of fact_requirements.precondition_id and frontier_precondition_ids equals proposal.preconditions exactly, with no duplicate, omitted, invented, or cross-proposal binding.",
+    "Every LRFactRequirement literal is an exact atom declared by the supplied LRuleBundle; undeclared atoms reject as QUERY_ATOM_NOT_DECLARED and no ambient or inferred query is allowed.",
+    "Every referenced fact state exists in the exact supplied L materialization and is read without mutation or default synthesis; a missing state rejects as FACT_STATE_NOT_FOUND.",
+    "The L fixpoint, rule bundle, R profile, binding profile, and query batch bind exact declared digests and contract, schema, canonicalization, rule-set, and dataflow versions.",
+    "Each proposal_id occurs once in a query batch and an exact duplicate or identity collision rejects as DUPLICATE_PROPOSAL.",
+    "frontier_precondition_ids are declared preconditions excluded from fact evaluation; the seam neither reads nor advances an R frontier and does not treat them as eligibility evidence."
+  ],
+  "truth_mapping": {
+    "positive_literal": {
+      "TRUE_ONLY": {"outcome": "satisfied", "evidence": "positive_support_ids"},
+      "FALSE_ONLY": {"outcome": "unsatisfied", "evidence": "negative_support_ids"},
+      "BOTH": {"outcome": "conflict", "evidence": "union_positive_and_negative_support_ids"},
+      "NEITHER": {"outcome": "unsatisfied", "evidence": "empty"}
+    },
+    "negative_literal": {
+      "TRUE_ONLY": {"outcome": "unsatisfied", "evidence": "positive_support_ids"},
+      "FALSE_ONLY": {"outcome": "satisfied", "evidence": "negative_support_ids"},
+      "BOTH": {"outcome": "conflict", "evidence": "union_positive_and_negative_support_ids"},
+      "NEITHER": {"outcome": "unsatisfied", "evidence": "empty"}
+    },
+    "aggregation": {"all_satisfied": "eligible", "any_conflict": "conflicted", "otherwise": "ineligible"}
+  },
+  "output_invariants": [
+    "A proposal is eligible only when every fact requirement is satisfied under its literal polarity; any conflict makes it conflicted with conflict dominating unsatisfied, and otherwise any unsatisfied requirement makes it ineligible.",
+    "Each verdict binds the exact proposal_id and rule_set_version, and support_derivation_ids is the canonical union of all evidence consulted across its requirements: positive IDs for a positive TRUE_ONLY or negative TRUE_ONLY requirement, negative IDs for a positive FALSE_ONLY or negative FALSE_ONLY requirement, both positive and negative IDs for BOTH, and none for NEITHER.",
+    "Every non-empty accepted projection emits exactly two +1 RValueDelta values per query at one logical_time: the exact supplied EffectProposal under proposal_source_id and the derived EligibilityVerdict under verdict_source_id.",
+    "The RApplyDeltaBatch binds the exact R profile digest and dataflow version, contains no -1 delta, and contains no frontier or demand command.",
+    "An empty accepted query batch returns verdicts as an empty canonical set and command as null; no empty RApplyDeltaBatch is fabricated.",
+    "Validation is atomic: any rejection returns only LRProjectionRejection and no partial verdict, command, delta, or mutated input."
+  ],
+  "canonical_preimages": {
+    "profile": ["kind:LRProfilePreimage", "contract_version", "profile_id", "rule_set_version", "dataflow_version", "canonicalization_version", "proposal_source_id", "verdict_source_id", "neither_policy", "conflict_policy", "limits"],
+    "query": ["kind:LRQueryPreimage", "contract_version", "proposal", "ordered_fact_requirements", "ordered_frontier_precondition_ids"],
+    "query_batch": ["kind:LRQueryBatchPreimage", "contract_version", "binding_profile_digest", "l_fixpoint_digest", "rule_bundle_digest", "r_profile_digest", "ordered_queries"],
+    "verdict": ["kind:LRVerdictPreimage", "contract_version", "binding_profile_digest", "l_fixpoint_digest", "l_materialization_digest", "rule_bundle_digest", "proposal_value_digest", "query_digest", "ordered_requirement_evidence", "status", "ordered_support_derivation_ids", "rule_set_version"],
+    "value": ["kind:M3ValuePreimage", "contract_version", "value_kind", "value"],
+    "delivery": ["kind:M3DeliveryPreimage", "contract_version", "source_id", "logical_time", "dataflow_version", "value_kind", "value_digest"],
+    "projection": ["kind:LRProjectionPreimage", "contract_version", "logical_time", "binding_profile_digest", "l_fixpoint_digest", "l_materialization_digest", "query_batch_digest", "r_profile_digest", "ordered_verdicts", "command"]
+  },
+  "identity_and_digest_rules": [
+    "Every digest is lowercase sha256:<64-hex> over flrh-cjson/1 canonical bytes of its named complete preimage.",
+    "Fact requirements, frontier precondition identifiers, queries, support derivation identifiers, verdicts, and deltas are canonical-byte-sorted sets in accepted and emitted forms.",
+    "Query, verdict, value, delivery, R command, and projection identities use their declared M2, M3, protocol, or seam preimages without ambient fields or caller-selected digest substitutions; R value and delivery identities use the exact M3ValuePreimage and M3DeliveryPreimage definitions already frozen by M3.",
+    "Canonicalization rejects floats, non-string object keys, invalid Unicode, non-NFC strings, duplicate set members, and integers outside signed 64-bit before hashing."
+  ],
+  "limits": {
+    "max_queries_ceiling": 1024,
+    "max_fact_requirements_per_query_ceiling": 64
+  },
+  "rejection_codes": [
+    "MALFORMED_L_RESULT", "MALFORMED_RULE_BUNDLE", "MALFORMED_R_PROFILE", "MALFORMED_BINDING_PROFILE", "MALFORMED_QUERY_BATCH", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_SCHEMA", "UNSUPPORTED_PROFILE", "UNSUPPORTED_CANONICALIZATION", "DIGEST_MISMATCH", "VERSION_MISMATCH", "PROFILE_MISMATCH", "QUERY_ATOM_NOT_DECLARED", "FACT_STATE_NOT_FOUND", "PRECONDITION_BINDING_MISMATCH", "DUPLICATE_PROPOSAL", "LIMIT_EXCEEDED", "INVARIANT_VIOLATION"
+  ],
+  "completion_gate": [
+    "Contract, manifest, schemas, fixture corpus, success and rejection goldens, and every inherited dependency digest validate under Draft 2020-12 with format checking.",
+    "R-LR1 through R-LR6 cover exact precondition binding, four-valued truth mapping, exact support evidence, paired +1 deltas, empty null output, limits, atomic rejection, replay, ambient denial, and semantic mutation sensitivity.",
+    "Every frozen result equals an independently implemented oracle after excluding only declared numeric statistics, and clean processes with distinct hash seed, timezone, cwd, and ambient environment reproduce exact canonical bytes."
+  ],
+  "completion_boundary": "Passing this seam measures only the declared direct Python L to R projection slice and frozen corpus. It does not validate new L inference, R frontier or demand mechanics, persistent or distributed runtime behavior, H authority or effects, irreversible-effect safety, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": "lr-seam-manifest/v1",
+  "status": "PROPOSED_PENDING_MEASUREMENT",
+  "normative_contracts": [
+    "spec/lr-seam-contract.v1.json",
+    "spec/schema/lr-seam.v1.schema.json",
+    "spec/lr-seam-manifest.v1.json"
+  ],
+  "inherited_normative_dependencies": [
+    {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
+    {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
+    {"artifact": "spec/m2-logic-contract.v1.json", "sha256": "sha256:65f8ae41c4c5c6c11f8298b77b477d19a31f2b0dc9ede058639183960cf4cd9e"},
+    {"artifact": "spec/schema/m2-logic.v1.schema.json", "sha256": "sha256:a39e152397693b3e1a026c1e561a1c955ba77f753f695f231d8768d80a7c4fa0"},
+    {"artifact": "spec/m2-manifest.v1.json", "sha256": "sha256:c792eb1fbea2e8e430cd7d0452b8e3ed290f2488dd297b107d3cd5a92f139200"},
+    {"artifact": "spec/m3-reactive-contract.v1.json", "sha256": "sha256:c4bd93be23eccaa232c4f8b0e1f6e4047f9ed572625238fe3f4ee601b74fa297"},
+    {"artifact": "spec/schema/m3-reactive.v1.schema.json", "sha256": "sha256:58621bf3ab2b3f850b502cbfa22c87bc976c1baf915301586d9db0769a96632e"},
+    {"artifact": "spec/m3-manifest.v1.json", "sha256": "sha256:c316151d051b1b1c4d547e32678f494c2473c1d6d50f96fad9c878ec3be337cf"}
+  ],
+  "inherited_fixture_dependencies": [
+    {"artifact": "fixtures/m1/golden/observe-with-effect.transition.json", "sha256": "sha256:cd1360e0db9024cc6b03abde4a4d28e56aea82f901577bd2c4eae0cbdb5700b8"},
+    {"artifact": "fixtures/m2/golden/two-support-retraction.fixpoint.json", "sha256": "sha256:5a03b388701f65bb2d179b4388a2f2f5159e3bb8c5fb1b4457f79617d5e372bb"}
+  ],
+  "self_validating_schemas": [
+    "spec/schema/lr-seam.v1.schema.json",
+    "spec/schema/lr-seam-contract.v1.schema.json",
+    "spec/schema/lr-seam-fixtures.v1.schema.json",
+    "spec/schema/lr-seam-manifest.v1.schema.json"
+  ],
+  "schema_bindings": [
+    {"artifact": "spec/lr-seam-contract.v1.json", "schema": "spec/schema/lr-seam-contract.v1.schema.json"},
+    {"artifact": "spec/lr-seam-manifest.v1.json", "schema": "spec/schema/lr-seam-manifest.v1.schema.json"},
+    {"artifact": "fixtures/lr-seam/cases.json", "schema": "spec/schema/lr-seam-fixtures.v1.schema.json"}
+  ],
+  "conformance_fixture": "fixtures/lr-seam/cases.json",
+  "golden_outputs": [
+    "fixtures/lr-seam/golden/eligible.projection.json",
+    "fixtures/lr-seam/golden/mismatch.rejection.json"
+  ],
+  "reference_implementation": [
+    "src/flrh_lr_seam/__init__.py",
+    "src/flrh_lr_seam/canonical.py",
+    "src/flrh_lr_seam/seam.py"
+  ],
+  "non_normative_tools": [
+    "scripts/lr_seam_fixtures.py",
+    "scripts/lr_seam_oracle.py",
+    "scripts/run_lr_seam_replay.py",
+    "scripts/lr_seam_guard.py",
+    "scripts/check_lr_seam_ambient.py",
+    "scripts/check_lr_seam_semantic_mutants.py",
+    "scripts/validate_lr_seam.py",
+    "tests/test_lr_seam.py",
+    "scripts/validate_m0.py",
+    "scripts/validate_m1.py",
+    "scripts/validate_m2.py",
+    "scripts/validate_m3.py"
+  ],
+  "mechanics_tests": [
+    "R-LR1 exact closed wire, dependency digest, version, profile, and canonical precondition-union binding",
+    "R-LR2 exact declared-query-atom lookup and four-valued required-polarity truth mapping",
+    "R-LR3 exact support evidence binding and deterministic verdict identities",
+    "R-LR4 paired proposal and verdict +1 deltas with no frontier, demand, retraction, or H authority",
+    "R-LR5 empty null command, declared limits, atomic rejection, permutation determinism, and replay equality",
+    "R-LR6 independent oracle equality, ambient denial, semantic mutation sensitivity, and exact golden bytes"
+  ],
+  "completion_boundary": "This manifest proposes a direct deterministic Python L to R seam and intended evidence set. Until its completion gate is measured, it is not a conformance receipt and does not establish integrated runtime, H authority or effects, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
+}
