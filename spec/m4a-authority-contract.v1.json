@@ -1,0 +1,24 @@
+{
+  "schema_version":"m4a-authority-contract/v1",
+  "status":"PROPOSED_PENDING_MEASUREMENT",
+  "purpose":"Freeze one pure deterministic singleton H authority projection from an exact supplied RPublishedBatch and supplied policy evidence into either an approval request or an M0 EffectIntent candidate.",
+  "public_api":"project_h_intent(command) -> HProjection | HRejection",
+  "owned_mechanism":[
+    "Validate one exact proposal-verdict pair, supplied M3 profile digest, supplied authority snapshot, explicit observed_at, and caller-owned effect_sequence.",
+    "Project eligible allowed low-risk work from PLAN_EFFECTS to EFFECT_AUTHORIZED/COMMIT_INTENT with an exact M0 EffectIntent candidate.",
+    "Project high-risk work to an exact approval request in WAIT_APPROVAL, and only an exact live unrevoked unconsumed grant to APPROVAL_GRANTED/COMMIT_INTENT."
+  ],
+  "invariants":[
+    "The kernel is deterministic, effect-free, single-command, and input-immutable; it owns no clock, filesystem, network, random, credential, registry, persistence, adapter, or dispatch access.",
+    "Only singleton eligible RPublishedBatch inputs are admitted. Ineligible, conflicted, deny, ambiguous, expired, revoked, mismatched, and malformed evidence rejects closed.",
+    "Runtime parsing mirrors the wire-schema object-kind constants and applies the protocol Id pattern and 128-character maximum to authority versions, proposal preconditions, verdict support identifiers, and all other admitted Id fields.",
+    "Authority and approval bind context digest, policy version, approver scope, run, workflow, action, artifact, destination, visibility, scope, actor, expiry, nonce, rationale, capability, adapter version, and canonical digests exactly.",
+    "The EffectIntent idempotency key is the exact loop-contract tuple run_id, transition_id, effect_sequence, action_digest, adapter_version; projected control events carry the sole-FSM actor-role/capability pair and every transition evidence_required field with exact semantic values.",
+    "APPROVAL_REQUIRED carries the proposal action_digest and assessed-risk risk_classification; EFFECT_AUTHORIZED carries a domain-separated policy_verdict digest binding the supplied R profile, full eligibility verdict, authority decision/digest, and assessed risk plus a domain-separated capability_digest binding the capability, authority, proposal, action, destination, and adapter; APPROVAL_GRANTED carries exact_hash_approval_digest equal to the validated approval_digest.",
+    "Supplied M3 evidence is checked for exact schema semantics, profile-bound batch digest, and complete outer self-consistency; hashes are not authentication and establish neither origin nor provenance of caller-supplied proposal bytes.",
+    "M4A emits no INTENT_COMMITTED, attempt, ActionReceipt, effect result, durability, retry, reconciliation, or terminal-completion claim."
+  ],
+  "states":{"accepted_from":["PLAN_EFFECTS","WAIT_APPROVAL"],"emitted_to":["WAIT_APPROVAL","COMMIT_INTENT"],"sole_lifecycle_authority":"spec/run-fsm.v1.json"},
+  "rejection_codes":["MALFORMED_COMMAND","MALFORMED_PUBLISHED_BATCH","MALFORMED_PROPOSAL","MALFORMED_VERDICT","MALFORMED_AUTHORITY_SNAPSHOT","MALFORMED_APPROVAL_CONTEXT","MALFORMED_APPROVAL_REQUEST","MALFORMED_APPROVAL","CANONICALIZATION_VIOLATION","UNSUPPORTED_COMMAND_SCHEMA","UNSUPPORTED_CONTRACT_VERSION","UNSUPPORTED_CANONICALIZATION","COMMAND_DIGEST_MISMATCH","NON_SINGLETON_BATCH","BATCH_IDENTITY_MISMATCH","BATCH_DIGEST_MISMATCH","PUBLISHED_BATCH_DIGEST_MISMATCH","VERSION_MISMATCH","PROPOSAL_INELIGIBLE","PROPOSAL_CONFLICTED","AUTHORITY_BINDING_MISMATCH","AUTHORITY_DIGEST_MISMATCH","AUTHORITY_DENIED","AUTHORITY_AMBIGUOUS","AUTHORITY_REVOKED","AUTHORITY_EXPIRED","ADAPTER_VERSION_MISMATCH","APPROVAL_FIELD_DRIFT","APPROVAL_CONTEXT_DIGEST_MISMATCH","APPROVAL_CONTEXT_BINDING_MISMATCH","APPROVAL_TIME_DRIFT","APPROVAL_REQUEST_DRIFT","APPROVAL_DIGEST_MISMATCH","APPROVAL_BINDING_MISMATCH","APPROVAL_DENIED","APPROVAL_REVOKED","APPROVAL_ALREADY_CONSUMED","APPROVAL_EXPIRED","INVALID_CONTROL_STATE"],
+  "completion_boundary":"Passing proposed validation demonstrates only the frozen Python singleton projection, corpus, independent fixture oracle, deterministic replay, ambient scan, and rejection sensitivity cases. It is not measured evidence until separately promoted, authenticates no caller-supplied evidence, and proves no persistence, effect execution, crash recovery, production safety, integrated FLR-H completion, engine promotion, efficacy, or scientific claim."
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "m4a-fixtures/v1",
+  "success_cases": [
+    {"id": "success:low-risk", "golden": "fixtures/m4a/golden/low-risk.projection.json"},
+    {"id": "success:approval-request", "golden": "fixtures/m4a/golden/approval-request.projection.json"},
+    {"id": "success:approval-granted", "golden": "fixtures/m4a/golden/approval-granted.projection.json"}
+  ],
+  "rejection_cases": [
+    {"id": "reject:multi-item", "base": "success:low-risk", "op": "multi-item", "expected_code": "NON_SINGLETON_BATCH"},
+    {"id": "reject:ineligible", "base": "success:low-risk", "op": "ineligible", "expected_code": "PROPOSAL_INELIGIBLE"},
+    {"id": "reject:conflicted", "base": "success:low-risk", "op": "conflicted", "expected_code": "PROPOSAL_CONFLICTED"},
+    {"id": "reject:deny", "base": "success:low-risk", "op": "deny", "expected_code": "AUTHORITY_DENIED"},
+    {"id": "reject:ambiguous", "base": "success:low-risk", "op": "ambiguous", "expected_code": "AUTHORITY_AMBIGUOUS"},
+    {"id": "reject:adapter", "base": "success:low-risk", "op": "adapter-mismatch", "expected_code": "ADAPTER_VERSION_MISMATCH"},
+    {"id": "reject:authority-expired", "base": "success:low-risk", "op": "authority-expired", "expected_code": "AUTHORITY_EXPIRED"},
+    {"id": "reject:request-drift", "base": "success:approval-granted", "op": "approval-request-drift", "expected_code": "APPROVAL_REQUEST_DRIFT"},
+    {"id": "reject:binding-drift", "base": "success:approval-granted", "op": "approval-binding-drift", "expected_code": "APPROVAL_BINDING_MISMATCH"},
+    {"id": "reject:expired", "base": "success:approval-granted", "op": "approval-expired", "expected_code": "APPROVAL_EXPIRED"},
+    {"id": "reject:revoked", "base": "success:approval-granted", "op": "approval-revoked", "expected_code": "APPROVAL_REVOKED"},
+    {"id": "reject:consumed", "base": "success:approval-granted", "op": "approval-consumed", "expected_code": "APPROVAL_ALREADY_CONSUMED"},
+    {"id": "reject:denied", "base": "success:approval-granted", "op": "approval-denied", "expected_code": "APPROVAL_DENIED"},
+    {"id": "reject:field-drift", "base": "success:low-risk", "op": "approval-field-drift", "expected_code": "APPROVAL_FIELD_DRIFT"},
+    {"id": "reject:command-digest", "base": "success:low-risk", "op": "command-digest-drift", "expected_code": "COMMAND_DIGEST_MISMATCH"},
+    {"id": "reject:approval-kind", "base": "success:approval-granted", "op": "approval-kind-drift", "expected_code": "MALFORMED_APPROVAL"},
+    {"id": "reject:authority-version-length", "base": "success:low-risk", "op": "authority-version-too-long", "expected_code": "MALFORMED_AUTHORITY_SNAPSHOT"},
+    {"id": "reject:precondition-id-length", "base": "success:low-risk", "op": "precondition-id-too-long", "expected_code": "MALFORMED_PROPOSAL"},
+    {"id": "reject:support-id-length", "base": "success:low-risk", "op": "support-id-too-long", "expected_code": "MALFORMED_VERDICT"}
+  ]
+}
