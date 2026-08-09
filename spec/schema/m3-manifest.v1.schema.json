@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m3-manifest.v1.schema.json",
+  "title": "M3 scalar-frontier reactive conformance manifest",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "status", "normative_contracts", "inherited_normative_dependencies", "inherited_fixture_dependencies", "self_validating_schemas", "schema_bindings", "conformance_fixture", "golden_outputs", "reference_implementation", "non_normative_tools", "mechanics_tests", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m3-manifest/v1"}, "status": {"enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]},
+    "normative_contracts": {"const": ["spec/m3-reactive-contract.v1.json", "spec/schema/m3-reactive.v1.schema.json", "spec/m3-manifest.v1.json"]},
+    "inherited_normative_dependencies": {"type": "array", "minItems": 9, "maxItems": 9, "prefixItems": [
+      {"$ref": "#/$defs/Protocol"}, {"$ref": "#/$defs/Canonicalization"}, {"$ref": "#/$defs/LogicSemantics"}, {"$ref": "#/$defs/M1Contract"}, {"$ref": "#/$defs/M1Schema"}, {"$ref": "#/$defs/M1Manifest"}, {"$ref": "#/$defs/M2Contract"}, {"$ref": "#/$defs/M2Schema"}, {"$ref": "#/$defs/M2Manifest"}
+    ], "items": false},
+    "inherited_fixture_dependencies": {"type": "array", "minItems": 2, "maxItems": 2, "prefixItems": [{"$ref": "#/$defs/M1Golden"}, {"$ref": "#/$defs/M2Golden"}], "items": false},
+    "self_validating_schemas": {"const": ["spec/schema/m3-reactive.v1.schema.json", "spec/schema/m3-reactive-contract.v1.schema.json", "spec/schema/m3-fixtures.v1.schema.json", "spec/schema/m3-manifest.v1.schema.json"]},
+    "schema_bindings": {"const": [
+      {"artifact": "spec/m3-reactive-contract.v1.json", "schema": "spec/schema/m3-reactive-contract.v1.schema.json"},
+      {"artifact": "spec/m3-manifest.v1.json", "schema": "spec/schema/m3-manifest.v1.schema.json"},
+      {"artifact": "fixtures/m3/cases.json", "schema": "spec/schema/m3-fixtures.v1.schema.json"}
+    ]},
+    "conformance_fixture": {"const": "fixtures/m3/cases.json"},
+    "golden_outputs": {"const": ["fixtures/m3/golden/frontier-stable.transition.json", "fixtures/m3/golden/late-delta.rejection.json"]},
+    "reference_implementation": {"const": ["src/flrh_reactive/__init__.py", "src/flrh_reactive/canonical.py", "src/flrh_reactive/reactive.py"]},
+    "non_normative_tools": {"const": ["scripts/m1_guard.py", "scripts/validate_m0.py", "scripts/validate_m1.py", "scripts/validate_m2.py", "scripts/m3_fixtures.py", "scripts/m3_oracle.py", "scripts/m3_guard.py", "scripts/check_m3_ambient.py", "scripts/check_m3_semantic_mutants.py", "scripts/run_m3_replay.py", "scripts/validate_m3.py", "tests/test_m3_reactive.py"]},
+    "mechanics_tests": {"type": "array", "minItems": 6, "maxItems": 6, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "completion_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "Digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "Dependency": {"type": "object", "additionalProperties": false, "required": ["artifact", "sha256"], "properties": {"artifact": {"type": "string"}, "sha256": {"$ref": "#/$defs/Digest"}}},
+    "Protocol": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/protocol.v1.schema.json"}}}]},
+    "Canonicalization": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/canonicalization.v1.json"}}}]},
+    "LogicSemantics": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/logic-semantics.v0.json"}}}]},
+    "M1Contract": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m1-kernel-contract.v1.json"}}}]},
+    "M1Schema": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/m1-kernel.v1.schema.json"}}}]},
+    "M1Manifest": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m1-manifest.v1.json"}}}]},
+    "M2Contract": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m2-logic-contract.v1.json"}}}]},
+    "M2Schema": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/schema/m2-logic.v1.schema.json"}}}]},
+    "M2Manifest": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "spec/m2-manifest.v1.json"}}}]},
+    "M1Golden": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "fixtures/m1/golden/observe-with-effect.transition.json"}}}]},
+    "M2Golden": {"allOf": [{"$ref": "#/$defs/Dependency"}, {"properties": {"artifact": {"const": "fixtures/m2/golden/two-support-retraction.fixpoint.json"}}}]}
+  }
+}

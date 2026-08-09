@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m3-reactive-contract.v1.schema.json",
+  "title": "M3 scalar-frontier reactive kernel contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "purpose", "public_api", "supported_profile", "owned_mechanism", "excluded_policy_and_authority", "frontier_and_publication_invariants", "value_and_version_invariants", "queue_and_failure_invariants", "canonical_preimages", "identity_and_digest_rules", "limits", "rejection_codes", "completion_gate", "completion_boundary"],
+  "properties": {
+    "schema_version": {"const": "m3-reactive-contract/v1"},
+    "status": {"enum": ["PROPOSED_PENDING_MEASUREMENT", "MEASURED_REFERENCE_CONFORMANCE", "FALSIFIED"]},
+    "purpose": {"$ref": "#/$defs/Text"},
+    "public_api": {"const": "step_r(prior_state, profile, command) -> RTransition | RRejection"},
+    "supported_profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "profile_id", "profile_schema", "state_schema", "command_schema", "value_delta_schema", "result_schema", "canonicalization"],
+      "properties": {"contract": {"const": "flrh-r-kernel/1"}, "profile_id": {"const": "flrh-r-scalar-frontier/1"}, "profile_schema": {"const": "flrh-r-profile/1"}, "state_schema": {"const": "flrh-r-state/1"}, "command_schema": {"const": "flrh-r-command/1"}, "value_delta_schema": {"const": "flrh-r-value-delta/1"}, "result_schema": {"const": "flrh-r-result/1"}, "canonicalization": {"const": "flrh-cjson/1"}}
+    },
+    "owned_mechanism": {"$ref": "#/$defs/Texts"}, "excluded_policy_and_authority": {"$ref": "#/$defs/Texts"}, "frontier_and_publication_invariants": {"$ref": "#/$defs/Texts"}, "value_and_version_invariants": {"$ref": "#/$defs/Texts"}, "queue_and_failure_invariants": {"$ref": "#/$defs/Texts"},
+    "canonical_preimages": {
+      "type": "object", "additionalProperties": false, "required": ["profile", "value", "delivery", "command", "stable_batch", "published_batch", "state", "transition"],
+      "properties": {"profile": {"$ref": "#/$defs/Projection"}, "value": {"$ref": "#/$defs/Projection"}, "delivery": {"$ref": "#/$defs/Projection"}, "command": {"$ref": "#/$defs/Projection"}, "stable_batch": {"$ref": "#/$defs/Projection"}, "published_batch": {"$ref": "#/$defs/Projection"}, "state": {"$ref": "#/$defs/Projection"}, "transition": {"$ref": "#/$defs/Projection"}}
+    },
+    "identity_and_digest_rules": {"$ref": "#/$defs/Texts"},
+    "limits": {
+      "const": {"max_deltas_per_command_ceiling": 10000, "max_active_values_ceiling": 10000, "max_open_epochs_ceiling": 1024, "max_ready_batches_ceiling": 1024, "max_demand_per_command_ceiling": 1024, "max_outstanding_demand_ceiling": 10000}
+    },
+    "rejection_codes": {"const": ["MALFORMED_REACTIVE_STATE", "MALFORMED_DATAFLOW_PROFILE", "MALFORMED_COMMAND", "MALFORMED_VALUE_DELTA", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_PROFILE", "UNSUPPORTED_STATE_SCHEMA", "UNSUPPORTED_PROFILE_SCHEMA", "UNSUPPORTED_COMMAND_SCHEMA", "UNSUPPORTED_VALUE_DELTA_SCHEMA", "UNSUPPORTED_CANONICALIZATION", "PROFILE_MISMATCH", "DATAFLOW_VERSION_MISMATCH", "RULE_SET_VERSION_MISMATCH", "UNKNOWN_FRONTIER_SOURCE", "FRONTIER_REGRESSION", "LATE_DELTA", "AMBIGUOUS_DELTA_BATCH", "UNKNOWN_DELIVERY", "VALUE_IDENTITY_CONFLICT", "UNRESOLVED_DEPENDENCY", "INPUT_LIMIT_EXCEEDED", "QUEUE_CAPACITY_EXCEEDED", "DEMAND_LIMIT_EXCEEDED", "INVARIANT_VIOLATION"]},
+    "completion_gate": {"$ref": "#/$defs/Texts"}, "completion_boundary": {"$ref": "#/$defs/Text"}
+  },
+  "$defs": {
+    "Text": {"type": "string", "minLength": 1},
+    "Texts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/Text"}},
+    "Projection": {"type": "array", "minItems": 2, "uniqueItems": true, "prefixItems": [{"type": "string", "pattern": "^kind:M3[A-Za-z]+Preimage$"}], "items": {"type": "string", "minLength": 1}}
+  }
+}

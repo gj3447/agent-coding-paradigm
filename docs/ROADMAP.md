@@ -32,11 +32,13 @@ Gate: logic tests 4–9 pass and stepwise delta-ledger results equal an independ
 
 Receipt boundary: one Python ground/propositional profile produced ten successful materializations, fourteen closed typed rejections, three sequences with nine total steps, two permutation-equivalence pairs, and two exact canonical goldens. Every accepted step matched an independent naive full-recompute oracle. Two environment profiles produced 66 spawned runs forming 33 byte comparisons with zero mismatches. Two locked-import processes passed eleven guard self-tests and ten import-metadata checks; thirteen deliberate mutants were caught, and four non-empty kernel paths recorded zero ambient or caller-input mutation attempts. The evaluator intentionally rebuilds the complete derived projection on every invocation; persistent incremental maintenance, R/H integration, and engine promotion remain open.
 
-## M3 — Signed-delta R kernel
+## M3 — Signed-delta R kernel ✅ MEASURED 2026-08-09
 
 Deliverables: dependency graph, logical epoch/frontier, stable reaction batch, demand, bounded queues, backpressure, late-event policy.
 
-Gate: reactive tests 10–15 pass under randomized ordering and slow-consumer injection.
+Gate: reactive tests 10–15 pass under randomized ordering and slow-consumer injection. The measured slice accepts only explicit signed `EffectProposal` and caller-supplied `EligibilityVerdict` values; it neither infers eligibility from M2 nor exercises H authority or effects.
+
+Receipt boundary: one bounded Python scalar-frontier profile produced three frozen success sequences with seven transitions, two full-object rejections, one epoch-atomic publication, 32 seeded order trials, 64 independent-oracle comparisons, 16 slow-consumer trials, and four randomized capacity rejections. Two clean replay, ambient, and semantic-mutation process profiles reproduced exact canonical output; thirteen guarded real paths recorded zero ambient or caller-input mutation attempts, fourteen ambient/control mutants were caught, and ten exact source-level semantic mutants were killed with zero escapes or invalid mutants. This is standalone supplied-value R mechanics evidence, not eligibility correctness, direct M2 integration, persistent or distributed streaming, H/effect safety, integrated runtime, production, efficacy, engine, or Lakatos evidence.
 
 ## M4 — Durable H control shell
 
@@ -64,4 +66,4 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Start M3 as one signed-delta reactive vertical slice over the measured M2 derived-delta seam: scalar logical epochs/frontiers, stable publication, deterministic ordering, bounded demand/queues, backpressure, and explicit late-event policy. Keep authority and external effects out of R. `EffectIntent` remains H-owned for M4, persistent incremental L maintenance remains a separate open mechanism, and the engine decision remains deferred.
+Freeze the next direct L-to-R contract without retroactively treating the M1/M2 goldens as integrated evidence. Keep eligibility correctness, authority, and external effects out of R; `EffectIntent` remains H-owned for M4. Persistent incremental L maintenance, durable R state, direct F/L/R integration, and the engine decision remain separate open mechanisms.

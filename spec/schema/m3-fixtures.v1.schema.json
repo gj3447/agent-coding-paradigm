@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m3-fixtures.v1.schema.json",
+  "title": "M3 scalar-frontier reactive conformance corpus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "proposals", "verdicts", "deltas", "success_sequences", "rejection_cases", "equivalence_pairs", "goldens"],
+  "properties": {
+    "schema_version": {"const": "m3-fixtures/v1"},
+    "profile": {"$ref": "m3-reactive.v1.schema.json#/$defs/RDataflowProfile"},
+    "proposals": {"$ref": "#/$defs/ProposalMap"},
+    "verdicts": {"$ref": "#/$defs/VerdictMap"},
+    "deltas": {"$ref": "#/$defs/DeltaMap"},
+    "success_sequences": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/SuccessSequence"}},
+    "rejection_cases": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/RejectionCase"}},
+    "equivalence_pairs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/EquivalencePair"}},
+    "goldens": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/Golden"}}
+  },
+  "$defs": {
+    "Id": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Id"},
+    "Digest": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Digest"},
+    "ProposalMap": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EffectProposal"}},
+    "VerdictMap": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EligibilityVerdict"}},
+    "DeltaMap": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "m3-reactive.v1.schema.json#/$defs/RValueDelta"}},
+    "Step": {
+      "type": "object", "additionalProperties": false,
+      "required": ["command", "expected_kind", "expected_publication_count"],
+      "properties": {
+        "command": {"$ref": "m3-reactive.v1.schema.json#/$defs/RCommand"},
+        "expected_kind": {"const": "RTransition"},
+        "expected_publication_count": {"type": "integer", "minimum": 0, "maximum": 1024},
+        "expected_transition_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "SuccessSequence": {
+      "type": "object", "additionalProperties": false, "required": ["id", "steps"],
+      "properties": {"id": {"$ref": "#/$defs/Id"}, "steps": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/Step"}}, "expected_transition_digests": {"type": "array", "items": {"$ref": "#/$defs/Digest"}}}
+    },
+    "RejectionCase": {
+      "type": "object", "additionalProperties": false, "required": ["id", "prior_sequence_ref", "prior_step", "command", "expected"],
+      "properties": {"id": {"$ref": "#/$defs/Id"}, "prior_sequence_ref": {"oneOf": [{"$ref": "#/$defs/Id"}, {"type": "null"}]}, "prior_step": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]}, "command": {}, "expected": {"$ref": "m3-reactive.v1.schema.json#/$defs/RRejection"}}
+    },
+    "EquivalencePair": {
+      "type": "object", "additionalProperties": false, "required": ["id", "left_sequence_ref", "right_sequence_ref", "comparison"],
+      "properties": {"id": {"$ref": "#/$defs/Id"}, "left_sequence_ref": {"$ref": "#/$defs/Id"}, "right_sequence_ref": {"$ref": "#/$defs/Id"}, "comparison": {"enum": ["final_state_digest", "published_batch_bytes", "full_transition_bytes"]}}
+    },
+    "Golden": {
+      "type": "object", "additionalProperties": false, "required": ["id", "path", "kind"],
+      "properties": {"id": {"$ref": "#/$defs/Id"}, "path": {"type": "string", "pattern": "^fixtures/m3/golden/[A-Za-z0-9._-]+\\.json$"}, "kind": {"enum": ["RTransition", "RRejection"]}}
+    }
+  }
+}

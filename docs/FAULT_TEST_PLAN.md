@@ -1,6 +1,6 @@
 # Mechanics Admission and Fault Test Plan
 
-> Status: F TESTS 1–3 AND L TESTS 4–9 MEASURED BY M1/M2; R, H, GRAPH, AND EFFICACY TESTS PROPOSED. These tests admit mechanics only; they do not prove comparative efficacy.
+> Status: F TESTS 1–3, L TESTS 4–9, AND R TESTS 10–15 MEASURED BY M1/M2/M3; H, GRAPH, AND EFFICACY TESTS PROPOSED. These tests admit mechanics only; they do not prove comparative efficacy.
 
 ## F — purity and replay ✅ M1 MEASURED 2026-08-08
 
@@ -17,13 +17,13 @@
 8. Removing the last support retracts the fact and leaves no stale provenance.
 9. Recursive-edge deletion yields the same closure as clean full recomputation.
 
-## R — delta, frontier, ordering, backpressure
+## R — delta, frontier, ordering, backpressure ✅ M3 MEASURED 2026-08-09
 
 10. Insert, delete, duplicate, and out-of-order deltas converge to the clean recompute digest.
-11. No irreversible effect fires before the epoch frontier passes.
-12. A late event follows the declared correction/retraction/rejection/compensation policy.
+11. No `RPublishedBatch` is emitted until every declared source frontier exists and their minimum is strictly greater than the epoch; this does not measure irreversible effects.
+12. A value delta below its named source's watermark is rejected as late under the sole M3 `reject` policy with no partial state; the global minimum remains the stabilization boundary.
 13. Dependencies and reactions for one epoch publish as one stable batch.
-14. Slow consumers preserve queue bounds and the declared overflow policy.
+14. Slow consumers preserve active-value, open-epoch, ready-batch, per-command demand, and outstanding-demand bounds under fail-closed `reject_new`.
 15. Equal-priority ready items use deterministic tie-breaking.
 
 ## H — approval, durability, effects, interrupts

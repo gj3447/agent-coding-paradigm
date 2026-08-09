@@ -1,6 +1,6 @@
 # Architecture
 
-> Status: M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / R-H NOT IMPLEMENTED
+> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R AND H NOT IMPLEMENTED
 
 ## System boundary
 
@@ -32,7 +32,7 @@ Command or AcceptedEvent
   -> Evolution: Snapshot x DomainEvent -> Snapshot
   -> FactDelta[] + EffectProposal[]
   -> LogicFixpoint
-  -> future typed EligibilityVerdict[] seam
+  -> explicit supplied EligibilityVerdict[] seam
   -> StableProposalBatch
   -> H policy/capability/approval gate
   -> EffectIntent[] | Rejection[]
@@ -40,7 +40,7 @@ Command or AcceptedEvent
   -> AcceptedEvent
 ```
 
-This is the proposed integrated protocol. M2 ends at `LogicFixpoint`; the typed eligibility seam and every later boundary remain unimplemented. The future H commit boundary atomically accepts state/events plus effect intent/outbox metadata. Effect execution happens after that boundary.
+This is the proposed integrated protocol. M2 ends at `LogicFixpoint`, and the direct L-to-R eligibility seam remains unresolved and unimplemented. A standalone bounded M3 scalar-frontier reference is measured separately; it accepts caller-supplied verdicts rather than implementing that direct seam. The integrated boundaries after M3, including the future H commit boundary that would atomically accept state/events plus effect intent/outbox metadata, remain unimplemented. Effect execution would happen after that boundary.
 
 ## Inner and outer loops
 
@@ -81,8 +81,8 @@ step_F(snapshot, accepted_event)
 solve_l(prior_materialization, rule_bundle, fact_delta_inputs, logical_time)
   -> LFixpointResult(next_materialization, derived_fact_deltas) | LRejection
 
-propagate_R(dataflow_version, derived_deltas, frontier, demand)
-  -> StableProposalBatch(effect_proposals, eligibility_verdicts, invalidations)
+step_r(prior_state, profile, command)
+  -> RTransition(next_state, published_batches, backpressure) | RRejection
 
 authorize(stable_proposal_batch, policy_snapshot, capability, approval?)
   -> EffectIntent | Rejection
@@ -93,7 +93,7 @@ execute_effect_shell(authorized_effect)
 
 M1 realizes `step_F` for the version-pinned `flrh.m1.observation-recorded/1` event. The public Python waist is [`step_f`](../src/flrh_kernel/kernel.py); its output schemas are [`m1-kernel.v1.schema.json`](../spec/schema/m1-kernel.v1.schema.json).
 
-M2 separately realizes `solve_l` for one ground/propositional stratified rule profile. It rebuilds a complete derived materialization from the active base ledger on every accepted invocation, exposes four-valued state/conflicts and provenance inside that materialization, and emits the net derived deltas. It does not construct or interpret `EligibilityVerdict`; a future typed eligibility seam must be specified before R may combine proposals with logic results. Neither slice owns durable state, a handler registry, adapter, scheduler, authority, or execution port. R, H, and the integrated interfaces remain proposed until their milestones pass.
+M2 separately realizes `solve_l` for one ground/propositional stratified rule profile. It rebuilds a complete derived materialization from the active base ledger on every accepted invocation, exposes four-valued state/conflicts and provenance inside that materialization, and emits the net derived deltas. It does not construct or interpret `EligibilityVerdict`. M3 separately realizes the measured bounded supplied-value R contract: it transports exact proposals and caller-supplied verdicts but neither derives nor validates eligibility. The M1/M2 goldens are seam provenance, not measured direct integration. None of these slices owns durable state, a handler registry, adapter, authority, or execution port; H and the integrated interfaces remain proposed.
 
 ## Authority and single writers
 

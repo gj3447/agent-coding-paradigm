@@ -1,0 +1,125 @@
+{
+  "kind": "RTransition",
+  "schema_version": "flrh-r-result/1",
+  "contract_version": "flrh-r-kernel/1",
+  "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+  "prior_state_digest": "sha256:81d9fdb5d48aec948896222de60163c7941ec69e92bb8d79fc43268d5eb7c3c4",
+  "command_digest": "sha256:b67c704fca829f80f3e1fab59c33e025c5c44673f34d5609202e327c0b9e4675",
+  "next_state": {
+    "kind": "RReactiveState",
+    "schema_version": "flrh-r-state/1",
+    "contract_version": "flrh-r-kernel/1",
+    "profile_id": "flrh-r-scalar-frontier/1",
+    "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+    "dataflow_version": "dataflow/0",
+    "canonicalization_version": "flrh-cjson/1",
+    "source_frontiers": [
+      {
+        "kind": "RSourceFrontier",
+        "source_id": "source:m3:a",
+        "low_watermark": 8
+      },
+      {
+        "kind": "RSourceFrontier",
+        "source_id": "source:m3:b",
+        "low_watermark": 8
+      }
+    ],
+    "global_low_watermark": 8,
+    "outstanding_demand": 0,
+    "open_epochs": [],
+    "ready_batches": [],
+    "state_digest": "sha256:4cd3165965e34278b901a0ee53d2d755ec8671a7c0c3906b22dc856b0b28e6af"
+  },
+  "published_batches": [
+    {
+      "kind": "RPublishedBatch",
+      "batch": {
+        "kind": "StableProposalBatch",
+        "batch_id": "batch:307f1d9fa3279d3bae9e3b4b728c4ee05c0f36733164f3ebb888322ed43b033e",
+        "logical_time": 7,
+        "low_watermark": 8,
+        "proposal_ids": [
+          "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb"
+        ],
+        "eligibility_verdict_ids": [
+          "verdict:m3:primary"
+        ],
+        "batch_digest": "sha256:307f1d9fa3279d3bae9e3b4b728c4ee05c0f36733164f3ebb888322ed43b033e",
+        "cause_id": "reaction:307f1d9fa3279d3bae9e3b4b728c4ee05c0f36733164f3ebb888322ed43b033e",
+        "dataflow_version": "dataflow/0"
+      },
+      "effect_proposals": [
+        {
+          "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+          "cause_id": "evt:m1:effect",
+          "correlation_id": "run:m1:1",
+          "declared_risk_hint": "high_risk_external",
+          "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+          "effect_type": "artifact.publish",
+          "goal_id": "goal:m1:publish",
+          "kind": "EffectProposal",
+          "obligation_id": "obligation:m1:publish",
+          "preconditions": [
+            "constraint:artifact-ready",
+            "frontier:1"
+          ],
+          "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+          "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+          "versions": {
+            "canonicalization": "flrh-cjson/1",
+            "composition_profile": "composition/0",
+            "dataflow": "dataflow/0",
+            "event_schema": "flrh-f-event/1",
+            "gate": "m1-gate/1",
+            "graph_schema": "graph/0",
+            "model": "none/0",
+            "oracle": "m1-oracle/1",
+            "resolver": "resolver/0",
+            "rule_set": "rules/0",
+            "state_schema": "flrh-f-state/1",
+            "tool": "publisher/1",
+            "workflow": "flrh-workflow/0.1"
+          }
+        }
+      ],
+      "eligibility_verdicts": [
+        {
+          "cause_id": "cause:m3:verdict",
+          "kind": "EligibilityVerdict",
+          "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+          "rule_set_version": "rules/0",
+          "status": "eligible",
+          "support_derivation_ids": [
+            "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+            "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+          ],
+          "verdict_id": "verdict:m3:primary"
+        }
+      ],
+      "published_batch_digest": "sha256:0ecec668bf04fe75c462ab534b8c59e6f6a439bd37ea073906b2b87b445f4ff8"
+    }
+  ],
+  "backpressure": {
+    "kind": "RBackpressure",
+    "open_epoch_count": 0,
+    "active_value_count": 0,
+    "ready_batch_count": 0,
+    "outstanding_demand": 0,
+    "limits": {
+      "max_deltas_per_command": 8,
+      "max_active_values": 6,
+      "max_open_epochs": 3,
+      "max_ready_batches": 2,
+      "max_demand_per_command": 2,
+      "max_outstanding_demand": 3
+    }
+  },
+  "stats": {
+    "accepted_delta_count": 0,
+    "retracted_delta_count": 0,
+    "stabilized_epoch_count": 0,
+    "published_batch_count": 1
+  },
+  "transition_digest": "sha256:55bebf44352c0d67cfc0629b7e53bf42afb13404493ea3bba50fb21de946edb2"
+}

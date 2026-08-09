@@ -1,6 +1,6 @@
 # FLR-H Execution Semantics v0
 
-> Status: M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / R-H NOT IMPLEMENTED / NOT EXTERNAL CANON
+> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / H NOT IMPLEMENTED / NOT EXTERNAL CANON
 
 ## Boundary types
 
@@ -50,8 +50,8 @@ EffectProposal<Eff> = {
   versions: VersionEnvelope
 }
 
-EligibilityVerdict = { proposal_id, eligible | ineligible | conflicted, support_derivation_ids }
-StableProposalBatch = { epoch, strict_low_watermark, proposal_ids, eligibility_verdict_ids, digest }
+EligibilityVerdict = { verdict_id, proposal_id, status, support_derivation_ids, cause_id, rule_set_version }
+StableProposalBatch = { batch_id, logical_time, low_watermark, proposal_ids, eligibility_verdict_ids, batch_digest, cause_id, dataflow_version }
 EffectIntent<Eff, Cap> = {
   intent_id, proposal_id, batch_id, effect_type: Eff, action_digest,
   cause_id, correlation_id, destination_digest, goal_id, obligation_id,
@@ -91,9 +91,9 @@ M2 deliberately emits no `EligibilityVerdict`. Proposal eligibility needs a sepa
 
 ## R — reactive semantics
 
-R consumes versioned unit deltas shaped as `(tuple, logical_time, diff)` where `diff ∈ {-1,+1}`. `+1` inserts one named derivation support and `-1` retracts that same identity; repeated byte-identical insertion is idempotent, not multiplicity. R owns dependency readiness, invalidation, timer/watermark inputs, demand, bounded queues, and backpressure policy.
+The measured bounded M3 reference profile consumes explicit `RValueDelta` values wrapping exact M0 `EffectProposal` or caller-supplied `EligibilityVerdict` objects. `+1` inserts one named delivery and `-1` retracts that same identity; repeated byte-identical insertion is idempotent, not multiplicity. R does not infer eligibility from M2, assess verdict correctness, or interpret verdict status. It owns only value dependency readiness, caller-asserted frontier inputs, whole-batch demand, bounded queues, and fail-closed backpressure for this slice.
 
-R publishes one stable reaction batch only when the v0 scalar low watermark is strictly greater than the logical epoch. No irreversible effect may observe an intermediate half-fixpoint. General partially ordered antichain time is outside v0. A late event follows an explicit correction, retraction, rejection, or compensation policy.
+Each declared source has a scalar low watermark; the global watermark is their minimum after all sources are initialized. R may form one epoch-atomic stable batch only when that global watermark is strictly greater than the logical epoch. A delta is late when its logical time is below its named source's watermark; the global minimum is used for stabilization, not for that per-source late-event test. This is an in-memory publication invariant, not evidence about irreversible effects. General partially ordered antichain time is outside v0. The sole measured-profile M3 late-event policy is typed rejection.
 
 Continuous FRP `Behavior` values are not required in the core. They belong in UI/sensor adapters when a task needs continuous time-varying values.
 
@@ -110,7 +110,7 @@ accepted event at epoch t
   -> pure F transition
   -> base FactDelta(+1/-1) + EffectProposal
   -> L semi-naive full-recompute fixpoint at t
-  -> future typed eligibility seam (not implemented by M2)
+  -> externally supplied typed EligibilityVerdict values (not inferred by M2 or R)
   -> frontier passes t
   -> R publishes one StableProposalBatch
   -> H policy/capability/approval gate
@@ -136,4 +136,4 @@ Every resumable run pins at least:
 
 Mismatch yields an explicit migration or `CHECKPOINT_INCOMPATIBLE`; it never silently resumes.
 
-The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), and the bounded M1 and M2 contracts in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json) and [`m2-manifest.v1.json`](../spec/m2-manifest.v1.json). This prose is a view of those contracts.
+The normative executable tables are [`logic-semantics.v0.json`](../spec/logic-semantics.v0.json), [`protocol.v1.schema.json`](../spec/schema/protocol.v1.schema.json), [`canonicalization.v1.json`](../spec/canonicalization.v1.json), and the bounded M1, M2, and M3 contracts in [`m1-manifest.v1.json`](../spec/m1-manifest.v1.json), [`m2-manifest.v1.json`](../spec/m2-manifest.v1.json), and [`m3-manifest.v1.json`](../spec/m3-manifest.v1.json). This prose is a view of those contracts.

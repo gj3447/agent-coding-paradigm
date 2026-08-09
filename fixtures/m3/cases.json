@@ -1,0 +1,605 @@
+{
+  "schema_version": "m3-fixtures/v1",
+  "profile": {
+    "kind": "RDataflowProfile",
+    "schema_version": "flrh-r-profile/1",
+    "contract_version": "flrh-r-kernel/1",
+    "profile_id": "flrh-r-scalar-frontier/1",
+    "dataflow_version": "dataflow/0",
+    "canonicalization_version": "flrh-cjson/1",
+    "source_ids": [
+      "source:m3:a",
+      "source:m3:b"
+    ],
+    "late_event_policy": "reject",
+    "overflow_policy": "reject_new",
+    "limits": {
+      "max_deltas_per_command": 8,
+      "max_active_values": 6,
+      "max_open_epochs": 3,
+      "max_ready_batches": 2,
+      "max_demand_per_command": 2,
+      "max_outstanding_demand": 3
+    },
+    "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768"
+  },
+  "proposals": {
+    "m1_effect_proposal": {
+      "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+      "cause_id": "evt:m1:effect",
+      "correlation_id": "run:m1:1",
+      "declared_risk_hint": "high_risk_external",
+      "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+      "effect_type": "artifact.publish",
+      "goal_id": "goal:m1:publish",
+      "kind": "EffectProposal",
+      "obligation_id": "obligation:m1:publish",
+      "preconditions": [
+        "constraint:artifact-ready",
+        "frontier:1"
+      ],
+      "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+      "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+      "versions": {
+        "canonicalization": "flrh-cjson/1",
+        "composition_profile": "composition/0",
+        "dataflow": "dataflow/0",
+        "event_schema": "flrh-f-event/1",
+        "gate": "m1-gate/1",
+        "graph_schema": "graph/0",
+        "model": "none/0",
+        "oracle": "m1-oracle/1",
+        "resolver": "resolver/0",
+        "rule_set": "rules/0",
+        "state_schema": "flrh-f-state/1",
+        "tool": "publisher/1",
+        "workflow": "flrh-workflow/0.1"
+      }
+    }
+  },
+  "verdicts": {
+    "m3_verdict": {
+      "kind": "EligibilityVerdict",
+      "verdict_id": "verdict:m3:primary",
+      "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+      "status": "eligible",
+      "support_derivation_ids": [
+        "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+        "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+      ],
+      "cause_id": "cause:m3:verdict",
+      "rule_set_version": "rules/0"
+    }
+  },
+  "deltas": {
+    "proposal_t7": {
+      "kind": "RValueDelta",
+      "schema_version": "flrh-r-value-delta/1",
+      "delivery_id": "delivery:acba67d5a72ee2ede32d02083e35549440aafbb160086fc1088e1ac5e33b4bda",
+      "source_id": "source:m3:a",
+      "logical_time": 7,
+      "diff": 1,
+      "dataflow_version": "dataflow/0",
+      "value_kind": "effect_proposal",
+      "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+      "value": {
+        "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+        "cause_id": "evt:m1:effect",
+        "correlation_id": "run:m1:1",
+        "declared_risk_hint": "high_risk_external",
+        "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+        "effect_type": "artifact.publish",
+        "goal_id": "goal:m1:publish",
+        "kind": "EffectProposal",
+        "obligation_id": "obligation:m1:publish",
+        "preconditions": [
+          "constraint:artifact-ready",
+          "frontier:1"
+        ],
+        "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+        "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+        "versions": {
+          "canonicalization": "flrh-cjson/1",
+          "composition_profile": "composition/0",
+          "dataflow": "dataflow/0",
+          "event_schema": "flrh-f-event/1",
+          "gate": "m1-gate/1",
+          "graph_schema": "graph/0",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "resolver": "resolver/0",
+          "rule_set": "rules/0",
+          "state_schema": "flrh-f-state/1",
+          "tool": "publisher/1",
+          "workflow": "flrh-workflow/0.1"
+        }
+      }
+    },
+    "verdict_t7": {
+      "kind": "RValueDelta",
+      "schema_version": "flrh-r-value-delta/1",
+      "delivery_id": "delivery:021ec8894a861e0554a430f39511e8e1e5f66d228f7ec10732c592da9d0b131d",
+      "source_id": "source:m3:b",
+      "logical_time": 7,
+      "diff": 1,
+      "dataflow_version": "dataflow/0",
+      "value_kind": "eligibility_verdict",
+      "value_digest": "sha256:2c6cfc9fb51f7b9cbee829f63f2ea434e34a2f08ccbb16a6dfa6209effbce6bf",
+      "value": {
+        "kind": "EligibilityVerdict",
+        "verdict_id": "verdict:m3:primary",
+        "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+        "status": "eligible",
+        "support_derivation_ids": [
+          "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+          "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+        ],
+        "cause_id": "cause:m3:verdict",
+        "rule_set_version": "rules/0"
+      }
+    },
+    "late_proposal_t6": {
+      "kind": "RValueDelta",
+      "schema_version": "flrh-r-value-delta/1",
+      "delivery_id": "delivery:3eda0e94ceff555c45e29656ab011f185c1612655559c4aa11a80222bf86a396",
+      "source_id": "source:m3:a",
+      "logical_time": 6,
+      "diff": 1,
+      "dataflow_version": "dataflow/0",
+      "value_kind": "effect_proposal",
+      "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+      "value": {
+        "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+        "cause_id": "evt:m1:effect",
+        "correlation_id": "run:m1:1",
+        "declared_risk_hint": "high_risk_external",
+        "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+        "effect_type": "artifact.publish",
+        "goal_id": "goal:m1:publish",
+        "kind": "EffectProposal",
+        "obligation_id": "obligation:m1:publish",
+        "preconditions": [
+          "constraint:artifact-ready",
+          "frontier:1"
+        ],
+        "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+        "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+        "versions": {
+          "canonicalization": "flrh-cjson/1",
+          "composition_profile": "composition/0",
+          "dataflow": "dataflow/0",
+          "event_schema": "flrh-f-event/1",
+          "gate": "m1-gate/1",
+          "graph_schema": "graph/0",
+          "model": "none/0",
+          "oracle": "m1-oracle/1",
+          "resolver": "resolver/0",
+          "rule_set": "rules/0",
+          "state_schema": "flrh-f-state/1",
+          "tool": "publisher/1",
+          "workflow": "flrh-workflow/0.1"
+        }
+      }
+    }
+  },
+  "success_sequences": [
+    {
+      "id": "sequence:frontier-stable",
+      "steps": [
+        {
+          "command": {
+            "kind": "RApplyDeltaBatch",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "deltas": [
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:acba67d5a72ee2ede32d02083e35549440aafbb160086fc1088e1ac5e33b4bda",
+                "source_id": "source:m3:a",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "effect_proposal",
+                "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+                "value": {
+                  "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+                  "cause_id": "evt:m1:effect",
+                  "correlation_id": "run:m1:1",
+                  "declared_risk_hint": "high_risk_external",
+                  "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+                  "effect_type": "artifact.publish",
+                  "goal_id": "goal:m1:publish",
+                  "kind": "EffectProposal",
+                  "obligation_id": "obligation:m1:publish",
+                  "preconditions": [
+                    "constraint:artifact-ready",
+                    "frontier:1"
+                  ],
+                  "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "versions": {
+                    "canonicalization": "flrh-cjson/1",
+                    "composition_profile": "composition/0",
+                    "dataflow": "dataflow/0",
+                    "event_schema": "flrh-f-event/1",
+                    "gate": "m1-gate/1",
+                    "graph_schema": "graph/0",
+                    "model": "none/0",
+                    "oracle": "m1-oracle/1",
+                    "resolver": "resolver/0",
+                    "rule_set": "rules/0",
+                    "state_schema": "flrh-f-state/1",
+                    "tool": "publisher/1",
+                    "workflow": "flrh-workflow/0.1"
+                  }
+                }
+              },
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:021ec8894a861e0554a430f39511e8e1e5f66d228f7ec10732c592da9d0b131d",
+                "source_id": "source:m3:b",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "eligibility_verdict",
+                "value_digest": "sha256:2c6cfc9fb51f7b9cbee829f63f2ea434e34a2f08ccbb16a6dfa6209effbce6bf",
+                "value": {
+                  "kind": "EligibilityVerdict",
+                  "verdict_id": "verdict:m3:primary",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "status": "eligible",
+                  "support_derivation_ids": [
+                    "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+                    "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+                  ],
+                  "cause_id": "cause:m3:verdict",
+                  "rule_set_version": "rules/0"
+                }
+              }
+            ]
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:9d633ca2b2646465a1b16098adc2de46c03d2c02c165f23814fbf838d11e0529"
+        },
+        {
+          "command": {
+            "kind": "RAdvanceFrontier",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "source_id": "source:m3:a",
+            "low_watermark": 7
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:3ca898aca6ea0b5396312d4afef000c85c6779e9b97a1e512232cf9899b8f9da"
+        },
+        {
+          "command": {
+            "kind": "RAdvanceFrontier",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "source_id": "source:m3:b",
+            "low_watermark": 8
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:c47706edbd7a3b10abd015173d213a1b146b84829aebc56c9766a3de642c3ced"
+        },
+        {
+          "command": {
+            "kind": "RAdvanceFrontier",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "source_id": "source:m3:a",
+            "low_watermark": 8
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:8369e329308cdbc6345954fb11a44c7815e33d761838b2fe72d39fd701a4b974"
+        },
+        {
+          "command": {
+            "kind": "RGrantDemand",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "batches": 1
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 1,
+          "expected_transition_digest": "sha256:55bebf44352c0d67cfc0629b7e53bf42afb13404493ea3bba50fb21de946edb2"
+        }
+      ]
+    },
+    {
+      "id": "sequence:apply-left",
+      "steps": [
+        {
+          "command": {
+            "kind": "RApplyDeltaBatch",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "deltas": [
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:acba67d5a72ee2ede32d02083e35549440aafbb160086fc1088e1ac5e33b4bda",
+                "source_id": "source:m3:a",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "effect_proposal",
+                "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+                "value": {
+                  "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+                  "cause_id": "evt:m1:effect",
+                  "correlation_id": "run:m1:1",
+                  "declared_risk_hint": "high_risk_external",
+                  "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+                  "effect_type": "artifact.publish",
+                  "goal_id": "goal:m1:publish",
+                  "kind": "EffectProposal",
+                  "obligation_id": "obligation:m1:publish",
+                  "preconditions": [
+                    "constraint:artifact-ready",
+                    "frontier:1"
+                  ],
+                  "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "versions": {
+                    "canonicalization": "flrh-cjson/1",
+                    "composition_profile": "composition/0",
+                    "dataflow": "dataflow/0",
+                    "event_schema": "flrh-f-event/1",
+                    "gate": "m1-gate/1",
+                    "graph_schema": "graph/0",
+                    "model": "none/0",
+                    "oracle": "m1-oracle/1",
+                    "resolver": "resolver/0",
+                    "rule_set": "rules/0",
+                    "state_schema": "flrh-f-state/1",
+                    "tool": "publisher/1",
+                    "workflow": "flrh-workflow/0.1"
+                  }
+                }
+              },
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:021ec8894a861e0554a430f39511e8e1e5f66d228f7ec10732c592da9d0b131d",
+                "source_id": "source:m3:b",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "eligibility_verdict",
+                "value_digest": "sha256:2c6cfc9fb51f7b9cbee829f63f2ea434e34a2f08ccbb16a6dfa6209effbce6bf",
+                "value": {
+                  "kind": "EligibilityVerdict",
+                  "verdict_id": "verdict:m3:primary",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "status": "eligible",
+                  "support_derivation_ids": [
+                    "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+                    "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+                  ],
+                  "cause_id": "cause:m3:verdict",
+                  "rule_set_version": "rules/0"
+                }
+              }
+            ]
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:9d633ca2b2646465a1b16098adc2de46c03d2c02c165f23814fbf838d11e0529"
+        }
+      ]
+    },
+    {
+      "id": "sequence:apply-right",
+      "steps": [
+        {
+          "command": {
+            "kind": "RApplyDeltaBatch",
+            "schema_version": "flrh-r-command/1",
+            "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+            "dataflow_version": "dataflow/0",
+            "deltas": [
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:021ec8894a861e0554a430f39511e8e1e5f66d228f7ec10732c592da9d0b131d",
+                "source_id": "source:m3:b",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "eligibility_verdict",
+                "value_digest": "sha256:2c6cfc9fb51f7b9cbee829f63f2ea434e34a2f08ccbb16a6dfa6209effbce6bf",
+                "value": {
+                  "kind": "EligibilityVerdict",
+                  "verdict_id": "verdict:m3:primary",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "status": "eligible",
+                  "support_derivation_ids": [
+                    "derivation:03562d1e2bee2c8a583192f9a8ce753f1c813859312d5c916a8d021bbcb4652e",
+                    "derivation:72dff297d2903add13069962307771b40acd9ccae8a20041e116743e2fd7f897"
+                  ],
+                  "cause_id": "cause:m3:verdict",
+                  "rule_set_version": "rules/0"
+                }
+              },
+              {
+                "kind": "RValueDelta",
+                "schema_version": "flrh-r-value-delta/1",
+                "delivery_id": "delivery:acba67d5a72ee2ede32d02083e35549440aafbb160086fc1088e1ac5e33b4bda",
+                "source_id": "source:m3:a",
+                "logical_time": 7,
+                "diff": 1,
+                "dataflow_version": "dataflow/0",
+                "value_kind": "effect_proposal",
+                "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+                "value": {
+                  "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+                  "cause_id": "evt:m1:effect",
+                  "correlation_id": "run:m1:1",
+                  "declared_risk_hint": "high_risk_external",
+                  "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+                  "effect_type": "artifact.publish",
+                  "goal_id": "goal:m1:publish",
+                  "kind": "EffectProposal",
+                  "obligation_id": "obligation:m1:publish",
+                  "preconditions": [
+                    "constraint:artifact-ready",
+                    "frontier:1"
+                  ],
+                  "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+                  "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+                  "versions": {
+                    "canonicalization": "flrh-cjson/1",
+                    "composition_profile": "composition/0",
+                    "dataflow": "dataflow/0",
+                    "event_schema": "flrh-f-event/1",
+                    "gate": "m1-gate/1",
+                    "graph_schema": "graph/0",
+                    "model": "none/0",
+                    "oracle": "m1-oracle/1",
+                    "resolver": "resolver/0",
+                    "rule_set": "rules/0",
+                    "state_schema": "flrh-f-state/1",
+                    "tool": "publisher/1",
+                    "workflow": "flrh-workflow/0.1"
+                  }
+                }
+              }
+            ]
+          },
+          "expected_kind": "RTransition",
+          "expected_publication_count": 0,
+          "expected_transition_digest": "sha256:9d633ca2b2646465a1b16098adc2de46c03d2c02c165f23814fbf838d11e0529"
+        }
+      ]
+    }
+  ],
+  "rejection_cases": [
+    {
+      "id": "rejection:late-delta",
+      "prior_sequence_ref": "sequence:frontier-stable",
+      "prior_step": 3,
+      "command": {
+        "kind": "RApplyDeltaBatch",
+        "schema_version": "flrh-r-command/1",
+        "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+        "dataflow_version": "dataflow/0",
+        "deltas": [
+          {
+            "kind": "RValueDelta",
+            "schema_version": "flrh-r-value-delta/1",
+            "delivery_id": "delivery:3eda0e94ceff555c45e29656ab011f185c1612655559c4aa11a80222bf86a396",
+            "source_id": "source:m3:a",
+            "logical_time": 6,
+            "diff": 1,
+            "dataflow_version": "dataflow/0",
+            "value_kind": "effect_proposal",
+            "value_digest": "sha256:cc3e884fa3251a18c8e2b6e7ffddf4b4ece1a91ddf189a9a5f6e58a05568a63c",
+            "value": {
+              "action_digest": "sha256:11564e22caacb49afe07af62f1c2681a06b1602c4bb51ea2c9886fafadc249ed",
+              "cause_id": "evt:m1:effect",
+              "correlation_id": "run:m1:1",
+              "declared_risk_hint": "high_risk_external",
+              "destination_digest": "sha256:bc9fa76aac868bba0cdc66acefff4008453593711fd433a1a852099c23589a0b",
+              "effect_type": "artifact.publish",
+              "goal_id": "goal:m1:publish",
+              "kind": "EffectProposal",
+              "obligation_id": "obligation:m1:publish",
+              "preconditions": [
+                "constraint:artifact-ready",
+                "frontier:1"
+              ],
+              "proposal_dedup_key": "proposal-dedup:ba0a5a16c2a1c2ebd0d328c5f8987caf858122f19b200b62c0913ce8744980d0",
+              "proposal_id": "proposal:994c653d471e0f3df8fb3d808d03b0f665ed389b04c28d2231d7f495c692b4bb",
+              "versions": {
+                "canonicalization": "flrh-cjson/1",
+                "composition_profile": "composition/0",
+                "dataflow": "dataflow/0",
+                "event_schema": "flrh-f-event/1",
+                "gate": "m1-gate/1",
+                "graph_schema": "graph/0",
+                "model": "none/0",
+                "oracle": "m1-oracle/1",
+                "resolver": "resolver/0",
+                "rule_set": "rules/0",
+                "state_schema": "flrh-f-state/1",
+                "tool": "publisher/1",
+                "workflow": "flrh-workflow/0.1"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "kind": "RRejection",
+        "schema_version": "flrh-r-result/1",
+        "contract_version": "flrh-r-kernel/1",
+        "code": "LATE_DELTA",
+        "path": "/command/deltas/0/logical_time",
+        "logical_time": 6,
+        "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+        "context": {
+          "source_id": "source:m3:a"
+        }
+      }
+    },
+    {
+      "id": "rejection:demand-command-limit",
+      "prior_sequence_ref": null,
+      "prior_step": null,
+      "command": {
+        "kind": "RGrantDemand",
+        "schema_version": "flrh-r-command/1",
+        "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+        "dataflow_version": "dataflow/0",
+        "batches": 3
+      },
+      "expected": {
+        "kind": "RRejection",
+        "schema_version": "flrh-r-result/1",
+        "contract_version": "flrh-r-kernel/1",
+        "code": "DEMAND_LIMIT_EXCEEDED",
+        "path": "/command/batches",
+        "logical_time": null,
+        "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+        "context": {
+          "limit": 2,
+          "observed": 3
+        }
+      }
+    }
+  ],
+  "equivalence_pairs": [
+    {
+      "id": "equivalence:apply-permutation",
+      "left_sequence_ref": "sequence:apply-left",
+      "right_sequence_ref": "sequence:apply-right",
+      "comparison": "full_transition_bytes"
+    }
+  ],
+  "goldens": [
+    {
+      "id": "golden:frontier-stable",
+      "path": "fixtures/m3/golden/frontier-stable.transition.json",
+      "kind": "RTransition"
+    },
+    {
+      "id": "golden:late-delta",
+      "path": "fixtures/m3/golden/late-delta.rejection.json",
+      "kind": "RRejection"
+    }
+  ]
+}

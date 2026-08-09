@@ -1,6 +1,6 @@
 {
   "schema_version": "claim-ledger/v1",
-  "updated_at": "2026-08-09T01:55:05Z",
+  "updated_at": "2026-08-09T03:40:32Z",
   "claims": [
     {
       "id": "responsibility-separation",
@@ -19,6 +19,28 @@
       "scope": "mechanics",
       "evidence": ["spec/logic-semantics.v0.json", "docs/SEMANTICS.md"],
       "falsifiers": ["Incremental evaluation disagrees with clean full recomputation on the conformance corpus."]
+    },
+    {
+      "id": "m3-scalar-frontier-r-contract",
+      "statement": "A bounded pure R slice can deterministically stabilize explicit signed proposal and supplied-verdict values by per-source scalar frontier into epoch-atomic batches with whole-batch demand and fail-closed backpressure.",
+      "epistemic_status": "MEASURED",
+      "disposition": "active",
+      "scope": "one bounded Python scalar-frontier supplied-value reference, three frozen success sequences with seven transitions, two full-object rejections, 32 seeded order trials, 64 independent-oracle comparisons, 16 slow-consumer trials, two clean replay/ambient/semantic process profiles, thirteen guarded real paths, fourteen ambient/control mutants, and ten semantic source mutants; not eligibility correctness, direct M2 integration, persistence, distributed progress truth, irreversible-effect safety, H authority, or integrated runtime evidence",
+      "evidence": [
+        "spec/m3-manifest.v1.json",
+        "fixtures/m3/cases.json",
+        "fixtures/m3/golden/frontier-stable.transition.json",
+        "fixtures/m3/golden/late-delta.rejection.json",
+        "scripts/check_m3_semantic_mutants.py",
+        "scripts/validate_m3.py",
+        "tests/test_m3_reactive.py",
+        "docs/M3_REACTIVE.md"
+      ],
+      "falsifiers": [
+        "Any frozen sequence or typed rejection differs from the independent evaluator or across the declared clean-process profiles.",
+        "A guarded real path mutates caller input or accesses a declared ambient authority surface.",
+        "Any preregistered frontier, atomicity, demand, overflow, late, status-opacity, nested-value, version-binding, or authority-output mutant escapes."
+      ]
     },
     {
       "id": "typed-graph-federation",

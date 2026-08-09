@@ -1,0 +1,68 @@
+{
+  "schema_version": "m3-manifest/v1",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
+  "normative_contracts": [
+    "spec/m3-reactive-contract.v1.json",
+    "spec/schema/m3-reactive.v1.schema.json",
+    "spec/m3-manifest.v1.json"
+  ],
+  "inherited_normative_dependencies": [
+    {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
+    {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
+    {"artifact": "spec/logic-semantics.v0.json", "sha256": "sha256:b727ae4d112b9df93d58d30daa6e4efcade122ec3bc3d84f6ec5b6ba502e2a74"},
+    {"artifact": "spec/m1-kernel-contract.v1.json", "sha256": "sha256:593bd94c634dc826d000764fa384507b82c371e776ef36677d131894973bf772"},
+    {"artifact": "spec/schema/m1-kernel.v1.schema.json", "sha256": "sha256:3f914944c9a7f0084fa0f725923489d8cd6feb5e70d510ffa5d54b5c20395c4d"},
+    {"artifact": "spec/m1-manifest.v1.json", "sha256": "sha256:07064055e63b7e6de37060672a82bfd7d2aa2f5045596189dd6454552e409cbd"},
+    {"artifact": "spec/m2-logic-contract.v1.json", "sha256": "sha256:65f8ae41c4c5c6c11f8298b77b477d19a31f2b0dc9ede058639183960cf4cd9e"},
+    {"artifact": "spec/schema/m2-logic.v1.schema.json", "sha256": "sha256:a39e152397693b3e1a026c1e561a1c955ba77f753f695f231d8768d80a7c4fa0"},
+    {"artifact": "spec/m2-manifest.v1.json", "sha256": "sha256:c792eb1fbea2e8e430cd7d0452b8e3ed290f2488dd297b107d3cd5a92f139200"}
+  ],
+  "inherited_fixture_dependencies": [
+    {"artifact": "fixtures/m1/golden/observe-with-effect.transition.json", "sha256": "sha256:cd1360e0db9024cc6b03abde4a4d28e56aea82f901577bd2c4eae0cbdb5700b8"},
+    {"artifact": "fixtures/m2/golden/two-support-retraction.fixpoint.json", "sha256": "sha256:5a03b388701f65bb2d179b4388a2f2f5159e3bb8c5fb1b4457f79617d5e372bb"}
+  ],
+  "self_validating_schemas": [
+    "spec/schema/m3-reactive.v1.schema.json",
+    "spec/schema/m3-reactive-contract.v1.schema.json",
+    "spec/schema/m3-fixtures.v1.schema.json",
+    "spec/schema/m3-manifest.v1.schema.json"
+  ],
+  "schema_bindings": [
+    {"artifact": "spec/m3-reactive-contract.v1.json", "schema": "spec/schema/m3-reactive-contract.v1.schema.json"},
+    {"artifact": "spec/m3-manifest.v1.json", "schema": "spec/schema/m3-manifest.v1.schema.json"},
+    {"artifact": "fixtures/m3/cases.json", "schema": "spec/schema/m3-fixtures.v1.schema.json"}
+  ],
+  "conformance_fixture": "fixtures/m3/cases.json",
+  "golden_outputs": [
+    "fixtures/m3/golden/frontier-stable.transition.json",
+    "fixtures/m3/golden/late-delta.rejection.json"
+  ],
+  "reference_implementation": [
+    "src/flrh_reactive/__init__.py",
+    "src/flrh_reactive/canonical.py",
+    "src/flrh_reactive/reactive.py"
+  ],
+  "non_normative_tools": [
+    "scripts/m1_guard.py",
+    "scripts/validate_m0.py",
+    "scripts/validate_m1.py",
+    "scripts/validate_m2.py",
+    "scripts/m3_fixtures.py",
+    "scripts/m3_oracle.py",
+    "scripts/m3_guard.py",
+    "scripts/check_m3_ambient.py",
+    "scripts/check_m3_semantic_mutants.py",
+    "scripts/run_m3_replay.py",
+    "scripts/validate_m3.py",
+    "tests/test_m3_reactive.py"
+  ],
+  "mechanics_tests": [
+    "R10 signed insert, exact retract, duplicate collapse, batch ambiguity, permutation determinism, and clean evaluator equality",
+    "R11 per-source scalar frontier global minimum and strict greater-than epoch stabilization without effect execution",
+    "R12 closed late-delta rejection under the sole reject policy",
+    "R13 epoch-atomic StableProposalBatch plus exact embedded supplied proposal and verdict values",
+    "R14 whole-batch demand, bounded queues, bounded outstanding demand, and fail-closed reject-new overflow",
+    "R15 canonical tie breaking, exact nested protocol/version bindings, ambient denial, replay, and mutation sensitivity"
+  ],
+  "completion_boundary": "M3 measures only the declared in-memory Python scalar-frontier R slice and supplied-value corpus. It does not validate eligibility correctness, direct M2 integration, persistence, distributed progress truth, irreversible-effect safety, H authority or effects, integrated runtime behavior, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
+}

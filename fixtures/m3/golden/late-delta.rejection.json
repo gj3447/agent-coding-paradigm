@@ -1,0 +1,12 @@
+{
+  "kind": "RRejection",
+  "schema_version": "flrh-r-result/1",
+  "contract_version": "flrh-r-kernel/1",
+  "code": "LATE_DELTA",
+  "path": "/command/deltas/0/logical_time",
+  "logical_time": 6,
+  "profile_digest": "sha256:0da826963d547756436cdaa14fa79392a6b307f7358d858560e876edd0cd6768",
+  "context": {
+    "source_id": "source:m3:a"
+  }
+}

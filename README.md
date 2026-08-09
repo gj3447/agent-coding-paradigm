@@ -2,7 +2,7 @@
 
 함수형·논리형·반응형 프로그래밍을 durable Harness와 typed graph engineering으로 결합하는 agent runtime 연구 저장소.
 
-> Status: **RESEARCH INCUBATOR / M1 PURE-F + M2 STRATIFIED-L REFERENCE MECHANICS MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
+> Status: **RESEARCH INCUBATOR / SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 SCALAR-FRONTIER-R REFERENCES MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**
 >
 > Working profile: **FLR-H** — Functional, Logic, Reactive, Harness
 >
@@ -36,8 +36,8 @@ pure F transition ──► FactDelta(+/-) + EffectProposal
                                ▼
                      L fixpoint/materialization
                                │
-                               ▼ future typed eligibility seam
-                     (M2 stops above; R/H below are unimplemented)
+                               ▼ explicit supplied verdict seam
+                     (bounded standalone M3 measured; no direct M2 inference)
                                │
                                ▼ frontier passes epoch
                      R StableProposalBatch
@@ -85,6 +85,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M0 contract and test boundary](docs/M0_CONTRACT.md) — what kind of theory this is, what passed, and what remains untested
 - [M1 pure-F kernel](docs/M1_KERNEL.md) — the first implemented vertical slice, wire contract, replay gate, and non-claims
 - [M2 stratified-L kernel](docs/M2_LOGIC.md) — ground fixpoint, four-valued support, provenance, retraction, and full-recompute oracle boundary
+- [M3 reactive kernel](docs/M3_REACTIVE.md) — measured bounded supplied-value, scalar-frontier, epoch-atomic batch, demand, and backpressure reference
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
 - [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
@@ -93,6 +94,7 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M0 manifest](spec/m0-manifest.v1.json) — normative contract set and non-claim boundary
 - [M1 manifest](spec/m1-manifest.v1.json) — bounded pure-F implementation and conformance boundary
 - [M2 manifest](spec/m2-manifest.v1.json) — bounded ground stratified-L implementation and conformance boundary
+- [M3 manifest](spec/m3-manifest.v1.json) — measured bounded scalar-frontier R conformance boundary
 
 ## Current admission gate
 
@@ -102,6 +104,8 @@ The bounded M1 Python reference slice also passed its declared gate: seven schem
 
 The bounded M2 Python reference slice passed its ground stratified-L gate: ten successful cases, fourteen full-object typed rejections, three sequences with nine total steps, two exact goldens, two permutation-equivalence pairs, and an independent naive semantic oracle. Two clean profiles produced 66 spawned executions forming 33 byte comparisons with zero mismatches. Two guarded processes passed eleven self-tests and ten import-metadata checks; thirteen control mutants were caught, and four non-empty kernel paths recorded zero ambient or caller-input mutation attempts. The delta interface applies a stepwise base ledger, but M2 deliberately rebuilds the complete derived projection on every accepted invocation; persistent incremental maintenance is not claimed.
 
+The bounded M3 Python reference slice passed its supplied-value scalar-frontier gate: three frozen success sequences with seven transitions, two full-object rejections, one epoch-atomic publication, 32 seeded order trials, 64 independent-oracle comparisons, 16 slow-consumer trials, and four randomized capacity rejections. Two clean replay, two clean ambient, and two clean semantic-mutation processes reproduced exact canonical output. Thirteen guarded real paths recorded zero ambient or caller-input mutation attempts; fourteen ambient/control mutants and all ten source-level semantic mutants were detected. M3 transports explicit caller-supplied eligibility verdicts; it does not validate them or establish direct M2 integration, persistence, distributed progress truth, H authority, or effect safety.
+
 Run it with:
 
 ```bash
@@ -109,18 +113,19 @@ python3 -m pip install -r requirements-m0.txt
 python3 scripts/validate_m0.py
 python3 scripts/validate_m1.py
 python3 scripts/validate_m2.py
+python3 scripts/validate_m3.py
 python3 -m unittest discover -s tests -v
 ```
 
 The next mechanics gates must prove:
 
 1. a future persistent incremental L evaluator reuses prior closure while remaining equal to clean full recomputation;
-2. R never publishes an irreversible-effect candidate before the logical frontier passes;
+2. a future direct L-to-R seam binds proposal eligibility and complete materialization state without weakening the separately measured M2 and M3 contracts;
 3. crash/restart never turns one logical effect into duplicate real-world mutations;
 4. trace-only, harness-only, or model-self-reported success cannot satisfy `DONE`;
 5. production and harness use the same resolved composition graph modulo enumerated test adapters.
 
-The repository now contains separate executable F and L reference mechanisms, contracts, and independent test oracles. It still does not contain an integrated F/L/R/H runtime.
+The repository contains separate measured F, L, and R reference mechanisms. M3 transports supplied eligibility verdicts without validating their correctness and has no measured direct M2 integration. The repository still does not contain an integrated F/L/R/H runtime.
 
 ## Non-claims
 

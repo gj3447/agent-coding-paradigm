@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/m3-reactive.v1.schema.json",
+  "title": "M3 scalar-frontier reactive kernel wire objects",
+  "oneOf": [
+    {"$ref": "#/$defs/RDataflowProfile"},
+    {"$ref": "#/$defs/RCommand"},
+    {"$ref": "#/$defs/RReactiveState"},
+    {"$ref": "#/$defs/RTransition"},
+    {"$ref": "#/$defs/RRejection"}
+  ],
+  "$defs": {
+    "Id": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Id"},
+    "Version": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Version"},
+    "Digest": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/Digest"},
+    "LogicalTime": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "NullableLogicalTime": {"oneOf": [{"$ref": "#/$defs/LogicalTime"}, {"type": "null"}]},
+    "ExactEffectProposal": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EffectProposal"},
+    "ExactEligibilityVerdict": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/EligibilityVerdict"},
+    "ExactStableProposalBatch": {"$ref": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/protocol.v1.schema.json#/$defs/StableProposalBatch"},
+    "RLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_deltas_per_command", "max_active_values", "max_open_epochs", "max_ready_batches", "max_demand_per_command", "max_outstanding_demand"],
+      "properties": {
+        "max_deltas_per_command": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "max_active_values": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "max_open_epochs": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "max_ready_batches": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "max_demand_per_command": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "max_outstanding_demand": {"type": "integer", "minimum": 1, "maximum": 10000}
+      }
+    },
+    "RDataflowProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_id", "dataflow_version", "canonicalization_version", "source_ids", "late_event_policy", "overflow_policy", "limits", "profile_digest"],
+      "properties": {
+        "kind": {"const": "RDataflowProfile"},
+        "schema_version": {"const": "flrh-r-profile/1"},
+        "contract_version": {"const": "flrh-r-kernel/1"},
+        "profile_id": {"const": "flrh-r-scalar-frontier/1"},
+        "dataflow_version": {"$ref": "#/$defs/Version"},
+        "canonicalization_version": {"const": "flrh-cjson/1"},
+        "source_ids": {"type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/Id"}},
+        "late_event_policy": {"const": "reject"},
+        "overflow_policy": {"const": "reject_new"},
+        "limits": {"$ref": "#/$defs/RLimits"},
+        "profile_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "RValueDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "schema_version", "delivery_id", "source_id", "logical_time", "diff", "dataflow_version", "value_kind", "value_digest", "value"],
+      "properties": {
+        "kind": {"const": "RValueDelta"},
+        "schema_version": {"const": "flrh-r-value-delta/1"},
+        "delivery_id": {"$ref": "#/$defs/Id"},
+        "source_id": {"$ref": "#/$defs/Id", "description": "Names the source frontier used for the per-source late-event check; global_low_watermark is used only for stabilization."},
+        "logical_time": {"$ref": "#/$defs/LogicalTime"},
+        "diff": {"enum": [-1, 1]},
+        "dataflow_version": {"$ref": "#/$defs/Version"},
+        "value_kind": {"enum": ["effect_proposal", "eligibility_verdict"]},
+        "value_digest": {"$ref": "#/$defs/Digest"},
+        "value": {"oneOf": [{"$ref": "#/$defs/ExactEffectProposal"}, {"$ref": "#/$defs/ExactEligibilityVerdict"}]}
+      },
+      "allOf": [
+        {"if": {"properties": {"value_kind": {"const": "effect_proposal"}}}, "then": {"properties": {"value": {"$ref": "#/$defs/ExactEffectProposal"}}}},
+        {"if": {"properties": {"value_kind": {"const": "eligibility_verdict"}}}, "then": {"properties": {"value": {"$ref": "#/$defs/ExactEligibilityVerdict"}}}}
+      ]
+    },
+    "RCommandBase": {
+      "type": "object",
+      "required": ["kind", "schema_version", "profile_digest", "dataflow_version"],
+      "properties": {
+        "schema_version": {"const": "flrh-r-command/1"},
+        "profile_digest": {"$ref": "#/$defs/Digest"},
+        "dataflow_version": {"$ref": "#/$defs/Version"}
+      }
+    },
+    "RApplyDeltaBatch": {
+      "allOf": [
+        {"$ref": "#/$defs/RCommandBase"},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "schema_version", "profile_digest", "dataflow_version", "deltas"], "properties": {
+          "kind": {"const": "RApplyDeltaBatch"}, "schema_version": {"const": "flrh-r-command/1"}, "profile_digest": {"$ref": "#/$defs/Digest"}, "dataflow_version": {"$ref": "#/$defs/Version"},
+          "deltas": {"type": "array", "minItems": 1, "maxItems": 10000, "items": {"$ref": "#/$defs/RValueDelta"}}
+        }}
+      ]
+    },
+    "RAdvanceFrontier": {
+      "allOf": [
+        {"$ref": "#/$defs/RCommandBase"},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "schema_version", "profile_digest", "dataflow_version", "source_id", "low_watermark"], "properties": {
+          "kind": {"const": "RAdvanceFrontier"}, "schema_version": {"const": "flrh-r-command/1"}, "profile_digest": {"$ref": "#/$defs/Digest"}, "dataflow_version": {"$ref": "#/$defs/Version"},
+          "source_id": {"$ref": "#/$defs/Id"}, "low_watermark": {"$ref": "#/$defs/LogicalTime"}
+        }}
+      ]
+    },
+    "RGrantDemand": {
+      "allOf": [
+        {"$ref": "#/$defs/RCommandBase"},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "schema_version", "profile_digest", "dataflow_version", "batches"], "properties": {
+          "kind": {"const": "RGrantDemand"}, "schema_version": {"const": "flrh-r-command/1"}, "profile_digest": {"$ref": "#/$defs/Digest"}, "dataflow_version": {"$ref": "#/$defs/Version"},
+          "batches": {"type": "integer", "minimum": 1, "maximum": 1024}
+        }}
+      ]
+    },
+    "RCommand": {"oneOf": [{"$ref": "#/$defs/RApplyDeltaBatch"}, {"$ref": "#/$defs/RAdvanceFrontier"}, {"$ref": "#/$defs/RGrantDemand"}]},
+    "RSourceFrontier": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "source_id", "low_watermark"],
+      "properties": {"kind": {"const": "RSourceFrontier"}, "source_id": {"$ref": "#/$defs/Id"}, "low_watermark": {"$ref": "#/$defs/NullableLogicalTime"}}
+    },
+    "RStoredValue": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "delivery_id", "source_id", "logical_time", "value_kind", "value_digest", "value"],
+      "properties": {
+        "kind": {"const": "RStoredValue"}, "delivery_id": {"$ref": "#/$defs/Id"}, "source_id": {"$ref": "#/$defs/Id"}, "logical_time": {"$ref": "#/$defs/LogicalTime"}, "value_kind": {"enum": ["effect_proposal", "eligibility_verdict"]}, "value_digest": {"$ref": "#/$defs/Digest"},
+        "value": {"oneOf": [{"$ref": "#/$defs/ExactEffectProposal"}, {"$ref": "#/$defs/ExactEligibilityVerdict"}]}
+      },
+      "allOf": [
+        {"if": {"properties": {"value_kind": {"const": "effect_proposal"}}}, "then": {"properties": {"value": {"$ref": "#/$defs/ExactEffectProposal"}}}},
+        {"if": {"properties": {"value_kind": {"const": "eligibility_verdict"}}}, "then": {"properties": {"value": {"$ref": "#/$defs/ExactEligibilityVerdict"}}}}
+      ]
+    },
+    "ROpenEpoch": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "logical_time", "values"],
+      "properties": {"kind": {"const": "ROpenEpoch"}, "logical_time": {"$ref": "#/$defs/LogicalTime"}, "values": {"type": "array", "maxItems": 10000, "uniqueItems": true, "items": {"$ref": "#/$defs/RStoredValue"}}}
+    },
+    "RPublishedBatch": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "batch", "effect_proposals", "eligibility_verdicts", "published_batch_digest"],
+      "properties": {
+        "kind": {"const": "RPublishedBatch"}, "batch": {"$ref": "#/$defs/ExactStableProposalBatch"},
+        "effect_proposals": {"type": "array", "minItems": 1, "maxItems": 10000, "uniqueItems": true, "items": {"$ref": "#/$defs/ExactEffectProposal"}},
+        "eligibility_verdicts": {"type": "array", "minItems": 1, "maxItems": 10000, "uniqueItems": true, "items": {"$ref": "#/$defs/ExactEligibilityVerdict"}},
+        "published_batch_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "RReactiveState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_id", "profile_digest", "dataflow_version", "canonicalization_version", "source_frontiers", "global_low_watermark", "outstanding_demand", "open_epochs", "ready_batches", "state_digest"],
+      "properties": {
+        "kind": {"const": "RReactiveState"}, "schema_version": {"const": "flrh-r-state/1"}, "contract_version": {"const": "flrh-r-kernel/1"}, "profile_id": {"const": "flrh-r-scalar-frontier/1"},
+        "profile_digest": {"$ref": "#/$defs/Digest"}, "dataflow_version": {"$ref": "#/$defs/Version"}, "canonicalization_version": {"const": "flrh-cjson/1"},
+        "source_frontiers": {"type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/RSourceFrontier"}},
+        "global_low_watermark": {"$ref": "#/$defs/NullableLogicalTime"}, "outstanding_demand": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "open_epochs": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/ROpenEpoch"}},
+        "ready_batches": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/RPublishedBatch"}},
+        "state_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "RBackpressure": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "open_epoch_count", "active_value_count", "ready_batch_count", "outstanding_demand", "limits"],
+      "properties": {"kind": {"const": "RBackpressure"}, "open_epoch_count": {"type": "integer", "minimum": 0}, "active_value_count": {"type": "integer", "minimum": 0}, "ready_batch_count": {"type": "integer", "minimum": 0}, "outstanding_demand": {"type": "integer", "minimum": 0}, "limits": {"$ref": "#/$defs/RLimits"}}
+    },
+    "RStats": {
+      "type": "object", "additionalProperties": false,
+      "required": ["accepted_delta_count", "retracted_delta_count", "stabilized_epoch_count", "published_batch_count"],
+      "properties": {"accepted_delta_count": {"type": "integer", "minimum": 0}, "retracted_delta_count": {"type": "integer", "minimum": 0}, "stabilized_epoch_count": {"type": "integer", "minimum": 0}, "published_batch_count": {"type": "integer", "minimum": 0}}
+    },
+    "RTransition": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "profile_digest", "prior_state_digest", "command_digest", "next_state", "published_batches", "backpressure", "stats", "transition_digest"],
+      "properties": {
+        "kind": {"const": "RTransition"}, "schema_version": {"const": "flrh-r-result/1"}, "contract_version": {"const": "flrh-r-kernel/1"}, "profile_digest": {"$ref": "#/$defs/Digest"}, "prior_state_digest": {"$ref": "#/$defs/Digest"}, "command_digest": {"$ref": "#/$defs/Digest"},
+        "next_state": {"$ref": "#/$defs/RReactiveState"}, "published_batches": {"type": "array", "maxItems": 1024, "uniqueItems": true, "items": {"$ref": "#/$defs/RPublishedBatch"}}, "backpressure": {"$ref": "#/$defs/RBackpressure"}, "stats": {"$ref": "#/$defs/RStats"}, "transition_digest": {"$ref": "#/$defs/Digest"}
+      }
+    },
+    "RejectionCode": {"enum": ["MALFORMED_REACTIVE_STATE", "MALFORMED_DATAFLOW_PROFILE", "MALFORMED_COMMAND", "MALFORMED_VALUE_DELTA", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_PROFILE", "UNSUPPORTED_STATE_SCHEMA", "UNSUPPORTED_PROFILE_SCHEMA", "UNSUPPORTED_COMMAND_SCHEMA", "UNSUPPORTED_VALUE_DELTA_SCHEMA", "UNSUPPORTED_CANONICALIZATION", "PROFILE_MISMATCH", "DATAFLOW_VERSION_MISMATCH", "RULE_SET_VERSION_MISMATCH", "UNKNOWN_FRONTIER_SOURCE", "FRONTIER_REGRESSION", "LATE_DELTA", "AMBIGUOUS_DELTA_BATCH", "UNKNOWN_DELIVERY", "VALUE_IDENTITY_CONFLICT", "UNRESOLVED_DEPENDENCY", "INPUT_LIMIT_EXCEEDED", "QUEUE_CAPACITY_EXCEEDED", "DEMAND_LIMIT_EXCEEDED", "INVARIANT_VIOLATION"]},
+    "RRejectionContext": {
+      "type": "object", "additionalProperties": false, "maxProperties": 8,
+      "properties": {
+        "expected": {"oneOf": [{"type": "string"}, {"type": "integer"}, {"type": "null"}]}, "actual": {"oneOf": [{"type": "string"}, {"type": "integer"}, {"type": "null"}]},
+        "source_id": {"$ref": "#/$defs/Id"}, "delivery_id": {"$ref": "#/$defs/Id"}, "value_kind": {"enum": ["effect_proposal", "eligibility_verdict"]}, "limit": {"type": "integer", "minimum": 0}, "observed": {"type": "integer", "minimum": 0}, "reason": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
+    "RRejection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "contract_version", "code", "path", "logical_time", "profile_digest", "context"],
+      "properties": {"kind": {"const": "RRejection"}, "schema_version": {"const": "flrh-r-result/1"}, "contract_version": {"const": "flrh-r-kernel/1"}, "code": {"$ref": "#/$defs/RejectionCode"}, "path": {"type": "string", "pattern": "^(|(/([^~/]|~[01])*)+)$"}, "logical_time": {"$ref": "#/$defs/NullableLogicalTime"}, "profile_digest": {"oneOf": [{"$ref": "#/$defs/Digest"}, {"type": "null"}]}, "context": {"$ref": "#/$defs/RRejectionContext"}}
+    }
+  }
+}

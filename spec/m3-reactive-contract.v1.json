@@ -1,0 +1,96 @@
+{
+  "schema_version": "m3-reactive-contract/v1",
+  "status": "MEASURED_REFERENCE_CONFORMANCE",
+  "purpose": "Specify one deterministic scalar-frontier R kernel that stabilizes supplied proposal and eligibility-verdict values into bounded epoch-atomic batches without interpreting eligibility or exercising authority.",
+  "public_api": "step_r(prior_state, profile, command) -> RTransition | RRejection",
+  "supported_profile": {
+    "contract": "flrh-r-kernel/1",
+    "profile_id": "flrh-r-scalar-frontier/1",
+    "profile_schema": "flrh-r-profile/1",
+    "state_schema": "flrh-r-state/1",
+    "command_schema": "flrh-r-command/1",
+    "value_delta_schema": "flrh-r-value-delta/1",
+    "result_schema": "flrh-r-result/1",
+    "canonicalization": "flrh-cjson/1"
+  },
+  "owned_mechanism": [
+    "Apply explicit signed RValueDelta batches, monotonically advance declared per-source scalar frontiers, and grant whole-batch demand through one pure transition API.",
+    "Compute global_low_watermark as the minimum declared-source low watermark only after every source has a value, and stabilize an epoch only when global_low_watermark is strictly greater than that epoch.",
+    "Form deterministic epoch-atomic RPublishedBatch wrappers around exact protocol StableProposalBatch, EffectProposal, and EligibilityVerdict values.",
+    "Bound active values, open epochs, ready batches, command delta count, and demand; reject the new command atomically on overflow without changing prior state."
+  ],
+  "excluded_policy_and_authority": [
+    "Eligibility correctness, rule evaluation, status selection, support validity, risk assessment, approval, capability, EffectIntent creation, dispatch, execution, retry, compensation, reconciliation, and receipts",
+    "Direct inference from M2 LFixpointResult or derived FactDelta into EligibilityVerdict; M1 and M2 artifacts are pinned seam provenance only",
+    "Lifetime or cross-epoch deduplication of nested proposal_id and verdict_id values; this slice validates identity uniqueness only inside each stabilizing epoch, while persistent idempotency and reconciliation remain ingress/H concerns",
+    "Persistence, clocks, randomness, network, filesystem, credentials, adapters, registries, plugins, models, and tools",
+    "Irreversible-effect safety, exactly-once effects, crash recovery, durable delivery, integrated F/L/R/H behavior, production readiness, comparative efficacy, and engine promotion"
+  ],
+  "frontier_and_publication_invariants": [
+    "source_ids is a non-empty canonical set and source_frontiers contains exactly one entry for every declared source_id and no others.",
+    "A source low watermark starts null, thereafter advances monotonically, and a regression is FRONTIER_REGRESSION.",
+    "Every RValueDelta and RStoredValue names one declared source_id; an unknown source rejects as UNKNOWN_FRONTIER_SOURCE before mutation, and a source watermark is caller-asserted progress for that exact source rather than upstream-truth evidence verified by M3.",
+    "global_low_watermark is null until every declared source is non-null; otherwise it equals their minimum exactly.",
+    "An epoch becomes stable only when global_low_watermark is strictly greater than logical_time; equality never stabilizes or publishes it.",
+    "A delta whose logical_time is less than the current non-null low_watermark of its named source_id is LATE_DELTA under the sole supported reject policy; global_low_watermark is the stabilization boundary, not the per-source late-event boundary.",
+    "Every stabilized epoch becomes exactly one ready batch; all values at that epoch move atomically and no partial epoch is exposed.",
+    "Demand counts whole batches. Ready batches publish in ascending logical_time then canonical batch bytes, up to outstanding demand, and unused demand remains outstanding.",
+    "RPublishedBatch embeds exact supplied EffectProposal and EligibilityVerdict values whose identity sets equal the nested StableProposalBatch proposal_ids and eligibility_verdict_ids respectively."
+  ],
+  "value_and_version_invariants": [
+    "RValueDelta.value is an exact protocol EffectProposal or EligibilityVerdict selected by value_kind and is never rewritten, enriched, or semantically interpreted.",
+    "value_digest binds only the exact nested value and value_kind. delivery_id is delivery:<64-hex> derived from source_id, logical_time, dataflow_version, value_kind, and value_digest; an exact repeated +1 is idempotent only while logical_time is not behind its named source watermark, and the same delivery_id with different stable bytes is VALUE_IDENTITY_CONFLICT.",
+    "A -1 must reproduce and target one active delivery exactly; an unknown or repeated -1 is UNKNOWN_DELIVERY.",
+    "Mixed +1 and -1 for one delivery_id, or more than one -1 for it in one RApplyDeltaBatch, atomically rejects as AMBIGUOUS_DELTA_BATCH; only exact duplicate +1 collapses.",
+    "An open epoch may temporarily contain only one side of a proposal-verdict relation. At stabilization, its active values must form a total bijection by proposal_id: exactly one active proposal record exists per proposal_id, exactly one active verdict record exists per verdict_id and proposal_id, every proposal has one verdict, and every verdict maps to one proposal in that epoch. Distinct delivery IDs within the epoch cannot duplicate a nested protocol identity; orphan, missing, or duplicate relations are UNRESOLVED_DEPENDENCY.",
+    "For every paired value, EligibilityVerdict.rule_set_version equals EffectProposal.versions.rule_set; a mismatch is RULE_SET_VERSION_MISMATCH. This is a version binding check, not validation of eligibility reasoning.",
+    "R transports eligible, ineligible, and conflicted verdicts identically and does not validate whether status or support_derivation_ids is correct.",
+    "Profile, state, command, every delta, every nested EffectProposal VersionEnvelope.dataflow, every StableProposalBatch, and next state bind the exact dataflow_version.",
+    "Contract, profile, state, command, value-delta, result, and canonicalization versions are exact; there is no ambient registry fallback or upcast."
+  ],
+  "queue_and_failure_invariants": [
+    "Caller-declared positive limits may be smaller than the contract ceilings and must be honored exactly before returning an accepted transition. max_ready_batches bounds the retained next-state ready queue after pre-existing demand is satisfied; an ephemeral stabilization candidate published in the same pure step does not occupy that queue. max_active_values already bounds values across all epochs, so this profile deliberately adds no redundant per-epoch value limit.",
+    "overflow_policy is only reject_new: a command whose accepted next state would exceed a state bound is QUEUE_CAPACITY_EXCEEDED and returns no partial state, batch, or demand change.",
+    "RGrantDemand.batches must not exceed the profile command limit; violation is DEMAND_LIMIT_EXCEEDED and demand addition itself is overflow checked.",
+    "Every accepted transition returns a fresh complete next_state plus closed backpressure counts and limits; inputs remain byte-for-byte unchanged.",
+    "Every rejection uses the closed code, JSON Pointer path, nullable logical_time, nullable trusted profile_digest, and closed context vocabulary, returns no next state, and leaks no stack or ambient data."
+  ],
+  "canonical_preimages": {
+    "profile": ["kind:M3ProfilePreimage", "contract_version", "profile_id", "dataflow_version", "canonicalization_version", "ordered_source_ids", "late_event_policy", "overflow_policy", "limits"],
+    "value": ["kind:M3ValuePreimage", "contract_version", "value_kind", "value"],
+    "delivery": ["kind:M3DeliveryPreimage", "contract_version", "source_id", "logical_time", "dataflow_version", "value_kind", "value_digest"],
+    "command": ["kind:M3CommandPreimage", "contract_version", "command_kind", "profile_digest", "dataflow_version", "ordered_value_delta_digests_or_exact_frontier_or_demand_fields"],
+    "stable_batch": ["kind:M3StableBatchPreimage", "contract_version", "profile_digest", "logical_time", "low_watermark", "ordered_proposal_ids", "ordered_eligibility_verdict_ids", "dataflow_version"],
+    "published_batch": ["kind:M3PublishedBatchPreimage", "contract_version", "batch", "ordered_effect_proposals", "ordered_eligibility_verdicts"],
+    "state": ["kind:M3StatePreimage", "contract_version", "state_without_state_digest"],
+    "transition": ["kind:M3TransitionPreimage", "contract_version", "transition_without_transition_digest"]
+  },
+  "identity_and_digest_rules": [
+    "Every sha256 field is lowercase sha256:<64-hex> over flrh-cjson/1 canonical bytes of its named preimage.",
+    "delivery_id is exactly delivery:<64-hex of the delivery preimage>; callers cannot choose an unrelated opaque identity.",
+    "After complete validation, an RApplyDeltaBatch is normalized as a canonical-byte-sorted set of value-delta digests with exact duplicate +1 entries collapsed; command_digest and every downstream digest are invariant to caller array permutation. Frontier and demand commands bind their exact scalar fields.",
+    "All profile, frontier, epoch, stored-value, ready-batch, output-batch, proposal, verdict, and digest collections are canonical-byte-sorted sets in accepted and emitted forms.",
+    "batch_id is batch:<64-hex of the stable-batch preimage>, batch_digest is its sha256 form, and cause_id is reaction:<the same 64-hex>.",
+    "published_batch_digest, profile_digest, command_digest, state_digest, and transition_digest bind exactly their declared complete projections.",
+    "Canonicalization rejects floats, non-string object keys, invalid Unicode, non-NFC strings, duplicate set members, and integers outside signed 64-bit before hashing."
+  ],
+  "limits": {
+    "max_deltas_per_command_ceiling": 10000,
+    "max_active_values_ceiling": 10000,
+    "max_open_epochs_ceiling": 1024,
+    "max_ready_batches_ceiling": 1024,
+    "max_demand_per_command_ceiling": 1024,
+    "max_outstanding_demand_ceiling": 10000
+  },
+  "rejection_codes": [
+    "MALFORMED_REACTIVE_STATE", "MALFORMED_DATAFLOW_PROFILE", "MALFORMED_COMMAND", "MALFORMED_VALUE_DELTA", "CANONICALIZATION_VIOLATION", "UNSUPPORTED_CONTRACT_VERSION", "UNSUPPORTED_PROFILE", "UNSUPPORTED_STATE_SCHEMA", "UNSUPPORTED_PROFILE_SCHEMA", "UNSUPPORTED_COMMAND_SCHEMA", "UNSUPPORTED_VALUE_DELTA_SCHEMA", "UNSUPPORTED_CANONICALIZATION", "PROFILE_MISMATCH", "DATAFLOW_VERSION_MISMATCH", "RULE_SET_VERSION_MISMATCH", "UNKNOWN_FRONTIER_SOURCE", "FRONTIER_REGRESSION", "LATE_DELTA", "AMBIGUOUS_DELTA_BATCH", "UNKNOWN_DELIVERY", "VALUE_IDENTITY_CONFLICT", "UNRESOLVED_DEPENDENCY", "INPUT_LIMIT_EXCEEDED", "QUEUE_CAPACITY_EXCEEDED", "DEMAND_LIMIT_EXCEEDED", "INVARIANT_VIOLATION"
+  ],
+  "completion_gate": [
+    "Contract, manifest, schemas, fixture corpus, every success and rejection oracle, and exact inherited dependency digest validate under Draft 2020-12 with format checking.",
+    "Reactive tests 10 through 15 cover signed insertion/retraction/idempotence, permutation determinism, per-source global minimum, strict greater-than stabilization, late rejection, epoch atomicity, batch demand, bounded reject-new backpressure, and deterministic tie breaking.",
+    "Every frozen sequence equals an independently implemented evaluator oracle after excluding only declared numeric stats, and two clean processes with distinct hash seed, timezone, cwd, and ambient environment reproduce exact canonical results.",
+    "Guarded non-empty kernel paths record no caller mutation or ambient clock, randomness, filesystem, network, subprocess, credential, environment, model, tool, or effect access.",
+    "Mutation tests must catch non-strict frontier publication, max instead of min frontier, partial-epoch publication, item rather than batch demand, accept/drop overflow, late acceptance, eligibility-status interpretation, nested-value rewriting, version drift, and authority-shaped output."
+  ],
+  "completion_boundary": "Passing M3 measures only the declared Python scalar-frontier R reference slice, frozen supplied-value corpus, deterministic canonical identities, bounded in-memory queues, batch demand, independent evaluator oracle, guarded surfaces, and tested environments. It does not validate eligibility correctness, direct M2 integration, persistent or distributed streaming, irreversible-effect safety, durability, H authority or effects, production readiness, comparative efficacy, engine promotion, or Lakatos progress."
+}
