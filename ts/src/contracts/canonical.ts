@@ -6,9 +6,11 @@
 
 import { JsonFloat, type JsonObject, type JsonValue } from "./json-value";
 import { sha256Hex } from "./sha256";
+import { isAssignedAt15_1 } from "./unicode-15-1-assigned";
 
 export const INT64_MIN = -(2n ** 63n);
 export const INT64_MAX = 2n ** 63n - 1n;
+export const MAX_NESTING_DEPTH = 128;
 
 export const CANONICAL_ALGORITHM = "flrh-cjson";
 export const CANONICAL_ALGORITHM_VERSION = "1";
@@ -55,6 +57,36 @@ const hasLoneSurrogate = (value: string): boolean => {
     }
   }
   return false;
+};
+
+/**
+ * NFC per the Unicode 15.1.0 pin (spec/canonicalization-clarifications.v1.json).
+ * Fast path: if the runtime tables say the string is NFC-stable, the pinned
+ * tables agree (normalization stability — assigned-character behavior never
+ * changes, and 15.1 transformations are a subset of newer-table ones). Slow
+ * path: codepoints unassigned at 15.1 are normalization-inert starters, so
+ * they act as barriers; the string is pin-NFC iff every segment between
+ * barriers is runtime-NFC-stable.
+ */
+const isNfcPerPin = (value: string): boolean => {
+  if (value.normalize("NFC") === value) {
+    return true;
+  }
+  let segment = "";
+  let sawBarrier = false;
+  for (const character of value) {
+    const codePoint = character.codePointAt(0) as number;
+    if (!isAssignedAt15_1(codePoint)) {
+      sawBarrier = true;
+      if (segment.normalize("NFC") !== segment) {
+        return false;
+      }
+      segment = "";
+    } else {
+      segment += character;
+    }
+  }
+  return sawBarrier && segment.normalize("NFC") === segment;
 };
 
 const isAscii = (value: string): boolean => {
@@ -121,7 +153,12 @@ const serialize = (value: JsonValue): string => {
   throw new CanonicalizationError("UNSUPPORTED_JSON_TYPE", "");
 };
 
-const normalize = (value: JsonValue, path: string, setLikePaths: ReadonlySet<string>): JsonValue => {
+const normalize = (
+  value: JsonValue,
+  path: string,
+  setLikePaths: ReadonlySet<string>,
+  depth = 0,
+): JsonValue => {
   if (value === null || typeof value === "boolean") {
     return value;
   }
@@ -138,13 +175,18 @@ const normalize = (value: JsonValue, path: string, setLikePaths: ReadonlySet<str
     if (hasLoneSurrogate(value)) {
       throw new CanonicalizationError("NON_UNICODE_SCALAR", path);
     }
-    if (value.normalize("NFC") !== value) {
+    if (!isNfcPerPin(value)) {
       throw new CanonicalizationError("NON_NFC_STRING", path);
     }
     return value;
   }
   if (Array.isArray(value)) {
-    let items = value.map((item, index) => normalize(item, `${path}/${index}`, setLikePaths));
+    if (depth >= MAX_NESTING_DEPTH) {
+      throw new CanonicalizationError("NESTING_DEPTH_EXCEEDED", path);
+    }
+    let items = value.map((item, index) =>
+      normalize(item, `${path}/${index}`, setLikePaths, depth + 1),
+    );
     if (setLikePaths.has(path)) {
       const encoded = items.map((item) => encoder.encode(serialize(item)));
       const texts = encoded.map((bytes) => bytes.join(","));
@@ -159,6 +201,9 @@ const normalize = (value: JsonValue, path: string, setLikePaths: ReadonlySet<str
     return items;
   }
   if (value instanceof Map) {
+    if (depth >= MAX_NESTING_DEPTH) {
+      throw new CanonicalizationError("NESTING_DEPTH_EXCEEDED", path);
+    }
     const normalized: JsonObject = new Map();
     for (const [key, item] of value) {
       if (typeof key !== "string") {
@@ -173,7 +218,7 @@ const normalize = (value: JsonValue, path: string, setLikePaths: ReadonlySet<str
       if (normalized.has(key)) {
         throw new CanonicalizationError("DUPLICATE_OBJECT_KEY", childPath(path, key));
       }
-      normalized.set(key, normalize(item, childPath(path, key), setLikePaths));
+      normalized.set(key, normalize(item, childPath(path, key), setLikePaths, depth + 1));
     }
     const sorted: JsonObject = new Map();
     for (const key of [...normalized.keys()].sort(compareCodePoints)) {

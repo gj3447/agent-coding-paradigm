@@ -181,6 +181,18 @@ describe("m1 equivalence pairs", () => {
   }
 });
 
+/** JSON Pointer over wire values (Maps/arrays), mirroring validate_m1._at_pointer. */
+const atPointer = (value: JsonValue, pointer: string): JsonValue => {
+  let current: JsonValue = value;
+  for (const rawToken of pointer.split("/").slice(1)) {
+    const token = rawToken.replaceAll("~1", "/").replaceAll("~0", "~");
+    current = Array.isArray(current)
+      ? (current[Number.parseInt(token, 10)] as JsonValue)
+      : (asObj(current, pointer).get(token) as JsonValue);
+  }
+  return current;
+};
+
 describe("m1 sensitivity mutations", () => {
   for (const caseValue of asArr(corpus.get("sensitivity_mutations"), "sensitivity_mutations")) {
     const sensitivityCase = asObj(caseValue, "case");
@@ -197,6 +209,14 @@ describe("m1 sensitivity mutations", () => {
         expect(relation, id).toBe("different_transition");
         expect(mutated.get("kind"), id).toBe("FTransition");
         expect(mutated.get("transition_digest"), id).not.toBe(base.get("transition_digest"));
+        for (const pointer of (sensitivityCase.get("identity_paths") as JsonValue[] | undefined) ??
+          []) {
+          const where = pointer as string;
+          expect(
+            Buffer.from(canonicalBytes(atPointer(base, where) ?? null)).toString("utf-8"),
+            `${id}: identity collision at ${where}`,
+          ).not.toBe(Buffer.from(canonicalBytes(atPointer(mutated, where) ?? null)).toString("utf-8"));
+        }
       }
     });
   }

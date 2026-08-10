@@ -22,6 +22,7 @@ const FRAGMENT_TO_CODE: Record<string, string> = {
   NFC: "NON_NFC_STRING",
   int64: "INTEGER_OUTSIDE_INT64",
   "duplicate set-like": "DUPLICATE_SET_ELEMENT",
+  "nesting depth": "NESTING_DEPTH_EXCEEDED",
 };
 
 describe("m0 canonical fixtures", () => {
