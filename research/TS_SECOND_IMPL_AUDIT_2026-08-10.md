@@ -78,8 +78,10 @@ protocol they need a failing fixture + revalidation, not a silent patch.
 - Rejection envelope fields `event_id`/`snapshot_revision` are pinned exactly
   by only one byte golden; other rejection cases pin code/path/context plus
   schema shape.
-- One reviewer claim was checked and rejected: `sensitivity_mutations[]` in
-  the frozen corpus carries no `identity_paths` field.
+- Correction (same day): the reviewer's `identity_paths` claim was initially
+  rejected after inspecting only `sensitivity_mutations[0]`; four of the seven
+  cases do carry `identity_paths` (consumed by tests/test_m1_kernel.py). The
+  TS suite now consumes them too.
 
 ## Non-claims
 
