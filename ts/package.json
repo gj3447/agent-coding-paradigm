@@ -1,0 +1,30 @@
+{
+  "name": "flrh-ts",
+  "private": true,
+  "version": "0.0.0",
+  "description": "TypeScript second implementation of the FLR-H reference (M6 track). Python reference + fixtures are the conformance oracle.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "node node_modules/typescript7/bin/tsc --noEmit",
+    "typecheck:ts6": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "check:arch": "depcruise \"src/**/*.ts\" --config .dependency-cruiser.cjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm check:arch",
+    "test:conformance": "vitest run tests/conformance",
+    "test:unit": "vitest run tests/examples",
+    "test:prop": "vitest run tests/properties",
+    "test:integration": "vitest run tests/integration",
+    "verify": "pnpm check && pnpm test:unit && pnpm test:prop && pnpm test:conformance && pnpm test:integration"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "ajv": "^8.17.0",
+    "dependency-cruiser": "^18.1.1",
+    "eslint": "^9.0.0",
+    "fast-check": "^4.0.0",
+    "typescript": "^6.0.3",
+    "typescript7": "npm:typescript@7.0.2",
+    "vitest": "^3.0.0"
+  }
+}
