@@ -1,0 +1,33 @@
+name: ts-conformance
+
+on:
+  push:
+    paths:
+      - "ts/**"
+      - "fixtures/**"
+      - "spec/**"
+      - ".github/workflows/ts-conformance.yml"
+  pull_request:
+    paths:
+      - "ts/**"
+      - "fixtures/**"
+      - "spec/**"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: ts/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
