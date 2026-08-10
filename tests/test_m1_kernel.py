@@ -30,7 +30,7 @@ class M1KernelTests(unittest.TestCase):
         self.assertEqual(counts["m1_schemas"], 4)
         self.assertEqual(counts["m1_bindings"], 3)
         canonical = M1.validate_canonical_oracle()
-        self.assertEqual(canonical["m1_canonical_reject"], 4)
+        self.assertEqual(canonical["m1_canonical_reject"], 5)
         self.assertEqual(M1.validate_result_goldens()["m1_exact_result_goldens"], 2)
 
     def test_package_root_exposes_only_the_transition_waist(self) -> None:
@@ -59,7 +59,7 @@ class M1KernelTests(unittest.TestCase):
         counts = M1.validate_cases()
         self.assertEqual(counts["m1_success_cases"], 7)
         self.assertEqual(counts["m1_success_input_schema_checks"], 7)
-        self.assertEqual(counts["m1_rejection_cases"], 19)
+        self.assertEqual(counts["m1_rejection_cases"], 22)
         self.assertEqual(counts["m1_equivalence_pairs"], 1)
         self.assertEqual(counts["m1_sensitivity_mutations"], 7)
 
@@ -67,7 +67,7 @@ class M1KernelTests(unittest.TestCase):
         replay = M1.validate_replay_sequences()
         self.assertEqual(replay["m1_replay_steps"], 2)
         processes = M1.validate_clean_process_replay()
-        self.assertEqual(processes["m1_clean_process_comparisons"], 27)
+        self.assertEqual(processes["m1_clean_process_comparisons"], 30)
         self.assertEqual(processes["m1_byte_mismatches"], 0)
 
     def test_nested_aliases_do_not_survive_the_boundary(self) -> None:

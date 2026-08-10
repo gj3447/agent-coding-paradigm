@@ -1,0 +1,18 @@
+{
+  "schema_version": "canonicalization-clarifications/v1",
+  "clarifies": "spec/canonicalization.v1.json",
+  "algorithm": "flrh-cjson",
+  "algorithm_version": "1",
+  "status": "MEASURED_LOCAL_FIXTURE_CONFORMANCE",
+  "purpose": "Close underspecified corners of flrh-cjson/1 without altering any byte or verdict the base profile already defines: pin the Unicode tables behind NFC verdicts, bound container nesting, and define set-like selection for non-string root kinds.",
+  "unicode": {
+    "unicode_version": "15.1.0",
+    "unassigned_codepoints": "Codepoints unassigned in the pinned Unicode version are normalization-inert starters (ccc=0, no decomposition, no composition). Implementations whose runtime tables are newer than the pin MUST apply this barrier rule so NFC verdicts equal the pinned tables; by Unicode normalization stability, verdicts for codepoints assigned at the pin are version-independent."
+  },
+  "limits": {
+    "max_nesting_depth": 128,
+    "note": "Total container nesting depth (root container = depth 0); a container at depth >= max_nesting_depth is rejected (kernel code NESTING_DEPTH_EXCEEDED, independent-oracle prose 'nesting depth'). Pinned so implementations with different stack limits agree instead of crashing at implementation-defined depths."
+  },
+  "root_kind": "Set-like paths are selected only when the root value is an object whose \"kind\" member is a string; any other \"kind\" value selects no set-like paths and must not crash the canonicalizer. Kernel-layer key/type validation then rejects non-string kinds in-band.",
+  "non_claims": "These clarifications define verdicts only for inputs on which implementations previously crashed or diverged (unassigned-codepoint NFC skew, unbounded nesting, non-string root kind); every byte and verdict previously defined by flrh-cjson/1 is unchanged, so frozen digests and receipts remain valid."
+}

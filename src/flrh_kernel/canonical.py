@@ -14,6 +14,7 @@ from typing import Any, Dict, Set
 
 INT64_MIN = -(2**63)
 INT64_MAX = 2**63 - 1
+MAX_NESTING_DEPTH = 128
 
 SET_LIKE_PATHS_BY_KIND = {
     "EffectProposal": {"/preconditions"},
@@ -40,7 +41,7 @@ def _child(path: str, key: str) -> str:
     return f"{path}/{escaped}"
 
 
-def _normalize(value: Any, path: str, set_like_paths: Set[str]) -> Any:
+def _normalize(value: Any, path: str, set_like_paths: Set[str], depth: int = 0) -> Any:
     if value is None or isinstance(value, bool):
         return value
     if isinstance(value, int):
@@ -56,7 +57,12 @@ def _normalize(value: Any, path: str, set_like_paths: Set[str]) -> Any:
             raise CanonicalizationError("NON_NFC_STRING", path)
         return value
     if isinstance(value, list):
-        items = [_normalize(item, f"{path}/{index}", set_like_paths) for index, item in enumerate(value)]
+        if depth >= MAX_NESTING_DEPTH:
+            raise CanonicalizationError("NESTING_DEPTH_EXCEEDED", path)
+        items = [
+            _normalize(item, f"{path}/{index}", set_like_paths, depth + 1)
+            for index, item in enumerate(value)
+        ]
         if path in set_like_paths:
             encoded = [
                 json.dumps(item, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -67,6 +73,8 @@ def _normalize(value: Any, path: str, set_like_paths: Set[str]) -> Any:
             items = [item for _, item in sorted(zip(encoded, items), key=lambda pair: pair[0])]
         return items
     if isinstance(value, dict):
+        if depth >= MAX_NESTING_DEPTH:
+            raise CanonicalizationError("NESTING_DEPTH_EXCEEDED", path)
         normalized: Dict[str, Any] = {}
         for key, item in value.items():
             if not isinstance(key, str):
@@ -77,7 +85,7 @@ def _normalize(value: Any, path: str, set_like_paths: Set[str]) -> Any:
                 raise CanonicalizationError("NON_NFC_OBJECT_KEY", _child(path, key))
             if key in normalized:
                 raise CanonicalizationError("DUPLICATE_OBJECT_KEY", _child(path, key))
-            normalized[key] = _normalize(item, _child(path, key), set_like_paths)
+            normalized[key] = _normalize(item, _child(path, key), set_like_paths, depth + 1)
         return {key: normalized[key] for key in sorted(normalized)}
     raise CanonicalizationError("UNSUPPORTED_JSON_TYPE", path)
 
@@ -86,7 +94,9 @@ def canonical_bytes(value: Any) -> bytes:
     """Return ``flrh-cjson/1`` bytes or raise ``CanonicalizationError``."""
 
     root_kind = value.get("kind") if isinstance(value, dict) else None
-    set_like_paths = SET_LIKE_PATHS_BY_KIND.get(root_kind, set())
+    set_like_paths = (
+        SET_LIKE_PATHS_BY_KIND.get(root_kind, set()) if isinstance(root_kind, str) else set()
+    )
     normalized = _normalize(value, "", set_like_paths)
     return json.dumps(
         normalized,

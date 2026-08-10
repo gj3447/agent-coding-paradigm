@@ -15,7 +15,7 @@ SPEC.loader.exec_module(M0)
 class M0ContractTests(unittest.TestCase):
     def test_schemas_and_protocol_mutations(self) -> None:
         counts = M0.validate_schemas_and_fixtures()
-        self.assertEqual(counts["schemas"], 9)
+        self.assertEqual(counts["schemas"], 10)
         self.assertEqual(counts["valid_protocol"], 10)
         self.assertEqual(counts["invalid_protocol"], 13)
 
@@ -27,7 +27,7 @@ class M0ContractTests(unittest.TestCase):
     def test_canonical_golden_cases(self) -> None:
         counts = M0.validate_canonicalization()
         self.assertEqual(counts["canonical_different"], 2)
-        self.assertEqual(counts["canonical_reject"], 4)
+        self.assertEqual(counts["canonical_reject"], 5)
 
     def test_fsm_and_trace_coverage(self) -> None:
         counts = M0.validate_fsm()
@@ -44,8 +44,8 @@ class M0ContractTests(unittest.TestCase):
 
     def test_manifest_closes_only_m0(self) -> None:
         counts = M0.validate_manifest()
-        self.assertEqual(counts["manifest_contracts"], 8)
-        self.assertEqual(counts["manifest_schemas"], 9)
+        self.assertEqual(counts["manifest_contracts"], 9)
+        self.assertEqual(counts["manifest_schemas"], 10)
         self.assertEqual(counts["manifest_fixtures"], 5)
         self.assertEqual(counts["manifest_tools"], 2)
 

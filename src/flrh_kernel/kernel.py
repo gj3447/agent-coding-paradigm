@@ -263,7 +263,8 @@ def _parse_snapshot(value: Any, event: Any) -> Union[_Snapshot, WireResult]:
         return _reject("MALFORMED_SNAPSHOT", "/snapshot/revision", value, event)
     if not isinstance(count, int) or isinstance(count, bool) or count < 0:
         return _reject("MALFORMED_SNAPSHOT", "/snapshot/observation_count", value, event)
-    if value.get("phase") not in {"open", "closed"}:
+    phase = value.get("phase")
+    if not isinstance(phase, str) or phase not in {"open", "closed"}:
         return _reject("MALFORMED_SNAPSHOT", "/snapshot/phase", value, event)
     last_time = value.get("last_logical_time")
     if last_time is not None and (
@@ -313,7 +314,8 @@ def _parse_effect_request(value: Any, snapshot: Any, event: Any) -> Union[Option
             snapshot,
             event,
         )
-    if value.get("declared_risk_hint") not in RISK_HINTS:
+    declared_risk_hint = value.get("declared_risk_hint")
+    if not isinstance(declared_risk_hint, str) or declared_risk_hint not in RISK_HINTS:
         return _reject(
             "MALFORMED_ACCEPTED_EVENT",
             "/accepted_event/payload/effect_request/declared_risk_hint",

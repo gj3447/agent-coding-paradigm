@@ -20,7 +20,7 @@
   ],
   "inherited_sha256_pins": [
     {"artifact":"spec/m4c-integration-contract.v1.json","sha256":"sha256:aeb06aa24af5b06729d8f54663b46abfb8fd68a858f5b75b695a4af561679efa"},
-    {"artifact":"spec/m4c-manifest.v1.json","sha256":"sha256:35a389a406e069f4e0cc6cb0b82b9a54b2cd9ab96047a608701e161ee7864898"},
+    {"artifact":"spec/m4c-manifest.v1.json","sha256":"sha256:6fb4502f9adad782f4416e8dc1a3cead010308dd9a620b9ca151f0c90b6ccfeb"},
     {"artifact":"spec/schema/m4c-integration-contract.v1.schema.json","sha256":"sha256:0352bf564aa8720cf33be549b6bca65177f6a7555afd6287f7ae75737e6a013d"},
     {"artifact":"spec/schema/m4c-fixtures.v1.schema.json","sha256":"sha256:79a60075d291866e514a8e04846a85e65d795084fe743586ceb3e4c0c6eaa75d"},
     {"artifact":"spec/schema/m4c-manifest.v1.schema.json","sha256":"sha256:2ca72c28ff129b0f53e8f571d0ce33fd629cac23fa7897c848fabd66227d272d"},

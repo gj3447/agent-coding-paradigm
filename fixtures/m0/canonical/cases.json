@@ -16,6 +16,12 @@
         "kind": "GraphDelta"
       },
       "expected_digest": "sha256:b5e649bdc9b75efe46a3707feded39e77a9a570190fd38713cb324752944af5a"
+    },
+    {
+      "id": "nfc-pin-unassigned-codepoint-inert",
+      "left": {"label": "̖ࢗ", "note": "unassigned-at-15.1 codepoint stays inert"},
+      "right": {"note": "unassigned-at-15.1 codepoint stays inert", "label": "̖ࢗ"},
+      "expected_digest": "sha256:1b18c0d482e81a5a646e96656f7823f198ca9c038d40e4f22f4cf0c7db2f4fee"
     }
   ],
   "different_pairs": [
@@ -34,6 +40,7 @@
     {"id": "floating-point", "input": {"metric": 0.5}, "expected": "floating-point"},
     {"id": "non-nfc-string", "input": {"label": "é"}, "expected": "NFC"},
     {"id": "int64-overflow", "input": {"logical_time": 9223372036854775808}, "expected": "int64"},
-    {"id": "duplicate-set-element", "input": {"kind": "GraphDelta", "causal_parent_delta_ids": ["delta:1", "delta:1"]}, "expected": "duplicate set-like"}
+    {"id": "duplicate-set-element", "input": {"kind": "GraphDelta", "causal_parent_delta_ids": ["delta:1", "delta:1"]}, "expected": "duplicate set-like"},
+    {"id": "nesting-depth-limit", "input": {"deep": [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[null]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}, "expected": "nesting depth"}
   ]
 }

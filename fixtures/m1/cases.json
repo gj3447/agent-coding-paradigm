@@ -521,6 +521,30 @@
       "expected_code": "MALFORMED_ACCEPTED_EVENT",
       "expected_path": "/accepted_event/received_at",
       "expected_context": {}
+    },
+    {
+      "id": "container-kind-snapshot",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/snapshot/kind", "value": ["FStateSnapshot"]}],
+      "expected_code": "MALFORMED_SNAPSHOT",
+      "expected_path": "/snapshot/kind",
+      "expected_context": {}
+    },
+    {
+      "id": "container-phase-snapshot",
+      "input_ref": "observe-no-effect",
+      "mutations": [{"op": "replace", "path": "/snapshot/phase", "value": {"state": "open"}}],
+      "expected_code": "MALFORMED_SNAPSHOT",
+      "expected_path": "/snapshot/phase",
+      "expected_context": {}
+    },
+    {
+      "id": "container-risk-hint",
+      "input_ref": "observe-with-effect",
+      "mutations": [{"op": "replace", "path": "/accepted_event/payload/effect_request/declared_risk_hint", "value": ["read_only"]}],
+      "expected_code": "MALFORMED_ACCEPTED_EVENT",
+      "expected_path": "/accepted_event/payload/effect_request/declared_risk_hint",
+      "expected_context": {}
     }
   ],
   "equivalence_pairs": [

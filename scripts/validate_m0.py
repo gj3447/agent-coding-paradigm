@@ -23,6 +23,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 ROOT = Path(__file__).resolve().parents[1]
 INT64_MIN = -(2**63)
 INT64_MAX = 2**63 - 1
+MAX_NESTING_DEPTH = 128
 SET_LIKE_PATHS_BY_KIND = {
     "EffectProposal": {"/preconditions"},
     "EligibilityVerdict": {"/support_derivation_ids"},
@@ -48,7 +49,7 @@ def _pointer_child(path: str, key: str) -> str:
     return f"{path}/{escaped}"
 
 
-def _canonical_value(value: Any, path: str, set_like_paths: set[str]) -> Any:
+def _canonical_value(value: Any, path: str, set_like_paths: set[str], depth: int = 0) -> Any:
     if value is None or isinstance(value, bool):
         return value
     if isinstance(value, int):
@@ -60,7 +61,11 @@ def _canonical_value(value: Any, path: str, set_like_paths: set[str]) -> Any:
         require(unicodedata.normalize("NFC", value) == value, "string is not Unicode NFC")
         return value
     if isinstance(value, list):
-        items = [_canonical_value(item, f"{path}/{index}", set_like_paths) for index, item in enumerate(value)]
+        require(depth < MAX_NESTING_DEPTH, f"nesting depth exceeds flrh-cjson/1 limit of {MAX_NESTING_DEPTH}")
+        items = [
+            _canonical_value(item, f"{path}/{index}", set_like_paths, depth + 1)
+            for index, item in enumerate(value)
+        ]
         if path in set_like_paths:
             encoded = [
                 json.dumps(item, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -70,20 +75,23 @@ def _canonical_value(value: Any, path: str, set_like_paths: set[str]) -> Any:
             return [item for _, item in sorted(zip(encoded, items), key=lambda pair: pair[0])]
         return items
     if isinstance(value, dict):
+        require(depth < MAX_NESTING_DEPTH, f"nesting depth exceeds flrh-cjson/1 limit of {MAX_NESTING_DEPTH}")
         normalized: dict[str, Any] = {}
         for key, item in value.items():
             require(isinstance(key, str), "object key is not a string")
             require(key.isascii(), "normative object key is not ASCII")
             require(unicodedata.normalize("NFC", key) == key, "object key is not Unicode NFC")
             require(key not in normalized, "duplicate object key after normalization")
-            normalized[key] = _canonical_value(item, _pointer_child(path, key), set_like_paths)
+            normalized[key] = _canonical_value(item, _pointer_child(path, key), set_like_paths, depth + 1)
         return {key: normalized[key] for key in sorted(normalized)}
     raise AssertionError(f"unsupported canonical JSON value: {type(value).__name__}")
 
 
 def canonical_bytes(value: Any) -> bytes:
     root_kind = value.get("kind") if isinstance(value, dict) else None
-    set_like_paths = SET_LIKE_PATHS_BY_KIND.get(root_kind, set())
+    set_like_paths = (
+        SET_LIKE_PATHS_BY_KIND.get(root_kind, set()) if isinstance(root_kind, str) else set()
+    )
     normalized = _canonical_value(value, "", set_like_paths)
     return json.dumps(
         normalized,
@@ -292,6 +300,20 @@ def validate_logic() -> dict[str, int]:
 def validate_canonicalization() -> dict[str, int]:
     profile = load_json("spec/canonicalization.v1.json")
     require(profile["algorithm"] == "flrh-cjson" and profile["algorithm_version"] == "1", "wrong canonical profile")
+    clarifications = load_json("spec/canonicalization-clarifications.v1.json")
+    require(
+        clarifications["clarifies"] == "spec/canonicalization.v1.json"
+        and clarifications["algorithm"] == "flrh-cjson"
+        and clarifications["algorithm_version"] == "1",
+        "canonical clarifications do not bind the active profile",
+    )
+    require(clarifications["unicode"]["unicode_version"] == "15.1.0", "canonical Unicode pin drift")
+    require(clarifications["limits"]["max_nesting_depth"] == MAX_NESTING_DEPTH, "canonical nesting-depth pin drift")
+    require(
+        unicodedata.unidata_version.startswith("15."),
+        f"runtime Unicode tables {unicodedata.unidata_version} do not match the 15.1.0 pin; "
+        "apply the unassigned-codepoint barrier rule before upgrading",
+    )
     declared = {kind: set(paths) for kind, paths in profile["set_like_paths_by_kind"].items()}
     require(declared == SET_LIKE_PATHS_BY_KIND, "canonical set-like path map drift")
     cases = load_json("fixtures/m0/canonical/cases.json")

@@ -19,7 +19,7 @@
     {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
     {"artifact": "spec/canonicalization.v1.json", "sha256": "sha256:87b14b371d8572125164326b74d0574a11b00e4f11ba0c117dfe84644d1a7ccc"},
     {"artifact": "src/flrh_kernel/__init__.py", "sha256": "sha256:f79da3595f0ee92e6b2c8133bd909d853efa1e3eb649b17468c87ae307a78cbf"},
-    {"artifact": "src/flrh_kernel/canonical.py", "sha256": "sha256:24f42e4d0d7355ed027fa4b684ca2c7e0a283c98ff51d3669be3f771c77ca602"},
+    {"artifact": "src/flrh_kernel/canonical.py", "sha256": "sha256:c75d4c27a7c355d8b458f27ab63c72b6740e274b1fcf20e7b514648bc532feaf"},
     {"artifact": "spec/m4a-authority-contract.v1.json", "sha256": "sha256:213dbe26bd3e797e02426f995cc970e418537fe56d4c9d5e18e150b46e6248c8"},
     {"artifact": "spec/m4a-manifest.v1.json", "sha256": "sha256:f7c28fe415a7419f5d6d7fd9186ec4aa2aac0ce1a9912347ef768ac953cd29a3"},
     {"artifact": "spec/schema/m4a-authority.v1.schema.json", "sha256": "sha256:7aad6449f33c3feccc10555c857e7c42975808f076df80f1e464c28a1b519090"},

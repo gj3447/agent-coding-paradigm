@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/canonicalization-clarifications.v1.schema.json",
+  "title": "flrh-cjson/1 clarifications",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "clarifies",
+    "algorithm",
+    "algorithm_version",
+    "status",
+    "purpose",
+    "unicode",
+    "limits",
+    "root_kind",
+    "non_claims"
+  ],
+  "properties": {
+    "schema_version": {"const": "canonicalization-clarifications/v1"},
+    "clarifies": {"const": "spec/canonicalization.v1.json"},
+    "algorithm": {"const": "flrh-cjson"},
+    "algorithm_version": {"const": "1"},
+    "status": {"type": "string", "minLength": 1},
+    "purpose": {"$ref": "#/$defs/text"},
+    "unicode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unicode_version", "unassigned_codepoints"],
+      "properties": {
+        "unicode_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "unassigned_codepoints": {"$ref": "#/$defs/text"}
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_nesting_depth"],
+      "properties": {
+        "max_nesting_depth": {"type": "integer", "minimum": 1},
+        "note": {"$ref": "#/$defs/text"}
+      }
+    },
+    "root_kind": {"$ref": "#/$defs/text"},
+    "non_claims": {"$ref": "#/$defs/text"}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1}
+  }
+}

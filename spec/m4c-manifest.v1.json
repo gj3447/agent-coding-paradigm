@@ -14,7 +14,7 @@
     {"artifact": "spec/schema/protocol.v1.schema.json", "sha256": "sha256:a81a44d3d572cc43bc459adc62374ee261549758e0687263a887a3774a863da2"},
     {"artifact": "spec/m1-kernel-contract.v1.json", "sha256": "sha256:593bd94c634dc826d000764fa384507b82c371e776ef36677d131894973bf772"},
     {"artifact": "spec/m1-manifest.v1.json", "sha256": "sha256:07064055e63b7e6de37060672a82bfd7d2aa2f5045596189dd6454552e409cbd"},
-    {"artifact": "fixtures/m1/cases.json", "sha256": "sha256:456f9a07de72a3800866c56a18be9450e6865b1bfcef33f58b0e0fbef06ec57b"},
+    {"artifact": "fixtures/m1/cases.json", "sha256": "sha256:bfb1b7a545bceaf0ac1740a7a5969a49bcf28c7088a4a6f7799f3e245a319346"},
     {"artifact": "fixtures/m1/golden/observe-with-effect.transition.json", "sha256": "sha256:cd1360e0db9024cc6b03abde4a4d28e56aea82f901577bd2c4eae0cbdb5700b8"},
     {"artifact": "spec/m2-logic-contract.v1.json", "sha256": "sha256:65f8ae41c4c5c6c11f8298b77b477d19a31f2b0dc9ede058639183960cf4cd9e"},
     {"artifact": "spec/m2-manifest.v1.json", "sha256": "sha256:c792eb1fbea2e8e430cd7d0452b8e3ed290f2488dd297b107d3cd5a92f139200"},
@@ -26,7 +26,7 @@
     {"artifact": "spec/m4a-authority-contract.v1.json", "sha256": "sha256:213dbe26bd3e797e02426f995cc970e418537fe56d4c9d5e18e150b46e6248c8"},
     {"artifact": "spec/m4a-manifest.v1.json", "sha256": "sha256:f7c28fe415a7419f5d6d7fd9186ec4aa2aac0ce1a9912347ef768ac953cd29a3"},
     {"artifact": "spec/m4b-durable-contract.v1.json", "sha256": "sha256:23c4d24171e804d7cd6e9f23806f1fc17ec1f4be0def3069b61b396e46253063"},
-    {"artifact": "spec/m4b-manifest.v1.json", "sha256": "sha256:dcf3acbd807e63b209ddd25eae2f7e40b61a1b3783afc74eef9d9f83f835c09d"}
+    {"artifact": "spec/m4b-manifest.v1.json", "sha256": "sha256:4db7221fac676bddebc95091c30dacc8694d6f7358c3af9f249a7e9ffcd29f01"}
   ],
   "fixture": "fixtures/m4c/cases.json",
   "reference_implementation": ["scripts/m4c_verifier.py"],
