@@ -1,0 +1,33 @@
+{
+  "schema_version": "lakatotree-binding-readback/v2",
+  "observed_at": "2026-08-10T05:12:41Z",
+  "mode": "BOUND_WRITE_THEN_READBACK",
+  "programme": {
+    "tree": "LakatosTree_AgentParadigm_20260810",
+    "title": "Agent Coding Paradigm (FLR-H) — TS 2차 구현·정준화 명료화 연구프로그램 (2026-08-10 재창설)",
+    "assurance_tier": "notebook",
+    "predecessor_note": "The 2026-08-08 incarnation (tree LakatosTree_AgentParadigm_20260808, incarnation 93264ef9e2734621a24b7d48d46ebfc2, readback research/LAKATOTREE_BINDING_2026-08-08.json) is absent from the current store; its narrow E1 preregistration state is preserved only in that historical readback file and was NOT recreated."
+  },
+  "nodes": [
+    {
+      "tag": "knowledge_ts_second_impl_candidate_20260810",
+      "summary": "TS second implementation (M6 track) CANDIDATE — byte-identical against the frozen M0/M1 corpus, pnpm verify green; checker-relative single-host boundary."
+    },
+    {
+      "tag": "knowledge_ts_adversarial_audit_20260810",
+      "summary": "Three-lens adversarial audit: NFC Unicode-version skew (41 codepoints), kernel container-value TypeError crashes, unpinned recursion depth; plus the identity_paths self-correction."
+    },
+    {
+      "tag": "result_canonical_clarifications_repair_20260810",
+      "summary": "Fixture-first repair via spec/canonicalization-clarifications.v1.json (Unicode 15.1.0 pin + barrier rule, depth 128, string-only root kind); all ten validators + unittest + ts verify green; LR promotion seal untouched (validate_lr_seam OK)."
+    }
+  ],
+  "repository_binding": {
+    "repository": "https://github.com/gj3447/agent-coding-paradigm",
+    "branch": "ts-second-impl",
+    "commit": "83f581cd733d19f8a603e525a2be003e263dfb94",
+    "kg_edge": "(:LakatosTree {name:'LakatosTree_AgentParadigm_20260810'})-[:BINDS_REPOSITORY]->(:Repository {name:'gj3447/agent-coding-paradigm'})",
+    "status": "BOUND",
+    "note": "This readback records a real KG write performed at observed_at. The commit above is the branch head containing the ts second implementation, the adversarial audit, the canonical clarifications repair, and their receipts."
+  }
+}
