@@ -82,3 +82,25 @@ python3 scripts/validate_m4b.py --allow-proposed
 Passing those commands is local proposed evidence only. It does not validate
 M4A policy decisions, integrated F/L/R/H operation, a real destination,
 production safety, comparative efficacy, or engine promotion.
+
+## Approval validity at the writer boundary
+
+`FALSIFIED` for the pre-repair implementation at commit `3c381ad`: approval
+validity was checked before `BEGIN IMMEDIATE`, but not again inside the writer
+transaction. A frozen fault clock could therefore move from epoch 100 to the
+exclusive expiry boundary 200 between those checks and still persist the
+approval, intent, checkpoint, and outbox row.
+
+`PROPOSED` repair: `commit_intent` now captures one precheck epoch and one
+transaction epoch. Inside the writer transaction it uses the latter for both
+the fence check and complete approval revalidation, including exact preimages,
+bindings, state, issue time, and the exclusive expiry boundary. The
+`expires_during_commit` fault fixture fixes this boundary.
+
+`MEASURED` only for the named local commands and environment recorded in
+[`H_DURABILITY_GAP_AUDIT_2026-08-11.md`](../research/H_DURABILITY_GAP_AUDIT_2026-08-11.md):
+the repaired candidate rejected the boundary case, the M4B aggregate passed,
+and selected M4C/M4C-IL happy and crash paths did not regress. The M4B claim
+remains `PROPOSED` and its manifest status remains
+`PROPOSED_PENDING_MEASUREMENT`; this repair is not a durability promotion or
+outer-completion result.

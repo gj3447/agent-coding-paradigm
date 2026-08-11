@@ -31,6 +31,7 @@ from flrh_harness import (
 from flrh_authority import project_h_intent
 from flrh_harness.canonical import canonical_bytes,digest
 from m4a_fixtures import find_case as find_m4a_case, load_cases as load_m4a_cases
+from m4b_fixtures import load_cases as load_m4b_cases
 
 
 DIGEST_A = "sha256:" + "a" * 64
@@ -208,6 +209,32 @@ class M4BDurableTests(unittest.TestCase):
         self.h.connection.execute("UPDATE intents SET intent_digest=?,intent_json=?",(digest(value),canonical_bytes(value).decode()))
         report=verify_run(self.db,"run:m4b:one")
         self.assertFalse(report["valid"]); self.assertIn("APPROVAL_RUN_CORRELATION",report["errors"])
+
+    def test_20f_approval_expiring_at_commit_transaction_fails_closed(self):
+        profile=load_m4b_cases()["approval_transaction_clock"]
+        clock=[profile["initial_epoch"]]
+        db=Path(self.tmp.name)/"approval-transaction-expiry.sqlite3"
+        harness=durable(db,FakeAdapter(),lambda:clock[0])
+        harness.create_run("run:m4b:one",{"round":0})
+        token=harness.acquire_lease("run:m4b:one","runner:a",ttl_seconds=profile["lease_ttl_seconds"])
+        request=approval_request(expires_at=profile["expires_at"])
+        granted=approval(request,expires_at=profile["expires_at"])
+        value=intent(approval=True); value["approval_digest"]=granted["approval_digest"]
+        begin=harness._begin
+        def begin_after_expiry():
+            clock[0]=profile["transaction_epoch"]
+            begin()
+        harness._begin=begin_after_expiry
+        try:
+            self.assertEqual(ApprovalRejected.__name__,profile["expected_exception"])
+            with self.assertRaisesRegex(ApprovalRejected,profile["expected_message"]):
+                harness.commit_intent(token,value,receipt_binding=receipt_binding(),approval_request=request,approval=granted)
+            self.assertEqual(0,harness.connection.execute("SELECT COUNT(*) FROM approvals").fetchone()[0])
+            self.assertEqual(0,harness.connection.execute("SELECT COUNT(*) FROM intents").fetchone()[0])
+            self.assertEqual(0,harness.connection.execute("SELECT COUNT(*) FROM outbox").fetchone()[0])
+            self.assertNotIn("last_committed_intent_id",harness.load_checkpoint("run:m4b:one"))
+        finally:
+            harness.close()
 
     def test_21_stale_generation_cannot_commit(self):
         self.clock[0] = 111

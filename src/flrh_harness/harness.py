@@ -180,12 +180,13 @@ class DurableHarness:
             self.connection.commit(); return f"{run_id}|{owner}|{generation}"
         except Exception: self.connection.rollback(); raise
 
-    def _check_token(self, token: str):
+    def _check_token(self, token: str, *, current_epoch=None):
         try: run_id, owner, raw_generation = token.rsplit("|",2); generation=int(raw_generation)
         except Exception as error: raise StaleFenceError("malformed fence") from error
         row = self._row(run_id)
+        if current_epoch is None: current_epoch=self.now()
         if row["status"] == "quarantined": raise QuarantinedError(run_id)
-        if row["generation"] != generation or row["lease_owner"] != owner or self.now() >= row["lease_expires_epoch"]:
+        if row["generation"] != generation or row["lease_owner"] != owner or current_epoch >= row["lease_expires_epoch"]:
             raise StaleFenceError("stale fence")
         return run_id, generation
 
@@ -209,10 +210,11 @@ class DurableHarness:
         except (QuarantinedError, json.JSONDecodeError, TypeError, ValueError):
             self._quarantine(run_id); raise QuarantinedError(run_id)
 
-    def _validate_approval(self, intent, request, value):
+    def _validate_approval(self, intent, request, value, *, current_epoch=None):
         if not intent["approval_required"]:
             if value is not None or request is not None: raise ApprovalRejected("unexpected approval")
             return
+        if current_epoch is None: current_epoch=self.now()
         if not isinstance(request,dict) or set(request)!=REQUEST_FIELDS or not isinstance(value,dict) or set(value)!=APPROVAL_FIELDS: raise ApprovalRejected("shape")
         request_core={key:copy.deepcopy(item) for key,item in request.items() if key not in ("request_id","request_digest")}
         expected_request=digest({"kind":"M4AApprovalRequestPreimage","contract_version":"flrh-h-authority/1",**request_core})
@@ -226,20 +228,22 @@ class DurableHarness:
         for key in REQUEST_FIELDS - {"kind", "proposal_id", "requested_at", "request_id", "request_digest"}:
             if value[key]!=request[key]: raise ApprovalRejected("approval binding")
         if value["kind"]!="HApproval" or value["request_digest"]!=request["request_digest"] or value["decision"]!="grant" or value["revoked"] or value["consumed"]: raise ApprovalRejected("approval state")
-        if request["requested_at"]>value["issued_at"] or value["issued_at"]>self.now() or value["expires_at"]!=request["expires_at"] or not self.now()<value["expires_at"]: raise ApprovalRejected("approval time")
+        if request["requested_at"]>value["issued_at"] or value["issued_at"]>current_epoch or value["expires_at"]!=request["expires_at"] or not current_epoch<value["expires_at"]: raise ApprovalRejected("approval time")
 
     def commit_intent(self, token, intent, *, receipt_binding, approval_request=None, approval=None):
-        _validate_intent(intent); run_id,generation=self._check_token(token)
+        _validate_intent(intent); precheck_epoch=self.now(); run_id,generation=self._check_token(token,current_epoch=precheck_epoch)
         if not isinstance(receipt_binding,dict) or set(receipt_binding)!={"command_digest","input_root_digest","platform_digest"} or any(not isinstance(receipt_binding[key],str) or not DIGEST_RE.fullmatch(receipt_binding[key]) for key in receipt_binding): raise ValueError("invalid receipt binding")
         row=self._row(run_id)
         if row["status"]!="active" or row["pending_interrupt"] is not None: raise HarnessError("run does not accept new work")
-        self._validate_approval(intent,approval_request,approval)
+        self._validate_approval(intent,approval_request,approval,current_epoch=precheck_epoch)
         checkpoint=self.load_checkpoint(run_id)
         encoded=canonical_bytes(intent).decode(); bound=digest(intent)
         self._begin()
         try:
-            row=self._check_token(token) and self._row(run_id)
+            transaction_epoch=self.now()
+            row=self._check_token(token,current_epoch=transaction_epoch) and self._row(run_id)
             if row["status"]!="active" or row["pending_interrupt"] is not None: raise HarnessError("run does not accept new work")
+            self._validate_approval(intent,approval_request,approval,current_epoch=transaction_epoch)
             pending=self.connection.execute("SELECT COUNT(*) FROM outbox o JOIN intents i USING(intent_id) WHERE i.run_id=? AND o.status!='done'",(run_id,)).fetchone()[0]
             if pending>=row["max_pending"]: raise HarnessError("max_pending exceeded")
             checkpoint=self._decode_checkpoint(self.connection.execute("SELECT * FROM checkpoints WHERE run_id=?",(run_id,)).fetchone())
