@@ -1,0 +1,14 @@
+title = "agent-coding-paradigm public safety"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic M4B fault-injection keyword; the scanner match is the parameter name crash_point=, not a credential"
+regexTarget = "match"
+paths = [
+  '''^(?:scripts|tests)/''',
+]
+regexes = [
+  '''(?:^|[\s,(])crash_point\s*=''',
+]
