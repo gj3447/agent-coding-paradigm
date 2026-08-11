@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/agent-rule-routes.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "epistemic_status", "always_rule_ids", "context_policy", "resolution", "routes"],
+  "properties": {
+    "schema_version": {"const": "agent-rule-routes/v1"},
+    "epistemic_status": {"const": "PROPOSED"},
+    "always_rule_ids": {"const": ["GOV1", "GOV2", "GOV3", "GOV4"]},
+    "context_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quality_first", "hard_prompt_token_limit", "truncation_allowed", "fail_on_prompt_token_count", "runtime_safety_budgets_are_separate", "observations"],
+      "properties": {
+        "quality_first": {"const": true},
+        "hard_prompt_token_limit": {"const": false},
+        "truncation_allowed": {"const": false},
+        "fail_on_prompt_token_count": {"const": false},
+        "runtime_safety_budgets_are_separate": {"const": true},
+        "observations": {"const": ["bytes", "words", "tokenizer_name", "tokenizer_version", "tokens_if_tokenizer_declared"]}
+      }
+    },
+    "resolution": {
+      "const": {
+        "ambiguous_route": "union",
+        "source_order": "route_id_then_source_path",
+        "deduplicate_by": "rule_id",
+        "manifest_closure_semantics": "integrity_evidence_not_preload"
+      }
+    },
+    "routes": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["route_id", "purpose", "sources", "required_rule_ids", "load_direct_touched_artifacts"],
+        "properties": {
+          "route_id": {"enum": ["claim_or_status", "consumer_sample", "engine_promotion", "evidence_change", "external_source_or_publication", "root_only", "semantic_change"]},
+          "purpose": {"type": "string", "minLength": 1},
+          "sources": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "required_rule_ids": {"type": "array", "items": {"pattern": "^(?:GOV[1-4]|RT(?:10|[1-9]))$"}, "minItems": 1, "uniqueItems": true},
+          "load_direct_touched_artifacts": {"const": true}
+        }
+      }
+    }
+  }
+}

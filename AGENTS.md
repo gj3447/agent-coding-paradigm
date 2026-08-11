@@ -1,62 +1,26 @@
 # Repository operating contract
 
-## Purpose
+## Boundary
 
-This repository is a research incubator for the provisional FLR-H agent runtime profile. Preserve the boundary between sourced mechanism, local synthesis, executable evidence, and efficacy claims.
+This repository is a research incubator for the provisional FLR-H application-runtime profile. Keep sourced mechanisms, local synthesis, executable evidence, and efficacy claims distinct. Jaebaeman, planning/dispatch mythology, a universal soup graph, ambient effects inside pure kernels, and exactly-once claims for external systems are out of scope.
 
-## Scope
+## Always-on governance rules
 
-In scope:
+- `GOV1` — Label material assertions `HYPOTHESIS`, `PROPOSED`, `MEASURED`, `FALSIFIED`, or `ACCEPTED`. Only a named command, fixture, environment, and receipt can support `MEASURED`; prose agreement, import success, model verdicts, and trace spans cannot.
+- `GOV2` — Engine promotion remains deferred. Do not build a broad runtime framework until every gate in `docs/adr/0001-defer-engine-verdict.md` and `spec/engine-decision.v1.json` is met.
+- `GOV3` — Visibility, licensing, package publication, and releases are separate authorities. Require explicit user direction for each action; never infer one from another.
+- `GOV4` — Preserve user changes, keep commits scoped, and never stage unrelated files.
 
-- functional transition kernels and explicit effect intents;
-- logic programming semantics, fixpoints, conflict, provenance, and retraction;
-- incremental/reactive dependency propagation, logical time, frontiers, and backpressure;
-- L_RT harness control, durable loops, approvals, checkpoints, effects, reconciliation, and verification;
-- typed semantic, dependency, composition, action, trace, provenance, and schema graphs;
-- conformance, fault injection, and comparative evaluation.
+## Rule routing and context
 
-Out of scope:
+For material work, select the smallest matching route or routes in `agent-rules/routes.v1.json`. Load only their declared rule sources plus the directly touched contract, fixture, validator, or receipt. When routing is ambiguous, load the union in canonical order and deduplicate by rule ID. Manifest closures and inherited digest pins are integrity evidence, not preload lists.
 
-- Jaebaeman, planning doctrine, or agent dispatch mythology;
-- claims of canon, standardization, originality, or superiority without evidence;
-- a single graph model that erases graph-kind-specific semantics;
-- hidden I/O, clock, randomness, credentials, or model calls inside the pure kernel;
-- exactly-once claims for external systems.
-
-## Claim labels
-
-Use one of these labels on material assertions:
-
-- `HYPOTHESIS`: plausible and falsifiable, not yet implemented;
-- `PROPOSED`: specified locally, not an external standard or canon;
-- `MEASURED`: backed by a named command, fixture, environment, and receipt;
-- `FALSIFIED`: contradicted by a reproducible counterexample;
-- `ACCEPTED`: accepted only inside this repository's engineering governance.
-
-Do not upgrade a claim based on prose agreement, import success, a model verdict, or a trace span.
-
-## Architecture invariants
-
-1. Keep `decide(snapshot, accepted_event)` deterministic and effect-free.
-2. Represent state change as accepted events or fact deltas; represent external work as effect intents.
-3. H owns continuation, budgets, approval consumption, checkpointing, effect dispatch, reconciliation, and terminal state.
-4. L owns explicit rule and conflict semantics; R must not react to an unstable half-fixpoint.
-5. Every queue is bounded and every wait has timeout/cancellation behavior.
-6. Duplicate identity with different intent is a conflict, not a retry.
-7. Trace data is an observation projection, not truth, authority, or completion proof.
-8. Production and harness share one resolved composition root and may differ only by enumerated port-compatible adapters.
-9. A producer cannot be the sole verifier of its own success.
-10. Unknown effect outcome routes to reconciliation before retry or terminal state.
+Prompt context is quality-first. Never impose a hard prompt-token limit, truncate required instructions, omit a required rule, or fail work solely because of prompt-token count. Context size may be recorded as an observation. Runtime queue, wait, deadline, rule, attempt, and effect budgets remain hard safety invariants and are unrelated to prompt-context observation.
 
 ## Change protocol
 
-- Update claim/status documents when implementation evidence changes.
+- Load `agent-rules/semantic-invariants.md` for semantic, runtime, conformance, fault, or evidence changes.
 - Add a failing conformance or fault fixture before repairing a semantic bug.
 - Validate machine-readable contracts and JSON before committing.
+- Update claim/status documents when implementation evidence changes.
 - Record exact test commands and outcomes; distinguish simulated adapters from real platform evidence.
-- Keep commits scoped. Do not stage unrelated files.
-- Do not add a license, make the repository public, publish packages, or create releases without explicit user direction.
-
-## Engine promotion
-
-The repository currently defers an engine verdict. Do not create a broad runtime framework until the promotion gates in `docs/adr/0001-defer-engine-verdict.md` and `spec/engine-decision.v1.json` are met.

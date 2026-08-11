@@ -1,0 +1,41 @@
+{
+  "schema_version": "agent-rule-routing-cases/v1",
+  "epistemic_status": "PROPOSED",
+  "cases": [
+    {
+      "case_id": "route-case:mechanical-doc-edit",
+      "selected_routes": ["root_only"],
+      "expected_sources": [],
+      "must_include_rule_ids": ["GOV4"],
+      "must_exclude_rule_ids": ["RT1", "RT10"]
+    },
+    {
+      "case_id": "route-case:kernel-change",
+      "selected_routes": ["semantic_change"],
+      "expected_sources": ["agent-rules/semantic-invariants.md"],
+      "must_include_rule_ids": ["GOV1", "GOV2", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "must_exclude_rule_ids": []
+    },
+    {
+      "case_id": "route-case:claim-update",
+      "selected_routes": ["claim_or_status"],
+      "expected_sources": ["spec/claims.v1.json", "spec/schema/claim-ledger.v1.schema.json"],
+      "must_include_rule_ids": ["GOV1"],
+      "must_exclude_rule_ids": ["RT1"]
+    },
+    {
+      "case_id": "route-case:public-consumer-sample",
+      "selected_routes": ["consumer_sample", "external_source_or_publication"],
+      "expected_sources": ["agent-rules/semantic-invariants.md", "spec/consumer-sample-contract.v1.json"],
+      "must_include_rule_ids": ["GOV1", "GOV3", "GOV4", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "must_exclude_rule_ids": []
+    },
+    {
+      "case_id": "route-case:engine-semantic-ambiguity",
+      "selected_routes": ["engine_promotion", "semantic_change"],
+      "expected_sources": ["agent-rules/semantic-invariants.md", "docs/adr/0001-defer-engine-verdict.md", "spec/engine-decision.v1.json"],
+      "must_include_rule_ids": ["GOV1", "GOV2", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "must_exclude_rule_ids": []
+    }
+  ]
+}

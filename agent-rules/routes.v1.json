@@ -1,0 +1,70 @@
+{
+  "schema_version": "agent-rule-routes/v1",
+  "epistemic_status": "PROPOSED",
+  "always_rule_ids": ["GOV1", "GOV2", "GOV3", "GOV4"],
+  "context_policy": {
+    "quality_first": true,
+    "hard_prompt_token_limit": false,
+    "truncation_allowed": false,
+    "fail_on_prompt_token_count": false,
+    "runtime_safety_budgets_are_separate": true,
+    "observations": ["bytes", "words", "tokenizer_name", "tokenizer_version", "tokens_if_tokenizer_declared"]
+  },
+  "resolution": {
+    "ambiguous_route": "union",
+    "source_order": "route_id_then_source_path",
+    "deduplicate_by": "rule_id",
+    "manifest_closure_semantics": "integrity_evidence_not_preload"
+  },
+  "routes": [
+    {
+      "route_id": "claim_or_status",
+      "purpose": "Change a claim, status, nonclaim, or evidence disposition.",
+      "sources": ["spec/schema/claim-ledger.v1.schema.json", "spec/claims.v1.json"],
+      "required_rule_ids": ["GOV1"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "consumer_sample",
+      "purpose": "Create or validate a public synthetic consumer/evaluation sample.",
+      "sources": ["agent-rules/semantic-invariants.md", "spec/consumer-sample-contract.v1.json"],
+      "required_rule_ids": ["GOV1", "GOV3", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "engine_promotion",
+      "purpose": "Change the deferred engine decision or provide promotion-gate evidence.",
+      "sources": ["docs/adr/0001-defer-engine-verdict.md", "spec/engine-decision.v1.json"],
+      "required_rule_ids": ["GOV1", "GOV2"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "evidence_change",
+      "purpose": "Change a conformance fixture, fault injection, validator, receipt, or measured evidence surface.",
+      "sources": ["agent-rules/semantic-invariants.md"],
+      "required_rule_ids": ["GOV1", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "external_source_or_publication",
+      "purpose": "Ingest an external source or perform a visibility, license, package, or release action.",
+      "sources": [],
+      "required_rule_ids": ["GOV1", "GOV3", "GOV4"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "root_only",
+      "purpose": "Perform a mechanical edit that changes no semantic, claim, evidence, engine, source, or publication boundary.",
+      "sources": [],
+      "required_rule_ids": ["GOV4"],
+      "load_direct_touched_artifacts": true
+    },
+    {
+      "route_id": "semantic_change",
+      "purpose": "Change F, L, R, H, graph, canonicalization, protocol, or composition semantics.",
+      "sources": ["agent-rules/semantic-invariants.md"],
+      "required_rule_ids": ["GOV1", "GOV2", "RT1", "RT2", "RT3", "RT4", "RT5", "RT6", "RT7", "RT8", "RT9", "RT10"],
+      "load_direct_touched_artifacts": true
+    }
+  ]
+}
