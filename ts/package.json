@@ -17,6 +17,8 @@
     "verify": "pnpm check && pnpm test:unit && pnpm test:prop && pnpm test:conformance && pnpm test:integration"
   },
   "devDependencies": {
+    "@langchain/core": "^1.2.5",
+    "@langchain/langgraph": "^1.4.9",
     "@types/node": "^24.0.0",
     "@typescript-eslint/parser": "^8.66.0",
     "ajv": "^8.17.0",

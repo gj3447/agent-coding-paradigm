@@ -24,6 +24,27 @@
 - `tests/conformance|examples|properties|integration` — fixture-driven parity,
   unit, fast-check property, and replay suites.
 
+## Agent-workflow tooling (`@langchain/langgraph`, added 2026-08-12)
+
+LangGraph is installed as a **dev dependency for authoring agent workflows**.
+It is a graph runtime for LLM-driven work, not part of the FLR-H contract:
+
+- It must never be imported from `src/domain` or `src/contracts`. The
+  `domain-is-pure` dependency-cruiser rule already fails that build; a
+  langgraph-specific rule was tried and **removed as unreachable** — the
+  generic rule always matches first, and a rule that never fires reads as a
+  guard while guarding nothing.
+- It is absent from `verify`'s judgement of conformance. Byte identity against
+  the Python oracle stays the only promotion evidence.
+- `tests/integration/langgraph-smoke.test.ts` proves the runtime actually
+  executes here (node ordering + conditional branching, no LLM call, no
+  network). Declaring a dependency is not the same fact as it running.
+
+Do not reach for it inside the inspection runtime of other projects either:
+SQCEDIT's state transitions are fixed to a deterministic pure `F` plus Effect
+by `docs/decisions/EFFECT_ONLY_FSM_20260811.md`, and an LLM orchestrator does
+not satisfy that determinism requirement.
+
 ## Commands
 
 ```bash
