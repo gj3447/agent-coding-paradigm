@@ -332,6 +332,7 @@ class M4BDurableTests(unittest.TestCase):
             result = harness.dispatch_next(token)
             observed = result["outcome"] if outcome == "permanent" else result["route"]
             self.assertEqual({"transient": "retry", "permanent": "confirmed_failure", "unknown": "reconcile"}[outcome], observed)
+            if outcome=="permanent": self.assertEqual(("done","terminal"),tuple(harness.connection.execute("SELECT status,route FROM outbox").fetchone()))
             harness.close()
 
     def test_25_no_progress_three_rounds_and_gain_reset_reproduce(self):
@@ -347,6 +348,126 @@ class M4BDurableTests(unittest.TestCase):
         self.h.close()
         self.h = durable(self.db, self.adapter, lambda: self.clock[0])
         self.assertEqual(before, self.h.load_checkpoint("run:m4b:one"))
+
+    def test_m4b_rx1a_retry_exhaustion_queries_before_confirmed_failure_receipt(self):
+        profile=load_m4b_cases()["retry_exhaustion"]
+        adapter=FakeAdapter(outcomes={"intent:m4b:one":[profile["attempt_outcome"]]})
+        evidence_calls=[]
+        def observed_evidence(value,attempt_id,outcome):
+            evidence_calls.append((attempt_id,outcome))
+            return receipt_evidence(value,attempt_id,outcome)
+        self.h.close(); self.h=DurableHarness(self.db,adapter,now=lambda:self.clock[0],receipt_evidence=observed_evidence); self.adapter=adapter
+        run_id="run:m4b:retry-exhausted"
+        self.h.create_run(run_id,{"round":0},max_attempts=profile["max_attempts"])
+        self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding())
+        self.assertEqual("retry",self.h.dispatch_next(self.token)["route"])
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        outbox=self.h.connection.execute("SELECT status,route FROM outbox").fetchone()
+        self.assertEqual(("reconcile",profile["pre_query_route"]),tuple(outbox))
+        self.assertEqual(1,adapter.apply_count); self.assertEqual(0,adapter.query_count)
+        self.assertTrue(verify_run(self.db,run_id)["valid"])
+        with self.assertRaisesRegex(ConflictError,"retry exhaustion evidence changed"):
+            self.h._record_receipt(self.token,run_id,intent(),1,"confirmed_failure",terminal_route="retry_exhausted",preserve_attempt_status=True)
+        self.assertEqual([],evidence_calls); self.assertEqual([],self.h.receipts(run_id))
+        self.assertEqual(profile["not_applied_outcome"],self.h.reconcile_next(self.token))
+        self.assertEqual(1,adapter.apply_count); self.assertEqual(1,adapter.query_count)
+        self.assertEqual(1,len(evidence_calls))
+        self.assertEqual(profile["not_applied_outcome"],self.h.receipts(run_id)[0]["outcome"])
+        self.assertEqual(("done",profile["post_receipt_route"]),tuple(self.h.connection.execute("SELECT status,route FROM outbox WHERE intent_id='intent:m4b:one'").fetchone()))
+        self.assertEqual(profile["query_phase_attempt_status"],self.h.connection.execute("SELECT status FROM attempts WHERE intent_id='intent:m4b:one'").fetchone()[0])
+        self.assertEqual(profile["outer_run_status"],self.h.run_status(run_id))
+        self.assertEqual([],self.h.pending_intents(run_id))
+        self.assertTrue(verify_run(self.db,run_id)["valid"])
+        self.h.connection.execute("UPDATE attempts SET status='confirmed_failure' WHERE intent_id='intent:m4b:one'")
+        report=verify_run(self.db,run_id)
+        self.assertFalse(report["valid"]); self.assertIn("RETRY_EXHAUSTION_RECEIPT",report["errors"])
+
+    def test_m4b_rx1b_retry_exhaustion_persists_bounded_human_reconciliation_handoff(self):
+        profile=load_m4b_cases()["retry_exhaustion"]
+        class UnprovenQueryAdapter(FakeAdapter):
+            def query(adapter_self,value,generation):
+                adapter_self._increment("query_count")
+                return "outcome_unknown"
+        adapter=UnprovenQueryAdapter(outcomes={"intent:m4b:one":[profile["attempt_outcome"]]})
+        self.h.close(); self.h=durable(self.db,adapter,lambda:self.clock[0]); self.adapter=adapter
+        run_id="run:m4b:retry-human"
+        self.h.create_run(run_id,{"round":0},max_attempts=profile["max_attempts"])
+        self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding())
+        self.h.dispatch_next(self.token)
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        self.assertEqual("cancel",self.h.request_interrupt(self.token,"cancel"))
+        self.assertEqual(profile["unproven_route"],self.h.reconcile_next(self.token))
+        self.assertEqual(("reconcile",profile["unproven_route"]),tuple(self.h.connection.execute("SELECT status,route FROM outbox").fetchone()))
+        self.assertEqual("unknown",self.h.connection.execute("SELECT status FROM attempts").fetchone()[0])
+        self.assertEqual(profile["outer_run_status"],self.h.run_status(run_id))
+        self.assertEqual([],self.h.receipts(run_id))
+        self.assertTrue(verify_run(self.db,run_id)["valid"])
+        with self.assertRaises(ReconciliationRequired): self.h.honor_interrupt(self.token)
+        self.assertEqual(profile["unproven_route"],self.h.reconcile_next(self.token))
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        self.assertEqual(profile["max_queries_after_handoff"],adapter.query_count)
+
+    def test_m4b_rx1c_verifier_rejects_exhaustion_dispatch_and_terminal_pending_mutations(self):
+        adapter=FakeAdapter(outcomes={"intent:m4b:one":["transient"]}); self.h.close(); self.h=durable(self.db,adapter,lambda:self.clock[0]); self.adapter=adapter
+        run_id="run:m4b:retry-mutations"; self.h.create_run(run_id,{"round":0},max_attempts=1); self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding()); self.h.dispatch_next(self.token)
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        self.h.connection.execute("UPDATE outbox SET route='dispatch' WHERE intent_id='intent:m4b:one'")
+        report=verify_run(self.db,run_id)
+        self.assertFalse(report["valid"]); self.assertIn("OUTBOX_ROUTE_COHERENCE",report["errors"])
+        self.h.connection.execute("UPDATE outbox SET route='human_reconciliation' WHERE intent_id='intent:m4b:one'")
+        report=verify_run(self.db,run_id)
+        self.assertFalse(report["valid"]); self.assertIn("HUMAN_RECONCILIATION_SOURCE",report["errors"])
+        self.h.connection.execute("UPDATE attempts SET status='unknown' WHERE intent_id='intent:m4b:one'")
+        self.h.connection.execute("UPDATE runs SET status='budget_exhausted' WHERE run_id=?",(run_id,))
+        report=verify_run(self.db,run_id)
+        self.assertFalse(report["valid"]); self.assertIn("TERMINAL_PENDING_EFFECT",report["errors"])
+
+    def test_m4b_rx1d_reconciled_not_applied_at_bound_still_queries_before_failure(self):
+        adapter=FakeAdapter(outcomes={"intent:m4b:one":["unknown_not_applied"]}); self.h.close(); self.h=durable(self.db,adapter,lambda:self.clock[0]); self.adapter=adapter
+        run_id="run:m4b:reconciled-bound"; self.h.create_run(run_id,{"round":0},max_attempts=1); self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding())
+        self.assertEqual("reconcile",self.h.dispatch_next(self.token)["route"])
+        self.assertEqual("not_applied",self.h.reconcile_next(self.token))
+        self.assertEqual("reconciled_not_applied",self.h.connection.execute("SELECT status FROM attempts").fetchone()[0])
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        self.assertEqual("confirmed_failure",self.h.reconcile_next(self.token))
+        self.assertEqual(1,adapter.apply_count); self.assertEqual(2,adapter.query_count)
+        self.assertEqual(("reconciled_not_applied","done","retry_exhausted"),tuple(self.h.connection.execute("SELECT a.status,o.status,o.route FROM attempts a JOIN outbox o USING(intent_id)").fetchone()))
+        self.assertTrue(verify_run(self.db,run_id)["valid"])
+
+    def test_m4b_rx1e_forged_early_exhaustion_cannot_mint_failure_receipt(self):
+        adapter=FakeAdapter(outcomes={"intent:m4b:one":["transient"]}); self.h.close(); self.h=durable(self.db,adapter,lambda:self.clock[0]); self.adapter=adapter
+        run_id="run:m4b:forged-exhaustion"; self.h.create_run(run_id,{"round":0},max_attempts=2); self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding()); self.h.dispatch_next(self.token)
+        self.h.connection.execute("UPDATE outbox SET status='reconcile',route='retry_exhausted' WHERE intent_id='intent:m4b:one'")
+        report=verify_run(self.db,run_id)
+        self.assertFalse(report["valid"]); self.assertIn("RETRY_EXHAUSTION_BOUND",report["errors"])
+        with self.assertRaisesRegex(ConflictError,"retry exhaustion query source changed"): self.h.reconcile_next(self.token)
+        self.assertEqual([],self.h.receipts(run_id)); self.assertEqual(["intent:m4b:one"],self.h.pending_intents(run_id))
+
+    def test_m4b_rx1f_query_phase_survives_receipt_failure_without_requery(self):
+        profile=load_m4b_cases()["retry_exhaustion"]
+        adapter=FakeAdapter(outcomes={"intent:m4b:one":[profile["attempt_outcome"]]})
+        evidence_calls=[0]
+        def fail_once(value,attempt_id,outcome):
+            evidence_calls[0]+=1
+            if evidence_calls[0]==1: raise RuntimeError("receipt evidence unavailable")
+            return receipt_evidence(value,attempt_id,outcome)
+        self.h.close(); self.h=DurableHarness(self.db,adapter,now=lambda:self.clock[0],receipt_evidence=fail_once); self.adapter=adapter
+        run_id="run:m4b:retry-phase"; self.h.create_run(run_id,{"round":0},max_attempts=profile["max_attempts"]); self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding()); self.h.dispatch_next(self.token)
+        with self.assertRaises(ReconciliationRequired): self.h.dispatch_next(self.token)
+        with self.assertRaisesRegex(RuntimeError,"receipt evidence unavailable"): self.h.reconcile_next(self.token)
+        self.assertEqual(("reconcile",profile["post_query_route"]),tuple(self.h.connection.execute("SELECT status,route FROM outbox").fetchone()))
+        self.assertEqual(profile["query_phase_attempt_status"],self.h.connection.execute("SELECT status FROM attempts").fetchone()[0])
+        self.assertEqual(1,adapter.query_count); self.assertEqual([],self.h.receipts(run_id)); self.assertTrue(verify_run(self.db,run_id)["valid"])
+        self.h.close(); self.h=DurableHarness(self.db,adapter,now=lambda:self.clock[0],receipt_evidence=fail_once)
+        self.token=self.h.acquire_lease(run_id,"runner:a",ttl_seconds=10)
+        self.assertEqual("confirmed_failure",self.h.reconcile_next(self.token))
+        self.assertEqual(1,adapter.query_count); self.assertEqual(2,evidence_calls[0]); self.assertTrue(verify_run(self.db,run_id)["valid"])
 
     def test_no_progress_defers_terminal_until_pending_effect_resolves(self):
         self.h.commit_intent(self.token,intent(),receipt_binding=receipt_binding())

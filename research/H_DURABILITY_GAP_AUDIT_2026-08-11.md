@@ -156,3 +156,38 @@ not execute the outer reducer. They are bounded integration and crash-recovery
 candidate evidence, not proof that H prevents a false terminal state.
 
 `ACCEPTED` for repository governance: the engine verdict remains `defer`.
+
+## Proposed retry-exhaustion follow-up
+
+`PROPOSED`: a subsequent uncommitted M4B working-tree slice addresses the
+retry-exhaustion gap above without claiming to execute the outer run reducer.
+When a new attempt would exceed `max_attempts`, it persists
+`status = reconcile, route = retry_exhausted` before querying the destination.
+Confirmed success uses the existing success receipt path. Confirmed
+non-application plus the bounded source-attempt ledger first persists
+`reconciled_not_applied/retry_exhausted_not_applied`, then persists an exact
+`confirmed_failure` `ActionReceipt`, retains completed route
+`retry_exhausted`, and leaves the run `active` for outer receipt re-ingestion.
+An unproven query persists `unknown/human_reconciliation`; later automatic
+reconcile and dispatch calls do not query or retry it. A pending interrupt
+cannot terminalize over that handoff. This is local fault family `m4b-rx1`, not
+global graph/schema fault number 26.
+
+The failing-first focused command was:
+
+```text
+uv run --with-requirements requirements-m0.txt python -m unittest \
+  tests.test_m4b_durable.M4BDurableTests.test_26_retry_exhaustion_queries_before_confirmed_failure_receipt \
+  tests.test_m4b_durable.M4BDurableTests.test_26b_retry_exhaustion_persists_bounded_human_reconciliation_handoff \
+  tests.test_m4b_durable.M4BDurableTests.test_26c_verifier_rejects_exhaustion_dispatch_and_terminal_pending_mutations
+```
+
+The pre-repair result was `FAILED`: two tests errored on the untyped
+`HarnessError("max_attempts exceeded")`, and one failed because no durable
+exhaustion route was created. Those test bodies were later renamed into local
+family `m4b-rx1a` through `m4b-rx1c` after discovering that global fault 26 is
+reserved for graph/schema work. Passing current commands for the proposed
+repair are recorded in `docs/M4B_DURABLE.md`. These local checks do not promote M4B:
+the contract and manifest remain `PROPOSED_PENDING_MEASUREMENT`, and real
+destination, production, efficacy, outer-completion, and engine claims remain
+open.

@@ -122,7 +122,7 @@ def main():
     if replay!=golden: raise AssertionError("replay differs from golden")
     run("tests/test_m4b_durable.py")
     ambient=json.loads(run("scripts/check_m4b_ambient.py")); crashes=json.loads(run("scripts/check_m4b_crashes.py")); sensitivity=json.loads(run("scripts/check_m4b_adversarial_sensitivity.py"))
-    report={"kind":"M4BValidationReport","status":manifest["status"],"fault_tests":len(cases["fault_tests"]),"approval_mutations":len(cases["approval_mutations"]),"subprocess_cutpoints":crashes["passed"],"adversarial_sensitivity_cases":sensitivity["adversarial_sensitivity_cases_detected"],"ambient_violations":ambient["violations"],"replay_matches":True,"manifest_owned_paths":len(owned),"inherited_dependencies":len(inherited),"public_api":len(manifest["public_api"])}
+    report={"kind":"M4BValidationReport","status":manifest["status"],"fault_tests":len(cases["fault_tests"]),"local_fault_families":len(cases["local_fault_families"]),"approval_mutations":len(cases["approval_mutations"]),"subprocess_cutpoints":crashes["passed"],"adversarial_sensitivity_cases":sensitivity["adversarial_sensitivity_cases_detected"],"ambient_violations":ambient["violations"],"replay_matches":True,"manifest_owned_paths":len(owned),"inherited_dependencies":len(inherited),"public_api":len(manifest["public_api"])}
     print(json.dumps(report,separators=(",",":"),sort_keys=True))
 
 

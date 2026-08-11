@@ -288,25 +288,53 @@ class DurableHarness:
         receipt=json.loads(canonical_bytes(receipt))
         return receipt,binding_row[1]
 
-    def _record_receipt(self, token, run_id, intent, generation, outcome):
+    def _record_receipt(self, token, run_id, intent, generation, outcome, *, terminal_route="terminal", preserve_attempt_status=False):
+        if terminal_route not in ("terminal","retry_exhausted") or (terminal_route=="retry_exhausted")!=preserve_attempt_status or (terminal_route=="retry_exhausted" and outcome!="confirmed_failure"): raise ValueError("invalid terminal route")
+        if terminal_route=="retry_exhausted":
+            attempt=self.connection.execute("SELECT status,sequence FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1",(intent["intent_id"],)).fetchone()
+            outbox=self.connection.execute("SELECT status,route FROM outbox WHERE intent_id=?",(intent["intent_id"],)).fetchone(); run=self._row(run_id)
+            if attempt is None or tuple(attempt)!=("reconciled_not_applied",run["max_attempts"]) or outbox is None or tuple(outbox)!=("reconcile","retry_exhausted_not_applied"): raise ConflictError("retry exhaustion evidence changed")
         # Observation/evidence injection is a port call and must occur outside the SQLite writer transaction.
         receipt,binding_digest=self._prepare_receipt(intent,outcome)
         encoded=canonical_bytes(receipt).decode(); bound=digest(receipt)
         self._begin()
         try:
             self._check_token(token)
-            attempt=self.connection.execute("SELECT attempt_id FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1",(intent["intent_id"],)).fetchone()
+            attempt=self.connection.execute("SELECT attempt_id,status,sequence FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1",(intent["intent_id"],)).fetchone()
             current_binding=self.connection.execute("SELECT binding_digest FROM receipt_bindings WHERE intent_id=?",(intent["intent_id"],)).fetchone()
             if attempt is None or attempt[0]!=receipt["attempt_id"] or current_binding is None or current_binding[0]!=binding_digest: raise ConflictError("receipt evidence changed")
+            if terminal_route=="retry_exhausted":
+                run=self._row(run_id); outbox=self.connection.execute("SELECT status,route FROM outbox WHERE intent_id=?",(intent["intent_id"],)).fetchone()
+                if attempt[1]!="reconciled_not_applied" or attempt[2]!=run["max_attempts"] or outbox is None or tuple(outbox)!=("reconcile","retry_exhausted_not_applied"): raise ConflictError("retry exhaustion evidence changed")
             existing=self.connection.execute("SELECT receipt_digest FROM receipts WHERE intent_id=?",(intent["intent_id"],)).fetchone()
             if existing and existing[0]!=bound: raise ConflictError("receipt conflict")
             self.connection.execute("INSERT OR IGNORE INTO receipts VALUES(?,?,?)",(intent["intent_id"],bound,encoded))
-            self.connection.execute("UPDATE outbox SET status='done',route='terminal' WHERE intent_id=?",(intent["intent_id"],))
-            self.connection.execute("UPDATE attempts SET status=? WHERE attempt_id=(SELECT attempt_id FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1)",(outcome,intent["intent_id"]))
+            self.connection.execute("UPDATE outbox SET status='done',route=? WHERE intent_id=?",(terminal_route,intent["intent_id"]))
+            if not preserve_attempt_status:
+                self.connection.execute("UPDATE attempts SET status=? WHERE attempt_id=(SELECT attempt_id FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1)",(outcome,intent["intent_id"]))
             checkpoint=self._decode_checkpoint(self.connection.execute("SELECT * FROM checkpoints WHERE run_id=?",(run_id,)).fetchone()); checkpoint["last_receipt_digest"]=bound; self._checkpoint(run_id,checkpoint)
             self.connection.commit(); return receipt
         except (QuarantinedError, json.JSONDecodeError, TypeError, ValueError):
             self.connection.rollback(); self._quarantine(run_id); raise QuarantinedError(run_id)
+        except Exception: self.connection.rollback(); raise
+
+    def _record_retry_exhaustion_query(self, token, run_id, intent, result):
+        if result not in ("not_applied","outcome_unknown"): raise ValueError("invalid retry exhaustion query result")
+        self._begin()
+        try:
+            self._check_token(token); run=self._row(run_id)
+            attempt=self.connection.execute("SELECT attempt_id,status,sequence FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1",(intent["intent_id"],)).fetchone()
+            outbox=self.connection.execute("SELECT status,route FROM outbox WHERE intent_id=?",(intent["intent_id"],)).fetchone()
+            if attempt is None or attempt[1] not in ("transient","reconciled_not_applied") or attempt[2]!=run["max_attempts"] or outbox is None or tuple(outbox)!=("reconcile","retry_exhausted"): raise ConflictError("retry exhaustion query source changed")
+            if result=="not_applied":
+                self.connection.execute("UPDATE attempts SET status='reconciled_not_applied' WHERE attempt_id=?",(attempt[0],))
+                self.connection.execute("UPDATE outbox SET route='retry_exhausted_not_applied' WHERE intent_id=?",(intent["intent_id"],))
+                route="retry_exhausted_not_applied"
+            else:
+                self.connection.execute("UPDATE attempts SET status='unknown' WHERE attempt_id=?",(attempt[0],))
+                self.connection.execute("UPDATE outbox SET route='human_reconciliation' WHERE intent_id=?",(intent["intent_id"],))
+                route="human_reconciliation"
+            self.connection.commit(); return route
         except Exception: self.connection.rollback(); raise
 
     def dispatch_next(self, token, *, crash_point=None):
@@ -314,19 +342,26 @@ class DurableHarness:
         run=self._row(run_id)
         if run["status"]!="active": raise HarnessError("run does not allow dispatch")
         if row is None: return None
+        if row["route"] in ("retry_exhausted","retry_exhausted_not_applied","human_reconciliation"):
+            raise ReconciliationRequired(row["route"])
         intent=json.loads(row["intent_json"])
         prior=self.connection.execute("SELECT status FROM attempts WHERE intent_id=? ORDER BY sequence DESC LIMIT 1",(intent["intent_id"],)).fetchone()
         if prior and prior[0] in ("started","unknown"): raise ReconciliationRequired(intent["intent_id"])
+        exhausted=False
         self._begin()
         try:
             self._check_token(token); run=self._row(run_id)
             if run["status"]!="active": raise HarnessError("run does not allow dispatch")
             seq=self.connection.execute("SELECT COUNT(*)+1 FROM attempts WHERE intent_id=?",(intent["intent_id"],)).fetchone()[0]
-            if seq>run["max_attempts"]: raise HarnessError("max_attempts exceeded")
-            attempt_id=f"attempt:{intent['intent_id']}:{seq}"
-            self.connection.execute("INSERT INTO attempts VALUES(?,?,?,'started',?)",(attempt_id,intent["intent_id"],generation,seq))
-            self.connection.execute("UPDATE outbox SET status='started',route='dispatch' WHERE intent_id=?",(intent["intent_id"],)); self.connection.commit()
+            if seq>run["max_attempts"]:
+                self.connection.execute("UPDATE outbox SET status='reconcile',route='retry_exhausted' WHERE intent_id=?",(intent["intent_id"],))
+                self.connection.commit(); exhausted=True
+            else:
+                attempt_id=f"attempt:{intent['intent_id']}:{seq}"
+                self.connection.execute("INSERT INTO attempts VALUES(?,?,?,'started',?)",(attempt_id,intent["intent_id"],generation,seq))
+                self.connection.execute("UPDATE outbox SET status='started',route='dispatch' WHERE intent_id=?",(intent["intent_id"],)); self.connection.commit()
         except Exception: self.connection.rollback(); raise
+        if exhausted: raise ReconciliationRequired("retry_exhausted")
         if crash_point=="after_attempt": raise CrashInjected("after_attempt")
         try: result=self.adapter.apply(intent,generation)
         except (AdapterConflictError,AdapterStaleFenceError) as error: raise ConflictError(str(error)) from error
@@ -347,16 +382,34 @@ class DurableHarness:
     def reconcile_next(self, token):
         run_id,generation=self._check_token(token); row=self._next(run_id)
         if row is None: return "nothing_pending"
+        if row["route"]=="human_reconciliation": return "human_reconciliation"
         intent=json.loads(row["intent_json"])
+        if row["route"]=="retry_exhausted_not_applied":
+            self._record_receipt(token,run_id,intent,generation,"confirmed_failure",terminal_route="retry_exhausted",preserve_attempt_status=True)
+            return "confirmed_failure"
         try: result=self.adapter.query(intent,generation)
         except (AdapterConflictError,AdapterStaleFenceError) as error: raise ConflictError(str(error)) from error
         if result=="confirmed_success": self._record_receipt(token,run_id,intent,generation,result)
         elif result=="not_applied":
+            if row["route"]=="retry_exhausted":
+                self._record_retry_exhaustion_query(token,run_id,intent,result)
+                self._record_receipt(token,run_id,intent,generation,"confirmed_failure",terminal_route="retry_exhausted",preserve_attempt_status=True)
+                return "confirmed_failure"
             self._begin()
             try:
                 self._check_token(token)
                 self.connection.execute("UPDATE attempts SET status='reconciled_not_applied' WHERE intent_id=? AND status IN ('started','unknown')",(intent["intent_id"],)); self.connection.execute("UPDATE outbox SET status='pending',route='dispatch' WHERE intent_id=?",(intent["intent_id"],)); self.connection.commit()
             except Exception: self.connection.rollback(); raise
+        elif row["status"]=="reconcile" and row["route"]=="retry_exhausted":
+            self._record_retry_exhaustion_query(token,run_id,intent,"outcome_unknown")
+            return "human_reconciliation"
+        elif row["status"]=="reconcile" and row["route"]=="reconcile":
+            self._begin()
+            try:
+                self._check_token(token)
+                self.connection.execute("UPDATE outbox SET status='reconcile',route='human_reconciliation' WHERE intent_id=?",(intent["intent_id"],)); self.connection.commit()
+            except Exception: self.connection.rollback(); raise
+            return "human_reconciliation"
         return result
 
     def receipts(self, run_id):

@@ -7,8 +7,9 @@
     "Generation and compare-and-swap lease fencing, including a second fence check before receipt/checkpoint commit after external I/O",
     "Exact M4AApprovalRequestPreimage and M4AApprovalPreimage recomputation plus atomic one-time approval consumption, EffectIntent persistence, receipt binding, checkpoint update, and outbox insertion",
     "Attempt persistence before adapter I/O and destination reconciliation before retry after uncertain or started attempts",
+    "Retry exhaustion persists a reconcile/retry_exhausted outbox handoff before destination query; a not-applied query then persists retry_exhausted_not_applied before a confirmed_failure receipt, while an unproven result persists human_reconciliation without automatic retry",
     "Exact frozen M0 ActionReceipt construction from committed command/input/platform binding, explicit output/trace/outcome observation, and RFC 3339 conversion of the injected epoch clock under flrh-cjson/1 canonicalization",
-    "Atomic receipt and terminal-attempt/checkpoint persistence, checkpoint quarantine, and reproducible no-progress windows that cannot terminalize with pending effects",
+    "Atomic receipt, attempt observation or disposition, checkpoint, and outbox persistence; checkpoint quarantine; and reproducible no-progress windows that cannot terminalize with pending effects",
     "Pending interrupts are typed-idempotent, reject new effects and rounds, but permit reconcile/dispatch recovery of already-committed effects before the interrupt is honored; terminal runs reject new interrupts",
     "Per-run max_pending and max_attempts bounds capped by profile ceilings 1024 and 16",
     "Independent verification checks every attempt transition and orphan approvals; the SQLite approval-to-intent link is deferred but foreign-key constrained",
@@ -27,6 +28,15 @@
     "duplicate_rule": "exact stable bytes are idempotent; same identity with different bytes conflicts",
     "unknown_rule": "query destination evidence before any retry",
     "exactly_once_claim": false
+  },
+  "retry_exhaustion": {
+    "fault_family": "m4b-rx1",
+    "attempt_boundary": "no attempt is created beyond max_attempts",
+    "pre_disposition": "persist outbox status reconcile and route retry_exhausted, then query destination evidence",
+    "confirmed_success": "persist an exact M0 ActionReceipt with outcome confirmed_success",
+    "confirmed_not_applied": "persist attempt status reconciled_not_applied and outbox route retry_exhausted_not_applied before constructing an exact confirmed_failure receipt; then retain done outbox route retry_exhausted",
+    "unproven": "persist attempt status unknown and outbox route human_reconciliation; stop automatic query and dispatch",
+    "outer_boundary": "leave the M4B run active; the outer run FSM owns RETRIES_EXHAUSTED and any terminal transition"
   },
   "fault_tests": [16,17,18,19,20,21,22,23,24,25],
   "completion_boundary": "PROPOSED simulated SQLite and FakeAdapter evidence only. M4B accepts exact schema-shaped M0 EffectIntent values but does not establish their policy correctness, integrated FLR behavior, real-destination safety, production readiness, comparative efficacy, or engine promotion."

@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]; sys.path.insert(0,str(ROOT/"src")); sys.path.insert(0,str(ROOT/"scripts"))
-from flrh_harness import ConflictError,DurableHarness,FakeAdapter,QuarantinedError,ReconciliationRequired,StaleFenceError
+from flrh_harness import ConflictError,DurableHarness,FakeAdapter,QuarantinedError,ReconciliationRequired,StaleFenceError,verify_run
 from run_m4b_replay import intent
 from run_m4b_replay import binding, evidence
 
@@ -49,7 +49,32 @@ def main():
         counts=(h.connection.execute("SELECT COUNT(*) FROM receipts").fetchone()[0],h.connection.execute("SELECT status FROM outbox").fetchone()[0],h.connection.execute("SELECT status FROM attempts").fetchone()[0])
         if counts==(0,"started","started"): detected.append("receipt_only_without_checkpoint")
         h.close()
-    expected={"stale_generation_acceptance","duplicate_identity_rewrite","blind_retry_after_started","corrupt_checkpoint_resume","receipt_only_without_checkpoint"}
+        # retry_exhaustion_handoff_bypass
+        class UnprovenQueryAdapter(FakeAdapter):
+            def query(self,value,generation):
+                self._increment("query_count")
+                return "outcome_unknown"
+        adapter=UnprovenQueryAdapter(outcomes={"intent:m4b:replay":["transient"]}); h=DurableHarness(base/"retry-exhausted.db",adapter,now=lambda:100,receipt_evidence=evidence); h.create_run("run:retry-exhausted",{"round":0},max_attempts=1); token=h.acquire_lease("run:retry-exhausted","a",ttl_seconds=10); h.commit_intent(token,intent(),receipt_binding=binding()); h.dispatch_next(token)
+        try: h.dispatch_next(token)
+        except ReconciliationRequired: pass
+        first=h.reconcile_next(token); second=h.reconcile_next(token)
+        try: h.dispatch_next(token)
+        except ReconciliationRequired:
+            state=tuple(h.connection.execute("SELECT status,route FROM outbox").fetchone())
+            if first==second=="human_reconciliation" and state==("reconcile","human_reconciliation") and adapter.apply_count==adapter.query_count==1:
+                detected.append("retry_exhaustion_handoff_bypass")
+        h.close()
+        # retry_exhaustion_receipt_before_query
+        adapter=FakeAdapter(outcomes={"intent:m4b:replay":["transient"]}); h=DurableHarness(base/"retry-receipt-order.db",adapter,now=lambda:100,receipt_evidence=evidence); h.create_run("run:retry-order",{"round":0},max_attempts=1); token=h.acquire_lease("run:retry-order","a",ttl_seconds=10); candidate=intent(); h.commit_intent(token,candidate,receipt_binding=binding()); h.dispatch_next(token)
+        try: h.dispatch_next(token)
+        except ReconciliationRequired: pass
+        try: h._record_receipt(token,"run:retry-order",candidate,1,"confirmed_failure",terminal_route="retry_exhausted",preserve_attempt_status=True)
+        except ConflictError:
+            state=tuple(h.connection.execute("SELECT status,route FROM outbox").fetchone())
+            if adapter.query_count==0 and state==("reconcile","retry_exhausted") and not h.receipts("run:retry-order") and verify_run(base/"retry-receipt-order.db","run:retry-order")["valid"]:
+                detected.append("retry_exhaustion_receipt_before_query")
+        h.close()
+    expected={"stale_generation_acceptance","duplicate_identity_rewrite","blind_retry_after_started","corrupt_checkpoint_resume","receipt_only_without_checkpoint","retry_exhaustion_handoff_bypass","retry_exhaustion_receipt_before_query"}
     if set(detected)!=expected: raise SystemExit(f"undetected: {sorted(expected-set(detected))}")
     print(json.dumps({"kind":"M4BAdversarialSensitivityReport","adversarial_sensitivity_cases_detected":len(detected),"cases":sorted(detected)},separators=(",",":"),sort_keys=True))
 

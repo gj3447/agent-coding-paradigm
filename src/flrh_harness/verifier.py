@@ -151,18 +151,29 @@ def verify_run(path: Path, run_id: str):
         if (outbox["status"] == "done") != (receipt_row is not None):
             errors.append("OUTBOX_RECEIPT_COHERENCE")
         if history:
-            expected_statuses = {
-                "pending": {"transient", "reconciled_not_applied"},
-                "started": {"started"},
-                "reconcile": {"unknown"},
-                "done": {"confirmed_success", "confirmed_failure"},
-            }
-            if history[-1]["status"] not in expected_statuses.get(outbox["status"], set()):
-                errors.append("ATTEMPT_OUTBOX_COHERENCE")
-            expected_route = {"pending": "retry" if history[-1]["status"] == "transient" else "dispatch",
-                              "started": "dispatch", "reconcile": "reconcile", "done": "terminal"}
-            if outbox["route"] != expected_route.get(outbox["status"]):
-                errors.append("OUTBOX_ROUTE_COHERENCE")
+            last_status=history[-1]["status"]
+            exhaustion_source=(len(history)==run["max_attempts"] and last_status in {"transient","reconciled_not_applied"})
+            if outbox["status"]=="reconcile" and outbox["route"]=="retry_exhausted":
+                if not exhaustion_source: errors.append("RETRY_EXHAUSTION_BOUND")
+            elif outbox["status"]=="reconcile" and outbox["route"]=="retry_exhausted_not_applied":
+                if len(history)!=run["max_attempts"] or last_status!="reconciled_not_applied": errors.append("RETRY_EXHAUSTION_QUERY_PHASE")
+            elif outbox["status"]=="reconcile" and outbox["route"]=="human_reconciliation":
+                if last_status!="unknown": errors.append("HUMAN_RECONCILIATION_SOURCE")
+            elif outbox["status"]=="done" and outbox["route"]=="retry_exhausted":
+                if len(history)!=run["max_attempts"] or last_status!="reconciled_not_applied": errors.append("RETRY_EXHAUSTION_RECEIPT")
+            else:
+                expected_statuses = {
+                    "pending": {"transient", "reconciled_not_applied"},
+                    "started": {"started"},
+                    "reconcile": {"unknown"},
+                    "done": {"confirmed_success", "confirmed_failure"},
+                }
+                if last_status not in expected_statuses.get(outbox["status"], set()):
+                    errors.append("ATTEMPT_OUTBOX_COHERENCE")
+                expected_route = {"pending": "retry" if last_status == "transient" else "dispatch",
+                                  "started": "dispatch", "reconcile": "reconcile", "done": "terminal"}
+                if outbox["route"] != expected_route.get(outbox["status"]):
+                    errors.append("OUTBOX_ROUTE_COHERENCE")
         elif outbox["status"] != "pending":
             errors.append("ATTEMPT_OUTBOX_COHERENCE")
         elif outbox["route"] != "dispatch":
@@ -187,7 +198,10 @@ def verify_run(path: Path, run_id: str):
                     errors.append("RECEIPT_BINDING_LINK")
                 if wire.get("outcome") not in ("confirmed_success", "confirmed_failure"):
                     errors.append("RECEIPT_OUTCOME")
-                if not history or wire.get("attempt_id") != history[-1]["attempt_id"] or history[-1]["status"] != wire.get("outcome"):
+                if outbox["route"]=="retry_exhausted" and wire.get("outcome")!="confirmed_failure":
+                    errors.append("RETRY_EXHAUSTION_RECEIPT")
+                exhausted_failure=(outbox["route"]=="retry_exhausted" and wire.get("outcome")=="confirmed_failure" and history and history[-1]["status"]=="reconciled_not_applied")
+                if not history or wire.get("attempt_id") != history[-1]["attempt_id"] or (history[-1]["status"] != wire.get("outcome") and not exhausted_failure):
                     errors.append("ATTEMPT_RECEIPT_COHERENCE")
 
         approvals = approvals_by_intent.get(intent_id, [])

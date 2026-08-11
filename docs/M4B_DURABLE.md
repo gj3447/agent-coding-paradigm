@@ -51,14 +51,36 @@ effects remain recoverable: the runner must reconcile or dispatch them to a
 terminal observation before honoring the interrupt. This prevents cancellation
 or a no-progress threshold from stranding durable work.
 
+`PROPOSED`: when another dispatch would exceed `max_attempts`, M4B creates no
+attempt and first persists the pending outbox item as
+`status = reconcile, route = retry_exhausted`. `reconcile_next` must then query
+destination evidence before choosing a disposition. A `confirmed_success`
+query uses the existing exact success receipt path. A `not_applied` query plus
+the exhausted attempt ledger first persists the causal phase
+`attempt.status = reconciled_not_applied, outbox.route =
+retry_exhausted_not_applied`. Only that phase may construct an exact
+`confirmed_failure` `ActionReceipt`; receipt, checkpoint, and outbox closure
+remain atomic, and the completed outbox keeps `route = retry_exhausted` for
+durable outer re-ingestion. A crash after the phase commit but before receipt
+construction resumes the receipt without querying again. Any unrecognized or
+unknown query result instead persists `attempt.status = unknown` and
+`route = human_reconciliation`. That handoff
+keeps the effect pending, returns the same handoff without another automatic
+query, and rejects dispatch, so it cannot become a blind retry or false
+terminal. The M4B run remains `active` after either receipt or handoff. M4B
+does not execute the outer reducer: the existing run FSM owns
+`RETRIES_EXHAUSTED -> RETRY_EXHAUSTED` after receipt re-ingestion, and an
+unproven effect belongs to its `HUMAN_RECONCILIATION` path.
+
 `FakeAdapter` is only a deterministic simulated destination. It enforces fence
 and idempotency identities and exposes apply, query, and mutation counts.
 `verify_run` independently opens SQLite read-only and checks canonical bytes,
 protocol schemas and digests, receipt binding and intent linkage, attempt /
 outbox / receipt coherence, approval preimages/consumption/workflow binding,
 generation and per-intent attempt bounds, every attempt's identity/status/
-transition, profile ceilings, run/interrupt vocabularies, orphan approvals,
-checkpoint integrity, foreign keys, and terminal/pending counts. Approval rows
+transition, retry-exhaustion causal phases and human-handoff sources, profile ceilings,
+run/interrupt vocabularies, orphan approvals, checkpoint integrity, foreign
+keys, and terminal/pending counts. Approval rows
 also carry a deferred SQLite foreign key to the intent created in their atomic
 transaction.
 The package's intentional public surface is exactly `DurableHarness`,
@@ -104,3 +126,41 @@ and selected M4C/M4C-IL happy and crash paths did not regress. The M4B claim
 remains `PROPOSED` and its manifest status remains
 `PROPOSED_PENDING_MEASUREMENT`; this repair is not a durability promotion or
 outer-completion result.
+
+## Retry-exhaustion closure checks
+
+`PROPOSED`: local fault family `m4b-rx1` covers transient exhaustion, unproven-query human
+handoff, terminal-plus-pending rejection, the unknown/not-applied-before-retry
+path at the attempt bound, forged early exhaustion, durable exhaustion-cause
+retention, query-phase crash/re-entry, and separation from ordinary permanent
+failure. It does not reuse global fault number 26, which belongs to the graph
+and schema plan. The focused and aggregate commands are:
+
+```bash
+uv run --with-requirements requirements-m0.txt python -m unittest \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1a_retry_exhaustion_queries_before_confirmed_failure_receipt \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1b_retry_exhaustion_persists_bounded_human_reconciliation_handoff \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1c_verifier_rejects_exhaustion_dispatch_and_terminal_pending_mutations \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1d_reconciled_not_applied_at_bound_still_queries_before_failure \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1e_forged_early_exhaustion_cannot_mint_failure_receipt \
+  tests.test_m4b_durable.M4BDurableTests.test_m4b_rx1f_query_phase_survives_receipt_failure_without_requery
+uv run --with-requirements requirements-m0.txt python -m unittest \
+  tests.test_m4b_durable tests.test_m4b_candidate_gate
+uv run --with-requirements requirements-m0.txt python \
+  scripts/validate_m4b.py --allow-proposed
+```
+
+`PROPOSED` local pre-commit observation: the focused result was `6/6 OK`,
+durable plus candidate gate was `42/42 OK`, and the aggregate emitted:
+
+```json
+{"adversarial_sensitivity_cases":7,"ambient_violations":0,"approval_mutations":11,"fault_tests":10,"inherited_dependencies":18,"kind":"M4BValidationReport","local_fault_families":1,"manifest_owned_paths":22,"public_api":3,"replay_matches":true,"status":"PROPOSED_PENDING_MEASUREMENT","subprocess_cutpoints":3}
+```
+
+Passing remains local proposed evidence only. In particular, the lowercase
+outbox route `retry_exhausted` is a durable cause/handoff marker, not an outer
+terminal state. Only `spec/run-fsm.v1.json` owns the typed
+`RETRIES_EXHAUSTED -> RETRY_EXHAUSTED` transition, and this M4B slice does not
+execute it. The intermediate phase proves durable producer ordering inside
+this reference; `FakeAdapter` and the SQLite verifier do not independently
+prove that a real destination query occurred or that its answer was true.
