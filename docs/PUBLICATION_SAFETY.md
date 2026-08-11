@@ -13,10 +13,11 @@ commits are pushed to the still-private source repository.
 
 - `detect-secrets 1.5.0` found only commit/tree digests and a phrase describing
   secret isolation; manual review found no credential value.
-- `gitleaks 8.30.1` scanned the reachable 36-commit history and current
-  worktree with `.gitleaks.toml`; both reported zero findings. The allowlist is
-  limited to the synthetic M4B `crash_point=` parameter under `scripts/` and
-  `tests/`.
+- `gitleaks 8.30.1` reported zero findings in an earlier scan of the source
+  repository's then-reachable 36 commits and current worktree. The fixed
+  33-commit main-only candidate was scanned separately in the receipt below.
+  The allowlist is limited to the synthetic M4B `crash_point=` parameter under
+  `scripts/` and `tests/`.
 - Every commit reachable from `main` uses a GitHub
   `users.noreply.github.com` author address. Two sealed M3 environment
   descriptors contain a personal-name macOS site-packages path. They contain
@@ -60,6 +61,51 @@ repository. GitHub's relevant procedures are the
 [visibility guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility),
 [repository rename guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository),
 and [existing-code push guide](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github).
+
+## Completed publication receipt — 2026-08-11
+
+`MEASURED`: the fixed implementation subject was
+`06b3428a2660b479a7b3db31e73386b08c30eef9`. The publication host was Linux
+`7.0.14-5-pve` x86_64 with Python `3.13.5`, gitleaks `8.30.1`, and actionlint
+`1.7.12`. The isolated clone contained 33 commits, exactly one head named
+`main` at the subject SHA, zero tags, and no commit reachable only from the
+private research branch. Actionlint exited zero for both workflows, and the
+following scans reported zero findings:
+
+```bash
+actionlint .github/workflows/*.yml
+gitleaks git --config .gitleaks.toml --no-banner --redact .
+gitleaks dir --config .gitleaks.toml --no-banner --redact .
+```
+
+`MEASURED`: while the staging repository was still private, the fixed subject
+passed [public-safety run 31482997336](https://github.com/gj3447/agent-coding-paradigm/actions/runs/31482997336)
+and [conformance run 31482997322](https://github.com/gj3447/agent-coding-paradigm/actions/runs/31482997322).
+The latter ran all five M0/M1/M2/M3/direct-LR validators and reported
+`Ran 200 tests in 410.650s` / `OK`. Before visibility changed, all nine commits
+unique to the private research branch returned `404` from the staging commit
+API and were absent from the isolated clone; `licenseInfo` was `null`.
+
+`MEASURED` between `2026-08-11T10:47:24Z` and `2026-08-11T10:47:33Z`: an
+unauthenticated GitHub API request and an unauthenticated `git ls-remote` read
+confirmed that
+`gj3447/agent-coding-paradigm` is public with default branch `main` and one
+remote head, zero tags, and `license = null`. The separately named
+`gj3447/agent-coding-paradigm-private-archive` remained private and retained
+the non-public research branch. Local `main` tracks public `origin/main`; the
+archive uses the distinct `private-archive` remote.
+
+Two superseded runs were removed while staging was still private: safety run
+`31482896101`, whose older scanner interpretation flagged synthetic
+`crash_point=` lines, and the associated canceled conformance run
+`31482895970`; the generated SARIF artifact was removed with them. They were
+not used as evidence. The scanner version was then pinned and the two green
+runs above replaced them. No source commit was removed by this cleanup.
+
+This receipt establishes the named publication checks, not that sensitive
+inference is impossible, that the repository is production-ready, or that a
+license has been granted. The documentation commit containing this receipt is
+governance-only and is not part of the fixed implementation subject.
 
 ## Public-use boundary
 

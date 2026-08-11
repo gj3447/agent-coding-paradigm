@@ -87,6 +87,10 @@ See [Graph Contract](docs/GRAPH_CONTRACT.md).
 - [M2 stratified-L kernel](docs/M2_LOGIC.md) — ground fixpoint, four-valued support, provenance, retraction, and full-recompute oracle boundary
 - [M3 reactive kernel](docs/M3_REACTIVE.md) — measured bounded supplied-value, scalar-frontier, epoch-atomic batch, demand, and backpressure reference
 - [Direct L-to-R projection seam](docs/LR_SEAM.md) — measured bounded stateless binding from exact M2 materialization state to M3 proposal/verdict deltas
+- [M4B durable harness reference](docs/M4B_DURABLE.md) — `PROPOSED_PENDING_MEASUREMENT` bounded SQLite + `FakeAdapter` reference for durable intents, attempts, reconciliation, and retry exhaustion; not real-destination, outer-completion, production, or engine evidence
+- [Synthetic consumer sample protocol](docs/CONSUMER_SAMPLE_PROTOCOL.md) — `PROPOSED` six-lane, six-variant corpus preserving a private operational workflow shape with synthetic values only; not private-source, real-consumer, production, or efficacy evidence
+- [Agent instruction routing](docs/AGENT_CONTEXT_ROUTING.md) — `PROPOSED` task-routed rules with no hard prompt-token ceiling; runtime queues, waits, attempts, deadlines, and effects remain bounded, and no token, cost, latency, or quality improvement is claimed
+- [Agent-coding source landscape](research/AGENT_CODING_LANDSCAPE_2026-08-11.md) and [frozen source registry](research/agent-coding-source-registry.v1.json) — 17 reference-only GitHub sources; only timestamped repository metadata is `MEASURED`, not popularity, quality, adoption, legal clearance, or FLR-H suitability
 - [Engine decision ADR](docs/adr/0001-defer-engine-verdict.md) — why this is not yet called an engine
 - [Research baseline](research/BASELINE_2026-08-08.md) — primary-source synthesis
 - [M1 validation receipt](research/M1_VALIDATION_2026-08-08.md) — frozen commit, environment, corpus digests, local gate, and CI readback
