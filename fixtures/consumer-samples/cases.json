@@ -1,0 +1,184 @@
+{
+  "schema_version": "consumer-sample-corpus/v1",
+  "epistemic_status": "PROPOSED",
+  "samples": [
+    {
+      "sample_id": "sample:shared-accelerator-job:synthetic-1",
+      "title": "Synthetic shared-accelerator analysis job",
+      "origin": {
+        "source_class": "private_operational_workflow",
+        "transformation": "structural_synthesis",
+        "payload_mode": "synthetic_only",
+        "source_payload_included": false,
+        "public_release_review": "passed"
+      },
+      "task": {
+        "objective": "Run a bounded analysis job on shared compute without displacing higher-priority work, then verify the declared artifact independently.",
+        "data_lanes": [
+          "task_spec",
+          "repository_state",
+          "test_evidence",
+          "resource_observation",
+          "effect_observation",
+          "verification_receipt"
+        ],
+        "constraints": {
+          "max_pending_effects": 1,
+          "max_attempts": 2,
+          "wait_timeout_seconds": 300,
+          "cancellation_required": true,
+          "production_workload_precedence": true
+        }
+      },
+      "stages": [
+        {
+          "sequence": 1,
+          "stage_id": "stage:decide",
+          "owner": "F",
+          "kind": "decide",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["task_spec", "repository_state"],
+          "produces": ["fact_delta", "effect_proposal"]
+        },
+        {
+          "sequence": 2,
+          "stage_id": "stage:eligibility",
+          "owner": "L",
+          "kind": "derive_eligibility",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["fact_delta", "resource_observation", "test_evidence"],
+          "produces": ["eligibility_verdict"]
+        },
+        {
+          "sequence": 3,
+          "stage_id": "stage:stabilize",
+          "owner": "R",
+          "kind": "stabilize",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["effect_proposal", "eligibility_verdict"],
+          "produces": ["stable_proposal_batch"]
+        },
+        {
+          "sequence": 4,
+          "stage_id": "stage:commit-intent",
+          "owner": "H",
+          "kind": "commit_intent",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["stable_proposal_batch"],
+          "produces": ["effect_intent", "durable_outbox_row"]
+        },
+        {
+          "sequence": 5,
+          "stage_id": "stage:dispatch",
+          "owner": "H",
+          "kind": "dispatch",
+          "external_mutation": true,
+          "completion_authority": false,
+          "consumes": ["effect_intent"],
+          "produces": ["effect_observation"]
+        },
+        {
+          "sequence": 6,
+          "stage_id": "stage:reconcile",
+          "owner": "H",
+          "kind": "reconcile",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["effect_observation"],
+          "produces": ["action_receipt", "resolved_outbox"]
+        },
+        {
+          "sequence": 7,
+          "stage_id": "stage:verify",
+          "owner": "EXTERNAL_VERIFIER",
+          "kind": "verify",
+          "external_mutation": false,
+          "completion_authority": false,
+          "consumes": ["action_receipt", "resolved_outbox"],
+          "produces": ["verification_receipt"]
+        },
+        {
+          "sequence": 8,
+          "stage_id": "stage:close-terminal",
+          "owner": "H",
+          "kind": "close_terminal",
+          "external_mutation": false,
+          "completion_authority": true,
+          "consumes": ["verification_receipt"],
+          "produces": ["terminal_state"]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "variant:happy-path",
+          "injected_condition": "All declared resource and verification observations are eligible and consistent.",
+          "expected_route": ["commit", "dispatch", "verify", "terminal"],
+          "expected_terminal": "SUCCEEDED",
+          "expected_confirmed_mutations": 1,
+          "retry_before_reconciliation": false
+        },
+        {
+          "variant_id": "variant:insufficient-headroom",
+          "injected_condition": "The synthetic resource observation is below the declared safe headroom.",
+          "expected_route": ["reject_before_intent"],
+          "expected_terminal": "BLOCKED",
+          "expected_confirmed_mutations": 0,
+          "retry_before_reconciliation": false
+        },
+        {
+          "variant_id": "variant:unknown-after-dispatch",
+          "injected_condition": "Dispatch returns an unknown outcome after the external boundary may have been crossed.",
+          "expected_route": ["dispatch", "reconcile", "verify", "terminal"],
+          "expected_terminal": "SUCCEEDED",
+          "expected_confirmed_mutations": 1,
+          "retry_before_reconciliation": false
+        },
+        {
+          "variant_id": "variant:duplicate-intent-conflict",
+          "injected_condition": "The same identity is presented with different canonical intent bytes.",
+          "expected_route": ["conflict"],
+          "expected_terminal": "ACTIVE",
+          "expected_confirmed_mutations": 0,
+          "retry_before_reconciliation": false
+        },
+        {
+          "variant_id": "variant:producer-self-report-only",
+          "injected_condition": "The effect producer reports success but no independent verification receipt exists.",
+          "expected_route": ["verification_required"],
+          "expected_terminal": "ACTIVE",
+          "expected_confirmed_mutations": 1,
+          "retry_before_reconciliation": false
+        },
+        {
+          "variant_id": "variant:cancel-while-unknown",
+          "injected_condition": "Cancellation arrives while an external outcome is unresolved.",
+          "expected_route": ["reconcile", "honor_cancel"],
+          "expected_terminal": "CANCELLED",
+          "expected_confirmed_mutations": 1,
+          "retry_before_reconciliation": false
+        }
+      ],
+      "privacy": {
+        "release_class": "public_synthetic",
+        "source_payload_included": false,
+        "forbidden_field_names": ["account_name", "company_name", "credential", "customer_id", "hostname", "internal_path", "ip_address", "private_model", "raw_capture_path"],
+        "synthetic_markers": ["PRIVATE_SOURCE_NOT_INCLUDED", "SYNTHETIC"]
+      },
+      "verifier": {
+        "producer_role": "effect_adapter",
+        "verifier_role": "independent_read_only_verifier",
+        "independent": true,
+        "required_evidence": ["action_receipt", "artifact_digest", "destination_observation", "resolved_outbox", "verification_receipt"]
+      },
+      "claim_boundary": {
+        "epistemic_status": "PROPOSED",
+        "supports": ["public synthetic corpus shape", "semantic admission checks"],
+        "does_not_support": ["comparative efficacy", "exactly-once delivery", "private-system correctness", "production readiness", "engine promotion"]
+      }
+    }
+  ]
+}

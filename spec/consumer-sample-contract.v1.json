@@ -1,0 +1,50 @@
+{
+  "schema_version": "consumer-sample-contract/v1",
+  "epistemic_status": "PROPOSED",
+  "purpose": "Define public, synthetic consumer samples that preserve an operational workflow shape without publishing private source payloads or identifiers.",
+  "source_boundary": {
+    "allowed_public_material": [
+      "synthetic task values",
+      "public source references with provenance",
+      "aggregate measurements cleared for release"
+    ],
+    "prohibited_public_material": [
+      "raw private captures or customer data",
+      "hostnames, addresses, account names, credentials, or internal paths",
+      "private product, customer, model, or deployment identifiers",
+      "verbatim internal commands, logs, configuration, or source code"
+    ],
+    "required_transformation": "structural_synthesis",
+    "raw_payload_inclusion": false
+  },
+  "required_data_lanes": [
+    "task_spec",
+    "repository_state",
+    "test_evidence",
+    "resource_observation",
+    "effect_observation",
+    "verification_receipt"
+  ],
+  "flrh_ownership": {
+    "F": "deterministic decision over explicit synthetic inputs; no external mutation",
+    "L": "explicit eligibility, conflict, and support semantics; no external mutation",
+    "R": "stable publication after the declared frontier; no external mutation",
+    "H": "bounded continuation, authority, intent commit, dispatch, reconciliation, and terminal state",
+    "EXTERNAL_VERIFIER": "read-only evidence producer independent from the effect producer; never owns terminal state"
+  },
+  "admission_invariants": [
+    "Every queue and attempt count is bounded, and every wait has a positive timeout plus cancellation behavior.",
+    "F, L, and R stages never perform an external mutation.",
+    "Duplicate identity with different intent routes to conflict, not retry.",
+    "Unknown effect outcome routes to reconciliation before retry or terminal state.",
+    "A producer self-report cannot satisfy completion without independent verification evidence.",
+    "H alone consumes verification evidence and owns terminal state.",
+    "Private source payloads and identifiers are absent rather than redacted in place."
+  ],
+  "completion_rule": "A sample may expect terminal success only after H consumes an independent verification receipt and no effect remains unresolved.",
+  "nonclaims": [
+    "The synthetic sample is not evidence of a real private system, destination, or dataset.",
+    "A passing sample validator is not comparative efficacy, production safety, or engine-promotion evidence.",
+    "A one-mutation synthetic expectation is not an exactly-once claim for external systems."
+  ]
+}

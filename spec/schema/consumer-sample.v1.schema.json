@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/consumer-sample.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "epistemic_status", "samples"],
+  "properties": {
+    "schema_version": {"const": "consumer-sample-corpus/v1"},
+    "epistemic_status": {"const": "PROPOSED"},
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/sample"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?::[a-z0-9][a-z0-9-]*)+$",
+      "maxLength": 128
+    },
+    "lane": {
+      "enum": [
+        "task_spec",
+        "repository_state",
+        "test_evidence",
+        "resource_observation",
+        "effect_observation",
+        "verification_receipt"
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "stage_id", "owner", "kind", "external_mutation", "completion_authority", "consumes", "produces"],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 1},
+        "stage_id": {"$ref": "#/$defs/identifier"},
+        "owner": {"enum": ["F", "L", "R", "H", "EXTERNAL_VERIFIER"]},
+        "kind": {"enum": ["decide", "derive_eligibility", "stabilize", "commit_intent", "dispatch", "reconcile", "verify", "close_terminal"]},
+        "external_mutation": {"type": "boolean"},
+        "completion_authority": {"type": "boolean"},
+        "consumes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "produces": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variant_id", "injected_condition", "expected_route", "expected_terminal", "expected_confirmed_mutations", "retry_before_reconciliation"],
+      "properties": {
+        "variant_id": {"$ref": "#/$defs/identifier"},
+        "injected_condition": {"type": "string", "minLength": 1},
+        "expected_route": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["reject_before_intent", "commit", "dispatch", "reconcile", "retry", "conflict", "verification_required", "verify", "honor_cancel", "terminal"]}
+        },
+        "expected_terminal": {"enum": ["SUCCEEDED", "BLOCKED", "ACTIVE", "CANCELLED"]},
+        "expected_confirmed_mutations": {"type": "integer", "minimum": 0, "maximum": 1},
+        "retry_before_reconciliation": {"const": false}
+      }
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sample_id", "title", "origin", "task", "stages", "variants", "privacy", "verifier", "claim_boundary"],
+      "properties": {
+        "sample_id": {"$ref": "#/$defs/identifier"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "origin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_class", "transformation", "payload_mode", "source_payload_included", "public_release_review"],
+          "properties": {
+            "source_class": {"const": "private_operational_workflow"},
+            "transformation": {"const": "structural_synthesis"},
+            "payload_mode": {"const": "synthetic_only"},
+            "source_payload_included": {"const": false},
+            "public_release_review": {"const": "passed"}
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["objective", "data_lanes", "constraints"],
+          "properties": {
+            "objective": {"type": "string", "minLength": 1},
+            "data_lanes": {"type": "array", "items": {"$ref": "#/$defs/lane"}, "minItems": 6, "maxItems": 6, "uniqueItems": true},
+            "constraints": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["max_pending_effects", "max_attempts", "wait_timeout_seconds", "cancellation_required", "production_workload_precedence"],
+              "properties": {
+                "max_pending_effects": {"type": "integer", "minimum": 1, "maximum": 1024},
+                "max_attempts": {"type": "integer", "minimum": 1, "maximum": 16},
+                "wait_timeout_seconds": {"type": "integer", "minimum": 1},
+                "cancellation_required": {"const": true},
+                "production_workload_precedence": {"const": true}
+              }
+            }
+          }
+        },
+        "stages": {"type": "array", "minItems": 8, "items": {"$ref": "#/$defs/stage"}},
+        "variants": {"type": "array", "minItems": 6, "items": {"$ref": "#/$defs/variant"}},
+        "privacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["release_class", "source_payload_included", "forbidden_field_names", "synthetic_markers"],
+          "properties": {
+            "release_class": {"const": "public_synthetic"},
+            "source_payload_included": {"const": false},
+            "forbidden_field_names": {
+              "const": ["account_name", "company_name", "credential", "customer_id", "hostname", "internal_path", "ip_address", "private_model", "raw_capture_path"]
+            },
+            "synthetic_markers": {"const": ["PRIVATE_SOURCE_NOT_INCLUDED", "SYNTHETIC"]}
+          }
+        },
+        "verifier": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["producer_role", "verifier_role", "independent", "required_evidence"],
+          "properties": {
+            "producer_role": {"const": "effect_adapter"},
+            "verifier_role": {"const": "independent_read_only_verifier"},
+            "independent": {"const": true},
+            "required_evidence": {
+              "const": ["action_receipt", "artifact_digest", "destination_observation", "resolved_outbox", "verification_receipt"]
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["epistemic_status", "supports", "does_not_support"],
+          "properties": {
+            "epistemic_status": {"const": "PROPOSED"},
+            "supports": {"const": ["public synthetic corpus shape", "semantic admission checks"]},
+            "does_not_support": {
+              "const": ["comparative efficacy", "exactly-once delivery", "private-system correctness", "production readiness", "engine promotion"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
