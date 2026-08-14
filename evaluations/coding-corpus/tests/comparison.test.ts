@@ -101,7 +101,7 @@ test("unknown arms and malformed operator endpoints fail closed", () => {
   }
 });
 
-test("secret binding stays outside argv and differs by execution arm", () => {
+test("secret binding stays outside argv and becomes a Compose-managed file", () => {
   const react = admittedPlan("react");
   const aider = admittedPlan("aider");
   const secret = "bounded-private-value";
@@ -112,7 +112,7 @@ test("secret binding stays outside argv and differs by execution arm", () => {
   assert.deepEqual(comparisonEnvironment(aider, secret), {
     MODEL_GATEWAY_UPSTREAM_HOST: "dgx.internal",
     MODEL_GATEWAY_UPSTREAM_PORT: "18000",
-    DGX_API_KEY_FILE: "/run/secrets/dgx-key",
+    DGX_API_KEY: secret,
   });
   assert.equal(react.command.includes(secret), false);
   assert.equal(aider.command.includes(secret), false);
@@ -332,7 +332,7 @@ test("Effect orchestration runs both fake Inspect arms sequentially and summariz
   assert.equal(react.cwd, "/tmp/controller");
   assert.equal(aider.cwd, "/tmp/controller");
   assert.equal(react.environment?.["DGX_API_KEY"], SECRET);
-  assert.equal(aider.environment?.["DGX_API_KEY_FILE"], "/run/secrets/dgx-key");
+  assert.equal(aider.environment?.["DGX_API_KEY"], SECRET);
   assert.equal(aider.environment?.["MODEL_GATEWAY_UPSTREAM_HOST"], "dgx.internal");
   assert.equal(aider.environment?.["MODEL_GATEWAY_UPSTREAM_PORT"], "18000");
   assert.equal(react.args.join("\n").includes(SECRET), false);

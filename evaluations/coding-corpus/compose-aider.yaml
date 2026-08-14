@@ -95,4 +95,4 @@ networks:
 
 secrets:
   dgx_api_key:
-    file: ${DGX_API_KEY_FILE:?set DGX_API_KEY_FILE to the operator-owned DGX key file}
+    environment: DGX_API_KEY
