@@ -32,7 +32,7 @@
       "Defining planning or dispatch doctrine",
       "Standardizing one universal graph representation"
     ],
-    "state_authority": "Current reference functions remain authority-free and current TypeScript test stores are process-local simulated adapters; a future operational H store must establish real-consumer authority, migration, and recovery evidence"
+    "state_authority": "The current pure-F, pure-L, and pure-R reference functions plus the stateless direct L-to-R projection remain authority-free; current TypeScript test stores are process-local simulated adapters, and a future operational H store must establish real-consumer authority, migration, and recovery evidence"
   },
   "contract": "PROPOSED future engine boundary, not a current public API: evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [
