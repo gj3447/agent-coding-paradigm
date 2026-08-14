@@ -1,0 +1,55 @@
+name: LangGraph.js synthetic consumer
+
+on:
+  push:
+    paths:
+      - ".github/workflows/langgraphjs-synthetic.yml"
+      - "integrations/langgraphjs-synthetic/**"
+  pull_request:
+    paths:
+      - ".github/workflows/langgraphjs-synthetic.yml"
+      - "integrations/langgraphjs-synthetic/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: langgraphjs-synthetic-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: integrations/langgraphjs-synthetic
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: 11.21.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24.13.0
+          cache: pnpm
+          cache-dependency-path: integrations/langgraphjs-synthetic/pnpm-lock.yaml
+
+      - name: Install exact dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Report ignored dependency build scripts
+        run: pnpm ignored-builds
+
+      - name: Verify exact top-level dependency graph
+        run: pnpm list --depth 0
+
+      - name: Typecheck, test, and run the unknown-after-dispatch smoke case
+        run: pnpm verify

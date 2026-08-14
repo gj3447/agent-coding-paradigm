@@ -1,0 +1,55 @@
+{
+  "kind": "PublicResearchProjectionManifest",
+  "schemaVersion": "public-research-projection-manifest/1",
+  "status": "PROPOSED",
+  "projectionId": "projection:synthetic-agent-coding-foundations-v1",
+  "scope": "public-research",
+  "policyVersion": "public-research-admission/1",
+  "limits": {
+    "maxEntries": 25,
+    "maxSummaryUtf8Bytes": 4096,
+    "maxTotalUtf8Bytes": 65536
+  },
+  "sources": [
+    {
+      "sourceId": "source:effect",
+      "uri": "https://github.com/Effect-TS/effect",
+      "publisher": "Effect-TS",
+      "revision": "2026-08-12",
+      "disposition": "public-reference-summary"
+    },
+    {
+      "sourceId": "source:langgraphjs",
+      "uri": "https://github.com/langchain-ai/langgraphjs",
+      "publisher": "LangChain AI",
+      "revision": "2026-08-12",
+      "disposition": "public-reference-summary"
+    }
+  ],
+  "entries": [
+    {
+      "evidenceId": "evidence:synthetic:effect-role-v1",
+      "sourceId": "source:effect",
+      "title": "Effect boundary role",
+      "summary": "Synthetic fixture: lazy typed effects bound timeout and cancellation without becoming a second agent loop.",
+      "semanticLabels": [
+        "Concept",
+        "Technology"
+      ],
+      "revision": "2026-08-12",
+      "contentDigest": "sha256:4f5e3e9a86ca2ef019bc8c4637c467e8c615fc667e15437411462ae22604571d"
+    },
+    {
+      "evidenceId": "evidence:synthetic:langgraph-role-v1",
+      "sourceId": "source:langgraphjs",
+      "title": "LangGraph.js orchestration role",
+      "summary": "Synthetic fixture: graph state and pause/resume mechanics do not grant external-effect authority.",
+      "semanticLabels": [
+        "Concept",
+        "Technology"
+      ],
+      "revision": "2026-08-12",
+      "contentDigest": "sha256:c7e36e36c67ac47cc01e71dbbfeba0686cbbafa730ebfdd9df2d2c12d28b7664"
+    }
+  ]
+}

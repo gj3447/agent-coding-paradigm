@@ -1,0 +1,23 @@
+{
+  "admittedEntryCount": 2,
+  "admittedSourceCount": 2,
+  "completionClaim": false,
+  "duplicateEntryCount": 0,
+  "duplicateSourceCount": 0,
+  "inputEntryCount": 2,
+  "inputSourceCount": 2,
+  "kind": "PublicResearchDryRunReceipt",
+  "liveNeo4jReadCount": 0,
+  "liveNeo4jWriteCount": 0,
+  "manifestDigest": "sha256:290a5c10cfd0fd799923d7e6db05a7faf92d4f8ce5516d4bcae7d5408269f8b2",
+  "mode": "offline-dry-run",
+  "modelCallCount": 0,
+  "modelContextAdmission": false,
+  "policyVersion": "public-research-admission/1",
+  "projectionDigest": "sha256:03fc00a7d233d726859da3474c8d7149d60f78c4492ab7acb579e34dd5951c90",
+  "projectionId": "projection:synthetic-agent-coding-foundations-v1",
+  "rejectedEntryCount": 0,
+  "schemaVersion": "public-research-dry-run-receipt/1",
+  "scope": "public-research",
+  "status": "PROPOSED"
+}
