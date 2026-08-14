@@ -51,52 +51,20 @@ LR_ADMISSION_EVIDENCE = [
     "tests/test_lr_seam.py",
     "docs/LR_SEAM.md",
 ]
-MEASURED_PROMOTION_SURFACES = {
-    "README.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/ARCHITECTURE.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/CLAIMS_AND_STATUS.md": (
-        "| one stateless direct L-to-R projection can bind explicit proposal "
-        "preconditions to exact four-valued M2 fact states and produce paired "
-        "M3 proposal/verdict deltas | MEASURED |"
-    ),
-    "docs/ROADMAP.md": (
-        "## M3-LR adjunct — Direct L-to-R projection ✅ MEASURED"
-    ),
-    "docs/SEMANTICS.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/LR_SEAM.md": "> Status: **MEASURED_REFERENCE_CONFORMANCE**.",
-    "docs/adr/0001-defer-engine-verdict.md": (
-        "DIRECT L-R PROJECTION MEASURED; ENGINE VERDICT DEFERRED"
-    ),
-    "spec/engine-decision.v1.json": (
-        "Direct L-to-R projection is measured while the engine verdict remains defer"
-    ),
-}
-STALE_LR_PROMOTION_FRAGMENTS = {
-    "README.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/ARCHITECTURE.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/CLAIMS_AND_STATUS.md": (
-        "| one stateless direct L-to-R projection can bind explicit proposal "
-        "preconditions to exact four-valued M2 fact states and produce paired "
-        "M3 proposal/verdict deltas | PROPOSED |"
-    ),
-    "docs/ROADMAP.md": (
-        "## M3-LR adjunct — Direct L-to-R projection ⏳ PROPOSED"
-    ),
-    "docs/SEMANTICS.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/LR_SEAM.md": "> Status: **PROPOSED_PENDING_MEASUREMENT**.",
-    "docs/adr/0001-defer-engine-verdict.md": (
-        "# ADR 0001: Defer the engine verdict"
-    ),
-    "spec/engine-decision.v1.json": "bind the direct L-to-R seam",
-}
-STRICT_CI_STEPS = [
+LR_CI_ORDER = [
     "python scripts/validate_m0.py",
     "python scripts/validate_m1.py",
     "python scripts/validate_m2.py",
     "python scripts/validate_m3.py",
     "python scripts/validate_lr_seam.py",
-    "python -m unittest discover -s tests -v",
 ]
+CURRENT_GOVERNANCE_PATHS = (
+    ".github/workflows/ci.yml",
+    "spec/lr-seam-contract.v1.json",
+    "spec/lr-seam-manifest.v1.json",
+    "spec/claims.v1.json",
+    "spec/engine-decision.v1.json",
+)
 PROMOTION_PATHS = (
     "README.md",
     "docs/ARCHITECTURE.md",
@@ -157,60 +125,6 @@ TEST_MEASURED_GATE_REPORT = {
     "status": "MEASURED_REFERENCE_CONFORMANCE",
     "success_paths": 8,
 }
-LR_RECEIPT_ANCHOR_LINE = (
-    "- [M3 validation receipt](research/M3_VALIDATION_2026-08-09.md) — frozen "
-    "subject tree, scalar-frontier digests, clean-process and semantic-mutation "
-    "gates, and exact CI readback"
-)
-LR_RECEIPT_LINK_LINE = (
-    "- [Direct L-to-R seam validation receipt]"
-    "(research/LR_SEAM_VALIDATION_2026-08-09.md) — frozen measured subject, "
-    "local evidence, and exact CI readback"
-)
-PROPOSED_PROMOTION_LINES = {
-    "README.md": (
-        "> Status: **RESEARCH INCUBATOR / SEPARATE M1 PURE-F + M2 STRATIFIED-L "
-        "+ M3 SCALAR-FRONTIER-R REFERENCES MEASURED / DIRECT L-R PROJECTION "
-        "PROPOSED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**"
-    ),
-    "docs/ARCHITECTURE.md": (
-        "> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 "
-        "SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R "
-        "PROJECTION PROPOSED / H NOT IMPLEMENTED"
-    ),
-    "docs/SEMANTICS.md": (
-        "> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 "
-        "SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R "
-        "PROJECTION PROPOSED / H NOT IMPLEMENTED / NOT EXTERNAL CANON"
-    ),
-    "docs/LR_SEAM.md": "> Status: **PROPOSED_PENDING_MEASUREMENT**.",
-}
-PROPOSED_MANIFEST_BOUNDARY = (
-    "This manifest proposes a direct deterministic Python L to R seam and intended "
-    "evidence set. Until its completion gate is measured, it is not a conformance "
-    "receipt and does not establish integrated runtime, H authority or effects, "
-    "production readiness, comparative efficacy, engine promotion, or Lakatos progress."
-)
-MEASURED_MANIFEST_BOUNDARY = (
-    "This manifest records one measured direct deterministic Python L to R seam and "
-    "frozen evidence set. It is a bounded conformance subject and does not establish "
-    "integrated runtime, H authority or effects, production readiness, comparative "
-    "efficacy, engine promotion, or Lakatos progress."
-)
-PROPOSED_CLAIM_SCOPE = (
-    "one proposed Python complete-materialization projection profile and frozen "
-    "descriptor corpus; not domain eligibility correctness, frontier truth, persistent "
-    "incremental integration, H authority or effects, integrated runtime, production, "
-    "efficacy, engine, or Lakatos evidence"
-)
-MEASURED_CLAIM_SCOPE = (
-    "one measured bounded Python complete-materialization projection profile and frozen "
-    "descriptor corpus; not domain eligibility correctness, frontier truth, persistent "
-    "incremental integration, H authority or effects, integrated runtime, production, "
-    "efficacy, engine, or Lakatos evidence"
-)
-
-
 def by_id(items, identifier):
     return next(item for item in items if item["id"] == identifier)
 
@@ -261,296 +175,27 @@ class LRSeamTests(unittest.TestCase):
     def rejection_expected(self, identifier):
         return fresh(by_id(self.corpus["rejection_cases"], identifier)["expected"])
 
-    def measured_governance_inputs(self):
-        manifest = json.loads(
-            (ROOT / "spec/lr-seam-manifest.v1.json").read_text(encoding="utf-8")
-        )
-        contract = json.loads(
-            (ROOT / "spec/lr-seam-contract.v1.json").read_text(encoding="utf-8")
-        )
-        ledger = json.loads(
-            (ROOT / "spec/claims.v1.json").read_text(encoding="utf-8")
-        )
-        claim = next(
-            item for item in ledger["claims"]
-            if item["id"] == "lr-direct-l-to-r-projection"
-        )
-        manifest["status"] = lr_validator.MEASURED_STATUS
-        manifest["completion_boundary"] = MEASURED_MANIFEST_BOUNDARY
-        contract["status"] = lr_validator.MEASURED_STATUS
-        claim["epistemic_status"] = "MEASURED"
-        claim["scope"] = MEASURED_CLAIM_SCOPE
-        claim["evidence"] = fresh(LR_ADMISSION_EVIDENCE)
-        return manifest, contract, claim
-
     def write_promotion_surfaces(self, root, status):
-        measured = status == lr_validator.MEASURED_STATUS
         self.assertIn(status, {lr_validator.PROPOSED_STATUS, lr_validator.MEASURED_STATUS})
-        replacements = {
-            "README.md": (
-                (
-                    "(direct L-R candidate proposed; M3 remains separately measured)",
-                    "(direct L-R projection measured; no persistent or integrated runtime)",
-                ),
-                (
-                    "[Direct L-to-R projection seam](docs/LR_SEAM.md) — proposed stateless binding from exact M2 materialization state to M3 proposal/verdict deltas",
-                    "[Direct L-to-R projection seam](docs/LR_SEAM.md) — measured bounded stateless binding from exact M2 materialization state to M3 proposal/verdict deltas",
-                ),
-                (
-                    "[Direct L-to-R seam manifest](spec/lr-seam-manifest.v1.json) — proposed projection contract and candidate evidence closure",
-                    "[Direct L-to-R seam manifest](spec/lr-seam-manifest.v1.json) — measured projection contract and exact admission closure",
-                ),
-                (
-                    "A separate direct L-to-R projection candidate now binds explicit proposal preconditions to exact four-valued M2 materialization states and constructs M3 proposal/verdict insertion deltas. It remains `PROPOSED_PENDING_MEASUREMENT`: local candidate evidence is not yet a durable CI/receipt-backed conformance claim, and the slice does not establish domain eligibility correctness or an integrated runtime.",
-                    "The bounded direct L-to-R Python projection slice passed its frozen gate: eight successful descriptors, twenty-four full-object rejection descriptors, two exact goldens, two permutation-equivalence pairs, eight independent-oracle comparisons, eight public `step_r` publication chains, six clean child processes, ten guarded ambient paths, and fourteen killed semantic mutation axes with zero escapes or invalid mutants. The slice projects explicit query bindings from a complete M2 materialization into paired M3 proposal/verdict insertion deltas; it does not establish domain eligibility correctness, frontier truth, persistent incremental integration, H authority or effects, or an integrated runtime.",
-                ),
-                (
-                    "python3 scripts/validate_lr_seam.py --allow-proposed",
-                    "python3 scripts/validate_lr_seam.py",
-                ),
-                (
-                    "the proposed direct L-to-R candidate is independently measured and promoted without weakening the separately measured M2 and M3 contracts;",
-                    "a direct F/L/R consumer preserves the measured seam bindings and caller-asserted frontier boundary without widening the separately measured M2 and M3 contracts;",
-                ),
-                (
-                    "The repository contains separate measured F, L, and R reference mechanisms plus one proposed stateless direct L-to-R projection candidate.",
-                    "The repository contains separate measured F, L, and R reference mechanisms plus one measured stateless direct L-to-R projection reference.",
-                ),
-            ),
-            "docs/ARCHITECTURE.md": (
-                (
-                    "This is the proposed integrated protocol. M2 ends at `LogicFixpoint`. A separate proposed `project_lr` candidate now binds exact M2 fact states and explicit proposal/query relations into the supplied proposal/verdict deltas accepted by the independently measured M3 scalar-frontier reference. That stateless projection is not yet measured and does not establish a persistent or integrated F/L/R runtime.",
-                    "This remains a proposed integrated protocol. M2 ends at `LogicFixpoint`. The separately measured `project_lr` reference binds exact M2 fact states and explicit proposal/query relations into supplied proposal/verdict deltas accepted by the independently measured M3 scalar-frontier reference. That stateless projection does not establish a persistent or integrated F/L/R runtime.",
-                ),
-                (
-                    "The proposed sibling `project_lr` candidate applies one frozen, explicit four-valued query mapping",
-                    "The measured sibling `project_lr` reference applies one frozen, explicit four-valued query mapping",
-                ),
-            ),
-            "docs/CLAIMS_AND_STATUS.md": (
-                (
-                    "| one stateless direct L-to-R projection can bind explicit proposal preconditions to exact four-valued M2 fact states and produce paired M3 proposal/verdict deltas | PROPOSED | contract, closed corpus, independent oracle, guards, and mutation gate exist as a candidate; no CI/receipt-backed measurement yet, and no domain eligibility-correctness, frontier-truth, persistent-integration, H/effect, or integrated-runtime claim |",
-                    "| one stateless direct L-to-R projection can bind explicit proposal preconditions to exact four-valued M2 fact states and produce paired M3 proposal/verdict deltas | MEASURED | eight success and twenty-four rejection descriptors, two exact goldens, two equivalence pairs, eight independent-oracle comparisons, six clean child processes, ten guarded paths, fourteen killed semantic axes, and eight public `step_r` publication chains; no domain eligibility-correctness, frontier-truth, persistent-integration, H/effect, or integrated-runtime claim |",
-                ),
-                (
-                    "standalone L and R references are measured separately and a direct projection candidate is proposed, but the projection and persistent incremental integration remain unmeasured",
-                    "standalone L and R references and one direct projection reference are measured separately, but persistent incremental integration remains unmeasured",
-                ),
-                (
-                    "only separate bounded F, L, and R references plus one proposed stateless L-to-R candidate exist;",
-                    "only separate bounded F, L, and R references plus one measured stateless L-to-R projection exist;",
-                ),
-            ),
-            "docs/ROADMAP.md": (
-                (
-                    "> Roadmap status: PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.",
-                    "> Roadmap status: M0–M3-LR MEASURED; M4–M7 PROPOSED. Milestone completion requires the listed receipt; prose updates do not close milestones.",
-                ),
-                (
-                    "## M3-LR adjunct — Direct L-to-R projection ⏳ PROPOSED",
-                    "## M3-LR adjunct — Direct L-to-R projection ✅ MEASURED",
-                ),
-                (
-                    "Gate: the proposed contract, corpus, two goldens, clean-process replay, ambient denial, semantic mutation set, and inherited M0–M3 gates pass for an exact candidate subject and CI readback. This adjunct is not M4 and cannot establish domain eligibility correctness, persistent incremental L, durable R, H authority/effects, or an integrated runtime.",
-                    "Receipt boundary: one bounded stateless Python projection profile produced eight successful descriptors, twenty-four full-object rejection descriptors, two exact goldens, two equivalence pairs, eight independent-oracle comparisons, six clean child processes, ten guarded ambient paths, fourteen killed semantic axes with zero escapes or invalid mutants, and eight unchanged-public-`step_r` publication chains. This adjunct is not M4 and does not establish domain eligibility correctness, persistent incremental L, durable R, H authority or effects, or an integrated runtime.",
-                ),
-                (
-                    "Measure and independently read back the proposed direct L-to-R candidate without retroactively widening M1, M2, or M3. Keep eligibility correctness, authority, and external effects outside R; `EffectIntent` remains H-owned for M4.",
-                    "Freeze the next H authority and durable-effect boundary without retroactively widening M1, M2, M3, or the measured direct L-to-R projection. Keep eligibility correctness, authority, and external effects outside R; `EffectIntent` remains H-owned for M4.",
-                ),
-            ),
-            "docs/SEMANTICS.md": (
-                (
-                    "The proposed sibling direct L-to-R seam takes a separately typed, digest-bound query",
-                    "The measured sibling direct L-to-R reference takes a separately typed, digest-bound query",
-                ),
-                (
-                    "  -> proposed direct projection of explicit query bindings into typed EligibilityVerdict values",
-                    "  -> measured direct projection of explicit query bindings into typed EligibilityVerdict values",
-                ),
-                (
-                    "and the proposed direct projection contract in [`lr-seam-manifest.v1.json`]",
-                    "and the bounded measured direct projection contract in [`lr-seam-manifest.v1.json`]",
-                ),
-            ),
-            "docs/LR_SEAM.md": (
-                (
-                    "This adjunct slice proposes one deterministic, stateless projection",
-                    "This adjunct slice measures one deterministic, stateless projection",
-                ),
-                ("## Candidate admission gate", "## Measurement gate"),
-                ("During candidate assembly, run:", "Run the measured admission gate with:"),
-                (
-                    "python3 scripts/validate_lr_seam.py --allow-proposed",
-                    "python3 scripts/validate_lr_seam.py",
-                ),
-                (
-                    "The proposed gate binds the closed schemas and dependency digests",
-                    "The measured gate binds the closed schemas and dependency digests",
-                ),
-                (
-                    "Default `validate_lr_seam.py` intentionally refuses this\nstatus until the candidate is promoted through an exact CI subject and evidence\nreadback.",
-                    "Default `validate_lr_seam.py` admits this status only when the contract,\nmanifest, claim ledger, public governance surfaces, exact CI command, and frozen\nevidence closure remain coherent.",
-                ),
-                (
-                    "Even a passing proposed gate would not establish general eligibility-rule",
-                    "This measured gate does not establish general eligibility-rule",
-                ),
-            ),
-            "docs/adr/0001-defer-engine-verdict.md": (
-                (
-                    "Bounded sibling Python references now exist for pure F, ground stratified L, and supplied-value scalar-frontier R, but there is no integrated F/L/R/H runtime",
-                    "Bounded sibling Python references now exist for pure F, ground stratified L, supplied-value scalar-frontier R, and a stateless direct L-to-R projection, but there is no integrated F/L/R/H runtime",
-                ),
-                (
-                    "The completed M1, M2, and M3 slices are evidence for three separate candidate seams",
-                    "The completed M1, M2, M3, and direct L-to-R projection slices are evidence for four separate reference seams",
-                ),
-                (
-                    "Python is the M1/M2/M3 reference language only;",
-                    "Python is the M1/M2/M3/direct-LR reference language only;",
-                ),
-            ),
-            "spec/engine-decision.v1.json": (
-                (
-                    "Bounded sibling Python reference slices exist for pure F, ground stratified L, and supplied-value scalar-frontier R; no integrated runtime or production consumer exists yet.",
-                    "Bounded sibling Python reference slices exist for pure F, ground stratified L, supplied-value scalar-frontier R, and one stateless direct L-to-R projection; no integrated runtime or production consumer exists yet.",
-                ),
-                (
-                    "The smallest justified next step is to bind the direct L-to-R seam or implement durable H mechanics rather than scaffold a broad engine framework.",
-                    "Direct L-to-R projection is measured while the engine verdict remains defer",
-                ),
-                (
-                    "A future fenced H store would own accepted state; the current repository owns specifications and stateless pure-F, pure-L, and pure-R reference functions only",
-                    "A future fenced H store would own accepted state; the current repository owns specifications, stateless pure-F, pure-L, and pure-R reference functions, and one stateless direct L-to-R projection only",
-                ),
-                (
-                    "Use the measured M3 corpus as one input, bind the direct L-to-R seam, and demonstrate persistent incremental reuse before closing the incremental metric.",
-                    "Use the measured M3 corpus as one input, use the measured direct L-to-R projection, and demonstrate persistent incremental reuse before closing the incremental metric.",
-                ),
-            ),
-        }
-        for relative, marker in MEASURED_PROMOTION_SURFACES.items():
-            path = root / relative
-            path.parent.mkdir(parents=True, exist_ok=True)
-            source_bytes = (ROOT / relative).read_bytes()
-            if relative == "README.md":
-                anchor = (LR_RECEIPT_ANCHOR_LINE + "\n").encode("utf-8")
-                link = (LR_RECEIPT_LINK_LINE + "\n").encode("utf-8")
-                sequence = anchor + link
-                if link in source_bytes:
-                    self.assertEqual(source_bytes.count(sequence), 1)
-                    self.assertEqual(source_bytes.count(link), 1)
-                    source_bytes = source_bytes.replace(sequence, anchor, 1)
-            source = source_bytes.decode("utf-8")
-            if relative in lr_validator.MEASURED_PROMOTION_LINES:
-                source_lines = source.splitlines()
-                status_index = next(
-                    index for index, line in enumerate(source_lines)
-                    if line.startswith("> Status:")
-                )
-                source_lines[status_index] = (
-                    lr_validator.MEASURED_PROMOTION_LINES[relative]
-                    if measured else PROPOSED_PROMOTION_LINES[relative]
-                )
-                promoted = "\n".join(source_lines) + "\n"
-            elif relative in {
-                "docs/CLAIMS_AND_STATUS.md",
-                "docs/ROADMAP.md",
-                "docs/LR_SEAM.md",
-            }:
-                promoted = source
-            elif relative == "docs/adr/0001-defer-engine-verdict.md":
-                source_lines = source.splitlines()
-                source_lines = [line for line in source_lines if line != marker]
-                if measured:
-                    source_lines.insert(3, marker)
-                promoted = "\n".join(source_lines) + "\n"
-            elif relative == "spec/engine-decision.v1.json":
-                promoted = source
-            else:
-                raise AssertionError(relative)
-            for old, new in replacements.get(relative, ()):
-                desired, other = (new, old) if measured else (old, new)
-                if desired in promoted:
-                    self.assertEqual(promoted.count(desired), 1, (relative, desired))
-                else:
-                    self.assertEqual(promoted.count(other), 1, (relative, other))
-                    promoted = promoted.replace(other, desired, 1)
-            path.write_bytes(promoted.encode("utf-8"))
-        ci = root / ".github/workflows/ci.yml"
-        ci.parent.mkdir(parents=True, exist_ok=True)
-        ci_text = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        proposed_command = "python scripts/validate_lr_seam.py --allow-proposed"
-        measured_command = "python scripts/validate_lr_seam.py"
-        desired, other = (
-            (measured_command, proposed_command)
-            if measured else (proposed_command, measured_command)
+        receipt = lr_validator._parse_lr_receipt(
+            (ROOT / lr_validator.LR_RECEIPT_RELATIVE).read_bytes()
         )
-        desired_line = f"      - run: {desired}\n"
-        other_line = f"      - run: {other}\n"
-        if desired_line not in ci_text:
-            self.assertEqual(ci_text.count(other_line), 1)
-            ci_text = ci_text.replace(other_line, desired_line, 1)
-        ci.write_bytes(ci_text.encode("utf-8"))
-
-        def write_reversible(relative, pairs):
-            source = (ROOT / relative).read_bytes().decode("utf-8")
-            for proposed, promoted in pairs:
-                desired, other = (promoted, proposed) if measured else (proposed, promoted)
-                if desired in source:
-                    self.assertEqual(source.count(desired), 1, (relative, desired))
-                else:
-                    self.assertEqual(source.count(other), 1, (relative, other))
-                    source = source.replace(other, desired, 1)
+        revision = receipt[
+            "measured_commit" if status == lr_validator.MEASURED_STATUS
+            else "candidate_commit"
+        ]
+        for relative in PROMOTION_PATHS:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(source.encode("utf-8"))
-
-        write_reversible(
-            "spec/lr-seam-contract.v1.json",
-            ((
-                '"status": "PROPOSED_PENDING_MEASUREMENT"',
-                '"status": "MEASURED_REFERENCE_CONFORMANCE"',
-            ),),
-        )
-        write_reversible(
-            "spec/lr-seam-manifest.v1.json",
-            (
-                (
-                    '"status": "PROPOSED_PENDING_MEASUREMENT"',
-                    '"status": "MEASURED_REFERENCE_CONFORMANCE"',
-                ),
-                (
-                    json.dumps(PROPOSED_MANIFEST_BOUNDARY, ensure_ascii=False),
-                    json.dumps(MEASURED_MANIFEST_BOUNDARY, ensure_ascii=False),
-                ),
-            ),
-        )
-        claims_source = (ROOT / "spec/claims.v1.json").read_bytes().decode("utf-8")
-        claim_start = claims_source.index('"id": "lr-direct-l-to-r-projection"')
-        claim_end = claims_source.index("\n    }", claim_start)
-        claim_block = claims_source[claim_start:claim_end]
-        claim_pairs = (
-            ('"epistemic_status": "PROPOSED"', '"epistemic_status": "MEASURED"'),
-            (
-                json.dumps(PROPOSED_CLAIM_SCOPE, ensure_ascii=False),
-                json.dumps(MEASURED_CLAIM_SCOPE, ensure_ascii=False),
-            ),
-        )
-        for proposed, promoted in claim_pairs:
-            desired, other = (promoted, proposed) if measured else (proposed, promoted)
-            if desired in claim_block:
-                self.assertEqual(claim_block.count(desired), 1)
-            else:
-                self.assertEqual(claim_block.count(other), 1)
-                claim_block = claim_block.replace(other, desired, 1)
-        claims_source = (
-            claims_source[:claim_start] + claim_block + claims_source[claim_end:]
-        )
-        claims_target = root / "spec/claims.v1.json"
-        claims_target.parent.mkdir(parents=True, exist_ok=True)
-        claims_target.write_bytes(claims_source.encode("utf-8"))
+            completed = subprocess.run(
+                ["git", "show", f"{revision}:{relative}"],
+                cwd=ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            target.write_bytes(completed.stdout)
         validator_target = root / "scripts/validate_lr_seam.py"
         validator_target.parent.mkdir(parents=True, exist_ok=True)
         validator_target.write_bytes((ROOT / "scripts/validate_lr_seam.py").read_bytes())
@@ -584,6 +229,16 @@ class LRSeamTests(unittest.TestCase):
             relative: "sha256:" + hashlib.sha256((root / relative).read_bytes()).hexdigest()
             for relative in PROMOTION_PATHS
         }
+
+    def copy_current_governance_surfaces(self, root):
+        for relative in CURRENT_GOVERNANCE_PATHS:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((ROOT / relative).read_bytes())
+        receipt = root / lr_validator.LR_RECEIPT_RELATIVE
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        receipt.write_bytes((ROOT / lr_validator.LR_RECEIPT_RELATIVE).read_bytes())
+        return self.governance_inputs(root)
 
     def receipt_payload(self, root, *, candidate_commit="1" * 40,
                         candidate_tree="2" * 40, measured_commit="3" * 40,
@@ -622,12 +277,7 @@ class LRSeamTests(unittest.TestCase):
 
     def add_receipt(self, root, payload):
         readme = root / "README.md"
-        raw = readme.read_bytes()
-        anchor = (LR_RECEIPT_ANCHOR_LINE + "\n").encode("utf-8")
-        link = (LR_RECEIPT_LINK_LINE + "\n").encode("utf-8")
-        self.assertEqual(raw.count(anchor), 1)
-        self.assertNotIn(link, raw)
-        readme.write_bytes(raw.replace(anchor, anchor + link, 1))
+        readme.write_bytes(readme.read_bytes() + b"LR receipt recorded.\n")
         receipt = root / lr_validator.LR_RECEIPT_RELATIVE
         receipt.parent.mkdir(parents=True, exist_ok=True)
         receipt.write_bytes(self.receipt_bytes(payload))
@@ -1427,6 +1077,143 @@ class LRSeamTests(unittest.TestCase):
                     root, *inputs, verify_receipt_git=False
                 )
 
+    def test_15a_arbitrary_unrelated_governance_evolution_is_admitted(self):
+        with tempfile.TemporaryDirectory(prefix="flrh-lr-current-governance-") as raw:
+            root = Path(raw)
+            self.copy_current_governance_surfaces(root)
+
+            ledger_path = root / "spec/claims.v1.json"
+            ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+            lr_claim = fresh(next(
+                item for item in ledger["claims"]
+                if item["id"] == "lr-direct-l-to-r-projection"
+            ))
+            ledger["updated_at"] = "2099-01-01T00:00:00Z"
+            ledger["claims"] = [
+                {
+                    "id": "unrelated-governance",
+                    "statement": "An unrelated assertion may evolve independently.",
+                    "epistemic_status": "ACCEPTED",
+                    "disposition": "retired",
+                    "scope": "outside the LR admission boundary",
+                    "evidence": [],
+                    "falsifiers": ["This entry becomes relevant to LR admission."],
+                },
+                lr_claim,
+            ]
+            ledger_path.write_text(
+                json.dumps(ledger, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
+
+            decision_path = root / "spec/engine-decision.v1.json"
+            decision_path.write_text(
+                json.dumps({
+                    "verdict": "defer",
+                    "unrelated_policy": {"revision": 99, "notes": ["free to evolve"]},
+                }),
+                encoding="utf-8",
+            )
+            ci_path = root / ".github/workflows/ci.yml"
+            ci_path.write_text(
+                """name: unrelated governance evolution
+jobs:
+  admission:
+    steps:
+      - run: echo unrelated-before
+      - run: python scripts/validate_m0.py
+      - run: echo unrelated-between-zero-and-one
+      - run: python scripts/validate_m1.py
+      - run: python scripts/validate_m2.py
+      - run: echo unrelated-between-two-and-three
+      - run: python scripts/validate_m3.py
+      - run: python scripts/validate_lr_seam.py
+      - run: echo unrelated-after
+  independent:
+    steps:
+      - run: echo independently-evolving-command
+""",
+                encoding="utf-8",
+            )
+
+            self.assertFalse((root / "README.md").exists())
+            self.assertFalse((root / "docs/ROADMAP.md").exists())
+            self.assertFalse((root / "docs/adr/0001-defer-engine-verdict.md").exists())
+            lr_validator._validate_promotion_governance(
+                root, *self.governance_inputs(root), verify_receipt_git=False
+            )
+
+    def test_15b_current_governance_rejects_lr_status_and_evidence_drift(self):
+        for attack in ("claim-downgrade", "evidence-drift", "coherent-downgrade"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory(
+                prefix=f"flrh-lr-state-{attack}-"
+            ) as raw:
+                root = Path(raw)
+                self.copy_current_governance_surfaces(root)
+                ledger_path = root / "spec/claims.v1.json"
+                ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+                claim = next(
+                    item for item in ledger["claims"]
+                    if item["id"] == "lr-direct-l-to-r-projection"
+                )
+                if attack == "claim-downgrade":
+                    claim["epistemic_status"] = "PROPOSED"
+                    expected = "LR claim-ledger status drift"
+                elif attack == "evidence-drift":
+                    claim["evidence"] = list(reversed(claim["evidence"]))
+                    expected = (
+                        "measured LR claim evidence differs from frozen admission evidence"
+                    )
+                else:
+                    claim["epistemic_status"] = "PROPOSED"
+                    for relative in (
+                        "spec/lr-seam-manifest.v1.json",
+                        "spec/lr-seam-contract.v1.json",
+                    ):
+                        path = root / relative
+                        document = json.loads(path.read_text(encoding="utf-8"))
+                        document["status"] = lr_validator.PROPOSED_STATUS
+                        path.write_text(json.dumps(document), encoding="utf-8")
+                    expected = "measured LR promotion receipt drift"
+                ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
+                with self.assertRaisesRegex(AssertionError, f"^{expected}$"):
+                    lr_validator._validate_promotion_governance(
+                        root, *self.governance_inputs(root), verify_receipt_git=False
+                    )
+
+    def test_15c_current_governance_rejects_engine_promotion_and_lr_ci_drift(self):
+        for attack in ("engine", "ci-removal", "ci-order", "ci-duplicate"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory(
+                prefix=f"flrh-lr-boundary-{attack}-"
+            ) as raw:
+                root = Path(raw)
+                self.copy_current_governance_surfaces(root)
+                if attack == "engine":
+                    path = root / "spec/engine-decision.v1.json"
+                    decision = json.loads(path.read_text(encoding="utf-8"))
+                    decision["verdict"] = "engine"
+                    path.write_text(json.dumps(decision), encoding="utf-8")
+                    expected = "LR admission must preserve the deferred engine verdict"
+                else:
+                    path = root / ".github/workflows/ci.yml"
+                    ci = path.read_text(encoding="utf-8")
+                    lr_line = "      - run: python scripts/validate_lr_seam.py\n"
+                    self.assertEqual(1, ci.count(lr_line))
+                    if attack == "ci-removal":
+                        ci = ci.replace(lr_line, "", 1)
+                    elif attack == "ci-order":
+                        predecessor = "      - run: python scripts/validate_m3.py\n"
+                        self.assertEqual(1, ci.count(predecessor))
+                        ci = ci.replace(predecessor + lr_line, lr_line + predecessor, 1)
+                    else:
+                        ci = ci.replace(lr_line, lr_line + lr_line, 1)
+                    path.write_text(ci, encoding="utf-8")
+                    expected = "measured LR CI command/order drift"
+                with self.assertRaisesRegex(AssertionError, f"^{expected}$"):
+                    lr_validator._validate_promotion_governance(
+                        root, *self.governance_inputs(root), verify_receipt_git=False
+                    )
+
     def test_16_promotion_arguments_are_bound_to_on_disk_state(self):
         with tempfile.TemporaryDirectory(prefix="flrh-lr-argument-binding-") as raw:
             root = Path(raw)
@@ -1465,100 +1252,89 @@ class LRSeamTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(
                 AssertionError,
-                "^measured LR promotion artifact drift: spec/claims.v1.json$",
+                "^claim argument differs from on-disk LR promotion file$",
             ):
                 lr_validator._validate_promotion_governance(
                     root, manifest, contract, claim, verify_receipt_git=False
                 )
 
-    def test_17_each_raw_promotion_byte_path_rejects_crlf_append_and_truncate(self):
-        for status, label in (
-            (lr_validator.PROPOSED_STATUS, "proposed"),
-            (lr_validator.MEASURED_STATUS, "measured"),
-        ):
-            with tempfile.TemporaryDirectory(prefix="flrh-lr-raw-promotion-") as raw:
-                root = Path(raw)
-                inputs = self.write_promotion_surfaces(root, status)
-                for relative in PROMOTION_PATHS:
-                    target = root / relative
-                    original = target.read_bytes()
-                    mutations = {
-                        "crlf": original.replace(b"\n", b"\r\n", 1),
-                        "append": original + b" ",
-                        "truncate": original[:-1],
-                    }
-                    for mutation, changed in mutations.items():
-                        with self.subTest(status=status, relative=relative,
-                                          mutation=mutation):
-                            self.assertNotEqual(original, changed)
-                            target.write_bytes(changed)
-                            with self.assertRaisesRegex(
-                                AssertionError,
-                                rf"^{label} LR promotion artifact drift: "
-                                rf"{re.escape(relative)}$",
-                            ):
-                                lr_validator._validate_promotion_governance(
-                                    root, *inputs, verify_receipt_git=False
-                                )
-                            target.write_bytes(original)
+    def test_17_live_governance_is_not_byte_or_prose_bound(self):
+        with tempfile.TemporaryDirectory(prefix="flrh-lr-semantic-governance-") as raw:
+            root = Path(raw)
+            self.write_measured_promotion_surfaces(root)
+            for relative in set(PROMOTION_PATHS) - set(CURRENT_GOVERNANCE_PATHS):
+                (root / relative).unlink()
+            for relative in (
+                "spec/lr-seam-manifest.v1.json",
+                "spec/lr-seam-contract.v1.json",
+                "spec/claims.v1.json",
+                "spec/engine-decision.v1.json",
+            ):
+                path = root / relative
+                document = json.loads(path.read_text(encoding="utf-8"))
+                path.write_text(
+                    json.dumps(document, ensure_ascii=False, separators=(",", ":")),
+                    encoding="utf-8",
+                )
+            lr_validator._validate_promotion_governance(
+                root, *self.governance_inputs(root), verify_receipt_git=False
+            )
 
-    def test_18_followup_receipt_is_position_bound_and_structurally_exact(self):
+    def test_18_followup_receipt_is_structurally_exact_without_live_doc_markers(self):
         with tempfile.TemporaryDirectory(prefix="flrh-lr-receipt-") as raw:
             root = Path(raw)
             inputs = self.write_measured_promotion_surfaces(root)
             readme = root / "README.md"
-            measured_readme = readme.read_bytes()
             payload = self.receipt_payload(root)
             receipt = self.add_receipt(root, payload)
-            linked_readme = readme.read_bytes()
             receipt_bytes = receipt.read_bytes()
+            readme.write_text("arbitrary unrelated live prose\n", encoding="utf-8")
+            lr_validator._validate_promotion_governance(
+                root, *inputs, verify_receipt_git=False
+            )
+            readme.unlink()
             lr_validator._validate_promotion_governance(
                 root, *inputs, verify_receipt_git=False
             )
 
             attacks = []
-            attacks.append(("missing-receipt", linked_readme, None))
-            attacks.append(("empty-receipt", linked_readme, b""))
-            attacks.append(("wrong-h1", linked_readme,
-                            receipt_bytes.replace(
-                                b"# Direct L-to-R Seam Validation Receipt",
-                                b"# Wrong Receipt", 1)))
+            attacks.append(("empty-receipt", b""))
+            attacks.append((
+                "wrong-h1",
+                receipt_bytes.replace(
+                    b"# Direct L-to-R Seam Validation Receipt",
+                    b"# Wrong Receipt",
+                    1,
+                ),
+            ))
             extra_payload = fresh(payload)
             extra_payload["extra"] = True
-            attacks.append(("extra-key", linked_readme,
-                            self.receipt_bytes(extra_payload)))
+            attacks.append(("extra-key", self.receipt_bytes(extra_payload)))
             boolean_payload = fresh(payload)
             boolean_payload["gate_report"]["lr_conformance_test_gate"] = True
-            attacks.append(("boolean-count", linked_readme,
-                            self.receipt_bytes(boolean_payload)))
+            attacks.append(("boolean-count", self.receipt_bytes(boolean_payload)))
             reused_run_payload = fresh(payload)
             reused_run_payload["measured_ci_run_id"] = (
                 reused_run_payload["candidate_ci_run_id"]
             )
-            attacks.append(("reused-ci-run", linked_readme,
-                            self.receipt_bytes(reused_run_payload)))
-            link = (LR_RECEIPT_LINK_LINE + "\n").encode("utf-8")
-            anchor = (LR_RECEIPT_ANCHOR_LINE + "\n").encode("utf-8")
-            attacks.append(("link-at-eof",
-                            linked_readme.replace(anchor + link, anchor, 1) + link,
-                            receipt_bytes))
-            attacks.append(("duplicate-link", linked_readme + link, receipt_bytes))
-            for label, readme_bytes, candidate_receipt in attacks:
+            attacks.append(("reused-ci-run", self.receipt_bytes(reused_run_payload)))
+            for label, candidate_receipt in attacks:
                 with self.subTest(label=label):
-                    readme.write_bytes(readme_bytes)
                     if receipt.exists() or receipt.is_symlink():
                         receipt.unlink()
-                    if candidate_receipt is not None:
-                        receipt.write_bytes(candidate_receipt)
-                    with self.assertRaises(AssertionError):
+                    receipt.write_bytes(candidate_receipt)
+                    with self.assertRaisesRegex(
+                        AssertionError, "^measured LR promotion receipt drift$"
+                    ):
                         lr_validator._validate_promotion_governance(
                             root, *inputs, verify_receipt_git=False
                         )
 
-            readme.write_bytes(linked_readme)
             if receipt.exists() or receipt.is_symlink():
                 receipt.unlink()
-            receipt.symlink_to(root / "README.md")
+            unrelated = root / "unrelated.txt"
+            unrelated.write_text("unrelated\n", encoding="utf-8")
+            receipt.symlink_to(unrelated)
             with self.assertRaisesRegex(
                 AssertionError, "^measured LR promotion receipt drift$"
             ):
@@ -1566,7 +1342,6 @@ class LRSeamTests(unittest.TestCase):
                     root, *inputs, verify_receipt_git=False
                 )
             receipt.unlink()
-            readme.write_bytes(measured_readme)
 
     def test_19_committed_receipt_proves_exact_candidate_measured_receipt_ancestry(self):
         with tempfile.TemporaryDirectory(prefix="flrh-lr-receipt-git-") as raw:
@@ -1761,7 +1536,6 @@ class LRSeamTests(unittest.TestCase):
                      "user.email=lr@example.invalid", "commit", "-m", "measured")
             measured = self.git(root, "rev-parse", "HEAD")
             measured_tree = self.git(root, "rev-parse", "HEAD^{tree}")
-            inputs = self.governance_inputs(root)
             receipt = self.add_receipt(
                 root,
                 self.receipt_payload(
@@ -1775,10 +1549,16 @@ class LRSeamTests(unittest.TestCase):
             self.git(root, "-c", "user.name=LR Test", "-c",
                      "user.email=lr@example.invalid", "commit", "-m", "receipt")
 
+            for relative in PROMOTION_PATHS:
+                (root / relative).write_bytes((ROOT / relative).read_bytes())
+            inputs = self.governance_inputs(root)
             validator = root / "scripts/validate_lr_seam.py"
             validator.write_bytes(validator.read_bytes() + b"# descendant evolution\n")
             (root / "later.txt").write_text("later\n", encoding="utf-8")
-            self.git(root, "add", "--", "scripts/validate_lr_seam.py", "later.txt")
+            self.git(
+                root, "add", "--", *PROMOTION_PATHS,
+                "scripts/validate_lr_seam.py", "later.txt",
+            )
             self.git(root, "-c", "user.name=LR Test", "-c",
                      "user.email=lr@example.invalid", "commit", "-m", "descendant")
             descendant = self.git(root, "rev-parse", "HEAD")

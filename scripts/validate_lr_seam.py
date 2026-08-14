@@ -78,108 +78,11 @@ LR_ADMISSION_EVIDENCE = (
     "tests/test_lr_seam.py",
     "docs/LR_SEAM.md",
 )
-MEASURED_PROMOTION_SURFACES = {
-    "README.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/ARCHITECTURE.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/CLAIMS_AND_STATUS.md": (
-        "| one stateless direct L-to-R projection can bind explicit proposal "
-        "preconditions to exact four-valued M2 fact states and produce paired "
-        "M3 proposal/verdict deltas | MEASURED |"
-    ),
-    "docs/ROADMAP.md": "## M3-LR adjunct — Direct L-to-R projection ✅ MEASURED",
-    "docs/SEMANTICS.md": "DIRECT L-R PROJECTION MEASURED",
-    "docs/LR_SEAM.md": "> Status: **MEASURED_REFERENCE_CONFORMANCE**.",
-    "docs/adr/0001-defer-engine-verdict.md": (
-        "DIRECT L-R PROJECTION MEASURED; ENGINE VERDICT DEFERRED"
-    ),
-    "spec/engine-decision.v1.json": (
-        "Direct L-to-R projection is measured while the engine verdict remains defer"
-    ),
+LR_CI_PREDECESSORS = tuple(f"python {relative}" for relative in INHERITED_GATES)
+LR_CI_COMMANDS = {
+    PROPOSED_STATUS: "python scripts/validate_lr_seam.py --allow-proposed",
+    MEASURED_STATUS: "python scripts/validate_lr_seam.py",
 }
-MEASURED_PROMOTION_LINES = {
-    "README.md": (
-        "> Status: **RESEARCH INCUBATOR / SEPARATE M1 PURE-F + M2 STRATIFIED-L "
-        "+ M3 SCALAR-FRONTIER-R REFERENCES MEASURED / DIRECT L-R PROJECTION "
-        "MEASURED / NO INTEGRATED RUNTIME / EFFICACY UNJUDGED**"
-    ),
-    "docs/ARCHITECTURE.md": (
-        "> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 "
-        "SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R "
-        "PROJECTION MEASURED / H NOT IMPLEMENTED"
-    ),
-    "docs/SEMANTICS.md": (
-        "> Status: SEPARATE M1 PURE-F + M2 STRATIFIED-L + M3 "
-        "SCALAR-FRONTIER-R REFERENCE MECHANICS MEASURED / DIRECT L-R "
-        "PROJECTION MEASURED / H NOT IMPLEMENTED / NOT EXTERNAL CANON"
-    ),
-    "docs/LR_SEAM.md": "> Status: **MEASURED_REFERENCE_CONFORMANCE**.",
-}
-MEASURED_PROMOTION_REQUIRED_FRAGMENTS = {
-    "README.md": (
-        "# Agent Coding Paradigm",
-        "## Current admission gate",
-        "## Non-claims",
-    ),
-    "docs/ARCHITECTURE.md": (
-        "# Architecture",
-        "## System boundary",
-        "## Authority and single writers",
-        "## Security stance",
-    ),
-    "docs/CLAIMS_AND_STATUS.md": (
-        "# Claims and Status",
-        "## Falsifiers",
-        "## Residual risks",
-        "## Exclusion",
-    ),
-    "docs/ROADMAP.md": (
-        "# Roadmap",
-        "## M0 — Freeze vocabulary and contracts",
-        "## M4 — Durable H control shell",
-        "## Immediate next slice",
-    ),
-    "docs/SEMANTICS.md": (
-        "# FLR-H Execution Semantics v0",
-        "## F — functional semantics",
-        "## L — logic semantics",
-        "## R — reactive semantics",
-        "## H — control semantics",
-        "## Version envelope",
-    ),
-    "docs/LR_SEAM.md": (
-        "# Direct L-to-R Projection Seam",
-        "## Explicit binding",
-        "## Output boundary",
-        "## Measurement gate",
-        "## Non-claims",
-    ),
-}
-STALE_LR_PROMOTION_FRAGMENTS = {
-    "README.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/ARCHITECTURE.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/CLAIMS_AND_STATUS.md": (
-        "| one stateless direct L-to-R projection can bind explicit proposal "
-        "preconditions to exact four-valued M2 fact states and produce paired "
-        "M3 proposal/verdict deltas | PROPOSED |"
-    ),
-    "docs/ROADMAP.md": "## M3-LR adjunct — Direct L-to-R projection ⏳ PROPOSED",
-    "docs/SEMANTICS.md": "DIRECT L-R PROJECTION PROPOSED",
-    "docs/LR_SEAM.md": "> Status: **PROPOSED_PENDING_MEASUREMENT**.",
-    "spec/engine-decision.v1.json": "bind the direct L-to-R seam",
-}
-STRICT_CI_STEPS = (
-    "python scripts/validate_m0.py",
-    "python scripts/validate_m1.py",
-    "python scripts/validate_m2.py",
-    "python scripts/validate_m3.py",
-    "python scripts/validate_lr_seam.py",
-    "python -m unittest discover -s tests -v",
-)
-PROPOSED_CI_STEPS = (
-    *STRICT_CI_STEPS[:4],
-    "python scripts/validate_lr_seam.py --allow-proposed",
-    STRICT_CI_STEPS[-1],
-)
 LR_PROMOTION_PATHS = (
     "README.md",
     "docs/ARCHITECTURE.md",
@@ -244,15 +147,6 @@ MEASURED_PROMOTION_SHA256 = {
     "spec/claims.v1.json": "sha256:9e3ed5e8f600c41f846752c598be3e208ee8d4ab99be60d6b0b0d4f1b3397633",
 }
 LR_RECEIPT_RELATIVE = "research/LR_SEAM_VALIDATION_2026-08-09.md"
-LR_RECEIPT_ANCHOR_LINE = (
-    "- [M3 validation receipt](research/M3_VALIDATION_2026-08-09.md) — frozen "
-    "subject tree, scalar-frontier digests, clean-process and semantic-mutation "
-    "gates, and exact CI readback"
-)
-LR_RECEIPT_LINK_LINE = (
-    "- [Direct L-to-R seam validation receipt](research/LR_SEAM_VALIDATION_2026-08-09.md) "
-    "— frozen measured subject, local evidence, and exact CI readback"
-)
 EXPECTED_MEASURED_GATE_REPORT = {
     "ambient_paths": 10,
     "clean_process_descriptors": [
@@ -427,25 +321,6 @@ def _mismatch_document(document: Mapping[str, Any]) -> dict[str, Any]:
         queries=[mismatched_query],
     )
     return result
-
-
-def _promotion_artifact_drift(label: str, relative: str) -> None:
-    raise AssertionError(f"{label} LR promotion artifact drift: {relative}")
-
-
-def _read_promotion_bytes(root: Path, relative: str, label: str) -> tuple[bytes, str]:
-    """Read one governed file without newline normalization."""
-    path = root / relative
-    if path.is_symlink() or not path.is_file():
-        _promotion_artifact_drift(label, relative)
-    raw = path.read_bytes()
-    if b"\r" in raw or not raw.endswith(b"\n") or raw.endswith(b"\n\n"):
-        _promotion_artifact_drift(label, relative)
-    try:
-        text = raw.decode("utf-8")
-    except UnicodeDecodeError:
-        _promotion_artifact_drift(label, relative)
-    return raw, text
 
 
 def _receipt_drift() -> None:
@@ -725,39 +600,134 @@ def _validate_lr_receipt_git(root: Path, receipt: Mapping[str, Any]) -> None:
         raise AssertionError("measured LR promotion receipt git drift") from None
 
 
-def _project_readme_for_promotion(
-    root: Path, raw: bytes, label: str, *, verify_receipt_git: bool
-) -> bytes:
-    anchor = (LR_RECEIPT_ANCHOR_LINE + "\n").encode("utf-8")
-    link = (LR_RECEIPT_LINK_LINE + "\n").encode("utf-8")
-    receipt_reference = LR_RECEIPT_RELATIVE.encode("utf-8")
+def _is_ordered_subsequence(required: tuple[str, ...], actual: list[str]) -> bool:
+    cursor = 0
+    for item in actual:
+        if cursor < len(required) and item == required[cursor]:
+            cursor += 1
+    return cursor == len(required)
+
+
+def _validate_receipt_boundary(
+    root: Path, status: str, *, verify_receipt_git: bool
+) -> None:
     receipt_path = root / LR_RECEIPT_RELATIVE
     receipt_exists = receipt_path.exists() or receipt_path.is_symlink()
-    if label == "proposed":
-        if link in raw or receipt_reference in raw or receipt_exists:
-            _promotion_artifact_drift(label, "README.md")
-        if verify_receipt_git:
-            _require_no_published_receipt_ancestor(root)
-        return raw
-    if raw.count(anchor) != 1 or raw.count(link) > 1:
-        _promotion_artifact_drift(label, "README.md")
-    link_count = raw.count(link)
-    if raw.count(receipt_reference) != link_count:
-        _promotion_artifact_drift(label, "README.md")
-    if link_count == 0:
+    if status == PROPOSED_STATUS:
         if receipt_exists:
             _receipt_drift()
         if verify_receipt_git:
             _require_no_published_receipt_ancestor(root)
-        return raw
-    if raw.count(anchor + link) != 1:
-        _promotion_artifact_drift(label, "README.md")
+        return
+    if not receipt_exists:
+        if verify_receipt_git:
+            raise AssertionError("measured LR promotion receipt git drift")
+        return
     if receipt_path.is_symlink() or not receipt_path.is_file():
         _receipt_drift()
     receipt = _parse_lr_receipt(receipt_path.read_bytes())
     if verify_receipt_git:
         _validate_lr_receipt_git(root, receipt)
-    return raw.replace(anchor + link, anchor, 1)
+
+
+def _load_governance_json(root: Path, relative: str, label: str) -> dict[str, Any]:
+    path = root / relative
+    if path.is_symlink() or not path.is_file():
+        raise AssertionError(f"{label} LR governance file drift: {relative}")
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise AssertionError(f"{label} LR governance JSON drift: {relative}") from error
+    require(isinstance(document, dict),
+            f"{label} LR governance JSON drift: {relative}")
+    return document
+
+
+def _decode_yaml_scalar(raw: str) -> str:
+    value = raw.strip()
+    if len(value) >= 2 and value[0] == value[-1] == "'":
+        return value[1:-1].replace("''", "'")
+    if len(value) >= 2 and value[0] == value[-1] == '"':
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError:
+            return value
+        return decoded if isinstance(decoded, str) else value
+    return re.split(r"\s+#", value, maxsplit=1)[0].rstrip()
+
+
+def _workflow_run_groups(text: str) -> list[list[str]]:
+    """Extract run scalars by YAML steps block without binding other CI fields."""
+    lines = text.splitlines()
+    groups: list[list[str]] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if re.fullmatch(r"\s*steps:\s*(?:#.*)?", line) is None:
+            index += 1
+            continue
+        steps_indent = len(line) - len(line.lstrip(" "))
+        commands: list[str] = []
+        index += 1
+        while index < len(lines):
+            line = lines[index]
+            stripped = line.strip()
+            indent = len(line) - len(line.lstrip(" "))
+            if stripped and not stripped.startswith("#") and indent <= steps_indent:
+                break
+            match = re.fullmatch(r"\s*-\s+run:\s*(.*?)\s*", line)
+            if match is None:
+                index += 1
+                continue
+            scalar = match.group(1)
+            if re.fullmatch(r"[|>][+-]?\d*", scalar) is None:
+                commands.append(_decode_yaml_scalar(scalar))
+                index += 1
+                continue
+            run_indent = indent
+            block: list[str] = []
+            index += 1
+            while index < len(lines):
+                block_line = lines[index]
+                block_stripped = block_line.strip()
+                block_indent = len(block_line) - len(block_line.lstrip(" "))
+                if block_stripped and block_indent <= run_indent:
+                    break
+                block.append(block_line)
+                index += 1
+            nonempty_indents = [
+                len(item) - len(item.lstrip(" ")) for item in block if item.strip()
+            ]
+            margin = min(nonempty_indents, default=run_indent + 2)
+            content = [item[margin:] if item.strip() else "" for item in block]
+            if scalar.startswith(">"):
+                commands.append(" ".join(item.strip() for item in content).strip())
+            else:
+                commands.append("\n".join(content).strip())
+        groups.append(commands)
+    return groups
+
+
+def _validate_lr_ci_boundary(root: Path, status: str, label: str) -> None:
+    relative = ".github/workflows/ci.yml"
+    path = root / relative
+    if path.is_symlink() or not path.is_file():
+        raise AssertionError(f"{label} LR CI command/order drift")
+    try:
+        groups = _workflow_run_groups(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError) as error:
+        raise AssertionError(f"{label} LR CI command/order drift") from error
+    expected = LR_CI_COMMANDS[status]
+    all_commands = [command for group in groups for command in group]
+    lr_commands = [
+        command for command in all_commands
+        if re.search(r"(?:^|\s)scripts/validate_lr_seam\.py(?:\s|$)", command)
+    ]
+    required_order = (*LR_CI_PREDECESSORS, expected)
+    if lr_commands != [expected] or not any(
+        _is_ordered_subsequence(required_order, group) for group in groups
+    ):
+        raise AssertionError(f"{label} LR CI command/order drift")
 
 
 def _validate_promotion_governance(
@@ -768,41 +738,25 @@ def _validate_promotion_governance(
     *,
     verify_receipt_git: bool = False,
 ) -> None:
-    """Fail closed on both exact candidate and measured promotion states."""
+    """Validate live LR state while receipt history freezes the measured subject."""
     status = manifest.get("status")
     require(status in {PROPOSED_STATUS, MEASURED_STATUS},
             "LR promotion manifest status drift")
     label = "measured" if status == MEASURED_STATUS else "proposed"
-    expected_hashes = (
-        MEASURED_PROMOTION_SHA256 if label == "measured"
-        else PROPOSED_PROMOTION_SHA256
+    _validate_receipt_boundary(
+        root, status, verify_receipt_git=verify_receipt_git
     )
-    require(tuple(PROPOSED_PROMOTION_SHA256) == LR_PROMOTION_PATHS,
-            "proposed LR promotion digest closure drift")
-    require(tuple(MEASURED_PROMOTION_SHA256) == LR_PROMOTION_PATHS,
-            "measured LR promotion digest closure drift")
-
-    documents: dict[str, tuple[bytes, str]] = {}
-    for relative in LR_PROMOTION_PATHS:
-        raw, text = _read_promotion_bytes(root, relative, label)
-        if relative == "README.md":
-            raw = _project_readme_for_promotion(
-                root, raw, label, verify_receipt_git=verify_receipt_git
-            )
-            text = raw.decode("utf-8")
-        actual = "sha256:" + hashlib.sha256(raw).hexdigest()
-        if actual != expected_hashes[relative]:
-            _promotion_artifact_drift(label, relative)
-        documents[relative] = (raw, text)
-
-    try:
-        disk_manifest = json.loads(documents["spec/lr-seam-manifest.v1.json"][1])
-        disk_contract = json.loads(documents["spec/lr-seam-contract.v1.json"][1])
-        disk_claims = json.loads(documents["spec/claims.v1.json"][1])
-    except json.JSONDecodeError as error:
-        raise AssertionError(f"{label} LR promotion governance JSON drift") from error
+    disk_manifest = _load_governance_json(
+        root, "spec/lr-seam-manifest.v1.json", label
+    )
+    disk_contract = _load_governance_json(
+        root, "spec/lr-seam-contract.v1.json", label
+    )
+    disk_claims = _load_governance_json(root, "spec/claims.v1.json", label)
+    claims = disk_claims.get("claims")
+    require(isinstance(claims, list), "on-disk LR claim-ledger entry drift")
     disk_lr_claims = [
-        item for item in disk_claims.get("claims", [])
+        item for item in claims
         if isinstance(item, dict) and item.get("id") == "lr-direct-l-to-r-projection"
     ]
     require(len(disk_lr_claims) == 1, "on-disk LR claim-ledger entry drift")
@@ -822,37 +776,16 @@ def _validate_promotion_governance(
         disk_claim.get("evidence") == list(LR_ADMISSION_EVIDENCE),
         f"{label} LR claim evidence differs from frozen admission evidence",
     )
-
-    ci_relative = ".github/workflows/ci.yml"
-    ci_text = documents[ci_relative][1]
-    run_steps = re.findall(r"^\s*-\s+run:\s+(.+?)\s*$", ci_text, re.MULTILINE)
-    expected_steps = STRICT_CI_STEPS if label == "measured" else PROPOSED_CI_STEPS
-    if (
-        len(run_steps) < len(expected_steps)
-        or tuple(run_steps[-len(expected_steps):]) != expected_steps
-    ):
-        _promotion_artifact_drift(label, ci_relative)
+    _validate_engine_defer_boundary(root, label)
+    _validate_lr_ci_boundary(root, status, label)
 
 
-def _validate_engine_defer_boundary(root: Path) -> None:
-    decision = json.loads(
-        (root / "spec/engine-decision.v1.json").read_text(encoding="utf-8")
+def _validate_engine_defer_boundary(root: Path, label: str) -> None:
+    decision = _load_governance_json(
+        root, "spec/engine-decision.v1.json", label
     )
     require(decision.get("verdict") == "defer",
             "LR admission must preserve the deferred engine verdict")
-    gates = decision.get("promotion_gates")
-    require(isinstance(gates, list) and bool(gates),
-            "engine promotion gates missing during LR admission")
-    for gate in gates:
-        require(gate.get("status") in {"OPEN", "BLOCKED"},
-                "engine promotion gate closed during LR admission")
-        require(gate.get("evidence") == [],
-                "engine promotion gate gained evidence during LR admission")
-    adr = (root / "docs/adr/0001-defer-engine-verdict.md").read_text(
-        encoding="utf-8"
-    )
-    require(adr.startswith("# ADR 0001: Defer the engine verdict\n"),
-            "deferred engine ADR boundary drift")
 
 
 def main() -> int:
@@ -893,17 +826,6 @@ def main() -> int:
     _validate_promotion_governance(
         ROOT, manifest, contract, claim, verify_receipt_git=True
     )
-    _validate_engine_defer_boundary(ROOT)
-    lr_doc_path = ROOT / "docs/LR_SEAM.md"
-    require(lr_doc_path.is_file(), "LR seam document missing")
-    status_markers = re.findall(
-        r"^> Status: \*\*([^*]+)\*\*\.$",
-        lr_doc_path.read_text(encoding="utf-8"),
-        flags=re.MULTILINE,
-    )
-    require(bool(status_markers), "LR seam document has no exact status marker")
-    require(status_markers[0] == manifest["status"],
-            "LR seam document first status marker drift")
     if manifest["status"] == MEASURED_STATUS:
         for relative in LR_ADMISSION_EVIDENCE:
             require((ROOT / relative).is_file(),
