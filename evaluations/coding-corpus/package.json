@@ -1,0 +1,30 @@
+{
+  "name": "@flrh-research/coding-corpus",
+  "version": "0.0.0-proposed",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:gateway": "tsc -p tsconfig.gateway.json",
+    "test": "tsx --test tests/*.test.ts",
+    "list:pilot": "tsx src/cli.ts list --corpus pilot.jsonl",
+    "validate:pilot": "tsx src/cli.ts validate --corpus pilot.jsonl --repo ../..",
+    "check:pilot": "tsx src/cli.ts check --corpus pilot.jsonl --repo ../.. --python .venv/bin/python",
+    "gateway": "tsx src/gateway-cli.ts serve",
+    "gateway:healthcheck": "tsx src/gateway-cli.ts healthcheck",
+    "verify": "pnpm run typecheck && pnpm run test && pnpm run list:pilot && pnpm run validate:pilot && pnpm run check:pilot"
+  },
+  "dependencies": {
+    "effect": "3.22.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3"
+  }
+}

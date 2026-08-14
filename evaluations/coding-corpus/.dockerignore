@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!package.json
+!pnpm-lock.yaml
+!tsconfig.json
+!tsconfig.gateway.json
+!src/
+!src/**
