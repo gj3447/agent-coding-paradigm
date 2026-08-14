@@ -667,3 +667,50 @@ export const gatewayMetricsError = (value: unknown): string | undefined => {
   }
   return undefined;
 };
+
+export const normalizeGatewayMetrics = (
+  value: unknown,
+): Readonly<Record<string, unknown>> | undefined => {
+  if (gatewayMetricsError(value) !== undefined) return undefined;
+  const record = value as Readonly<Record<string, unknown>>;
+  const usage = record["usage"] as Readonly<Record<string, unknown>>;
+  const limits = record["limits"] as Readonly<Record<string, unknown>>;
+  const statuses = record["status_counts"] as Readonly<Record<string, unknown>>;
+  return Object.freeze({
+    schema_version: GATEWAY_METRICS_SCHEMA,
+    requests_seen: record["requests_seen"],
+    requests_admitted: record["requests_admitted"],
+    requests_completed: record["requests_completed"],
+    requests_rejected: record["requests_rejected"],
+    requests_in_flight: record["requests_in_flight"],
+    peak_concurrency: record["peak_concurrency"],
+    upstream_requests: record["upstream_requests"],
+    upstream_failures: record["upstream_failures"],
+    request_bytes: record["request_bytes"],
+    response_bytes: record["response_bytes"],
+    status_counts: Object.freeze(
+      Object.fromEntries(
+        Object.entries(statuses).sort(([left], [right]) =>
+          left.localeCompare(right),
+        ),
+      ),
+    ),
+    usage: Object.freeze({
+      prompt_tokens: usage["prompt_tokens"],
+      completion_tokens: usage["completion_tokens"],
+      total_tokens: usage["total_tokens"],
+    }),
+    completion_tokens_reserved: record["completion_tokens_reserved"],
+    completion_tokens_unknown: record["completion_tokens_unknown"],
+    completion_budget_overshoot: record["completion_budget_overshoot"],
+    limits: Object.freeze({
+      max_body_bytes: limits["max_body_bytes"],
+      max_response_bytes: limits["max_response_bytes"],
+      max_tokens_per_request: limits["max_tokens_per_request"],
+      max_requests: limits["max_requests"],
+      request_budget_basis: limits["request_budget_basis"],
+      max_completion_tokens: limits["max_completion_tokens"],
+      max_concurrency: limits["max_concurrency"],
+    }),
+  });
+};

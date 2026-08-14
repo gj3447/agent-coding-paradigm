@@ -15,6 +15,7 @@
     "list:pilot": "tsx src/cli.ts list --corpus pilot.jsonl",
     "validate:pilot": "tsx src/cli.ts validate --corpus pilot.jsonl --repo ../..",
     "check:pilot": "tsx src/cli.ts check --corpus pilot.jsonl --repo ../.. --python .venv/bin/python",
+    "compare": "tsx src/compare-cli.ts",
     "gateway": "tsx src/gateway-cli.ts serve",
     "gateway:healthcheck": "tsx src/gateway-cli.ts healthcheck",
     "verify": "pnpm run typecheck && pnpm run test && pnpm run list:pilot && pnpm run validate:pilot && pnpm run check:pilot"

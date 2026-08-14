@@ -1,8 +1,17 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
+import {
+  constants,
+  lstat,
+  mkdir,
+  mkdtemp,
+  open,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 import { Effect, Layer } from "effect";
 
@@ -27,15 +36,93 @@ const fileFailure = (
     new FileFailure({ operation, path, reason: errorDetail(error) });
 
 const NodeFileStore: FileStoreService = {
-  readText: (path) =>
+  readText: (path, options) =>
     Effect.tryPromise({
-      try: (signal) => readFile(path, { encoding: "utf8", signal }),
+      try: async (signal) => {
+        const handle = await open(path, constants.O_RDONLY);
+        try {
+          const status = await handle.stat();
+          const maximum = options?.maxBytes;
+          if (maximum !== undefined && status.size > maximum) {
+            throw new Error(`file exceeds ${maximum} bytes`);
+          }
+          const content = await handle.readFile({ encoding: "utf8", signal });
+          if (
+            maximum !== undefined &&
+            Buffer.byteLength(content, "utf8") > maximum
+          ) {
+            throw new Error(`file exceeds ${maximum} bytes`);
+          }
+          return content;
+        } finally {
+          await handle.close();
+        }
+      },
       catch: fileFailure("read_text", path),
     }),
   writeBytes: (path, content) =>
     Effect.tryPromise({
       try: (signal) => writeFile(path, content, { signal }),
       catch: fileFailure("write_bytes", path),
+    }),
+  writeBytesWithinRoot: (root, relativePath, content, mode = 0o644) =>
+    Effect.tryPromise({
+      try: async () => {
+        const resolvedRoot = resolve(root);
+        const target = resolve(resolvedRoot, relativePath);
+        const fromRoot = relative(resolvedRoot, target);
+        if (
+          isAbsolute(relativePath) ||
+          fromRoot === "" ||
+          fromRoot === ".." ||
+          fromRoot.startsWith(`..${sep}`)
+        ) {
+          throw new Error("target escapes the declared root");
+        }
+        const parent = dirname(target);
+        const parentRelative = relative(resolvedRoot, parent);
+        let cursor = resolvedRoot;
+        for (const segment of parentRelative.split(sep).filter(Boolean)) {
+          cursor = join(cursor, segment);
+          try {
+            const status = await lstat(cursor);
+            if (!status.isDirectory() || status.isSymbolicLink()) {
+              throw new Error("parent path is not a real directory");
+            }
+          } catch (error) {
+            if (
+              typeof error === "object" &&
+              error !== null &&
+              "code" in error &&
+              error.code === "ENOENT"
+            ) {
+              await mkdir(cursor, { mode: 0o700 });
+            } else {
+              throw error;
+            }
+          }
+        }
+        const handle = await open(
+          target,
+          constants.O_WRONLY |
+            constants.O_CREAT |
+            constants.O_TRUNC |
+            constants.O_NOFOLLOW,
+          0o600,
+        );
+        try {
+          const status = await handle.stat();
+          if (!status.isFile()) throw new Error("target is not a regular file");
+          await handle.chmod(mode);
+          await handle.writeFile(content);
+        } finally {
+          await handle.close();
+        }
+      },
+      catch: fileFailure(
+        "write_bytes_within_root",
+        `${root}:${relativePath}`,
+      ),
     }),
   writeBytesAtomic: (path, content) =>
     Effect.tryPromise({

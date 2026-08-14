@@ -5,7 +5,9 @@ import { Effect, Either } from "effect";
 
 import { loadCases } from "../src/corpus.js";
 import {
+  decodeBridgeRequest,
   decodeCorpusCase,
+  evaluateCandidateScore,
   isValidCaseCheck,
   parseJsonRejectingDuplicateKeys,
   pytestSignature,
@@ -61,6 +63,15 @@ test("case decoding rejects excess keys, path escape, and arbitrary commands", (
   assert.equal(escaped.ok, false);
   if (!escaped.ok) assert.match(escaped.error.reason, /repository-relative/u);
 
+  for (const invalidPath of ["tests/test_example.py\u0000tail", "tests/test_example.py\nnext"]) {
+    const invalid = decodeCorpusCase({
+      ...validWire(),
+      verifier_paths: [invalidPath],
+    });
+    assert.equal(invalid.ok, false);
+    if (!invalid.ok) assert.match(invalid.error.reason, /repository-relative/u);
+  }
+
   const command = decodeCorpusCase({
     ...validWire(),
     verifier: ["python3", "-c", "print('OK')"],
@@ -96,6 +107,7 @@ test("Effect loader is lazy, rejects duplicate ids, and returns immutable cases"
         return `${line}\n`;
       }),
     writeBytes: () => Effect.die("unused"),
+    writeBytesWithinRoot: () => Effect.die("unused"),
     writeBytesAtomic: () => Effect.die("unused"),
     makeDirectory: () => Effect.die("unused"),
     makeTempDirectory: () => Effect.die("unused"),
@@ -217,4 +229,115 @@ test("case check compares independent positive signatures", () => {
     }),
     true,
   );
+});
+
+test("bridge score policy is corpus-bound and ignores timing noise", () => {
+  const decoded = decodeCorpusCase(validWire());
+  assert.equal(decoded.ok, true);
+  if (!decoded.ok) return;
+  const transcript = [
+    "test_example (tests.Example.test_example) ... ok",
+    "Ran 1 test in 0.01s",
+    "OK",
+    "",
+  ].join("\n");
+  const metadata = {
+    case_id: decoded.value.id,
+    base_sha: decoded.value.baseSha,
+    oracle_sha: decoded.value.oracleSha,
+    split: decoded.value.split,
+    submission_paths: [...decoded.value.submissionPaths],
+    verifier_paths: [...decoded.value.verifierPaths],
+    verifier: [...decoded.value.verifier],
+    timeout_seconds: decoded.value.timeoutSeconds,
+    tags: [...decoded.value.tags],
+  };
+  const accepted = evaluateCandidateScore(decoded.value, metadata, {
+    kind: "completed",
+    returncode: 0,
+    stdout: transcript,
+    stderr: "",
+  }, {
+    kind: "completed",
+    returncode: 0,
+    stdout: transcript.replace("0.01s", "9.75s"),
+    stderr: "",
+  });
+  assert.equal(accepted.kind, "scored");
+  if (accepted.kind === "scored") {
+    assert.equal(accepted.correct, true);
+    assert.equal(accepted.oracle_signature_match, true);
+  }
+
+  const unbound = evaluateCandidateScore(
+    decoded.value,
+    { ...metadata, unexpected: true },
+    {
+      kind: "completed",
+      returncode: 0,
+      stdout: transcript,
+      stderr: "",
+    },
+    {
+      kind: "completed",
+      returncode: 0,
+      stdout: transcript,
+      stderr: "",
+    },
+  );
+  assert.deepEqual(unbound, {
+    kind: "scored",
+    correct: false,
+    explanation: "sample metadata is not corpus-bound",
+    returncode: null,
+    oracle_signature_match: false,
+  });
+});
+
+test("bridge protocol is versioned, exact, and transports paths only as data", () => {
+  const request = decodeBridgeRequest({
+    schema_version: "coding-corpus-bridge-request/v1",
+    operation: "catalog",
+    corpus: "/tmp/corpus;touch-not-executed.jsonl",
+  });
+  assert.equal(request.ok, true);
+
+  const excess = decodeBridgeRequest({
+    schema_version: "coding-corpus-bridge-request/v1",
+    operation: "catalog",
+    corpus: "/tmp/corpus.jsonl",
+    shell: "touch /tmp/escaped",
+  });
+  assert.equal(excess.ok, false);
+
+  const wrongVersion = decodeBridgeRequest({
+    schema_version: "coding-corpus-bridge-request/v2",
+    operation: "catalog",
+    corpus: "/tmp/corpus.jsonl",
+  });
+  assert.equal(wrongVersion.ok, false);
+
+  const oversizedUnicode = decodeBridgeRequest({
+    schema_version: "coding-corpus-bridge-request/v1",
+    operation: "score",
+    corpus: "/tmp/corpus.jsonl",
+    case_id: "example-case",
+    metadata: {},
+    oracle: {
+      kind: "completed",
+      returncode: 0,
+      stdout: "😀".repeat(16_385),
+      stderr: "",
+    },
+    candidate: {
+      kind: "completed",
+      returncode: 0,
+      stdout: "ok",
+      stderr: "",
+    },
+  });
+  assert.equal(oversizedUnicode.ok, false);
+  if (!oversizedUnicode.ok) {
+    assert.match(oversizedUnicode.error.reason, /output exceeds/u);
+  }
 });

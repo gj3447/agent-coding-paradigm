@@ -3,6 +3,9 @@ import { Either, ParseResult, Schema } from "effect";
 const FULL_SHA = /^[0-9a-f]{40}$/;
 const CASE_ID = /^[a-z0-9][a-z0-9-]{2,79}$/;
 const PYTEST_FILE = /^tests\/[A-Za-z_][A-Za-z0-9_]*\.py$/;
+const VERIFIER_OUTPUT_LIMIT_BYTES = 64 * 1024;
+const REPOSITORY_PATH_LIMIT_BYTES = 4 * 1024;
+const TEXT_ENCODER = new TextEncoder();
 
 const CorpusCaseWireSchema = Schema.Struct({
   id: Schema.String,
@@ -17,7 +20,123 @@ const CorpusCaseWireSchema = Schema.Struct({
   tags: Schema.Array(Schema.String),
 });
 
+const CorpusMetadataWireSchema = Schema.Struct({
+  case_id: Schema.String,
+  base_sha: Schema.String,
+  oracle_sha: Schema.String,
+  split: Schema.Literal("calibration", "validation", "heldout"),
+  submission_paths: Schema.Array(Schema.String),
+  verifier_paths: Schema.Array(Schema.String),
+  verifier: Schema.Array(Schema.String),
+  timeout_seconds: Schema.Number,
+  tags: Schema.Array(Schema.String),
+});
+
+const CompletedVerifierObservationSchema = Schema.Struct({
+  kind: Schema.Literal("completed"),
+  returncode: Schema.Number,
+  stdout: Schema.String,
+  stderr: Schema.String,
+});
+
+const ExecutionErrorObservationSchema = Schema.Struct({
+  kind: Schema.Literal("execution_error"),
+  error: Schema.String,
+});
+
+const VerifierObservationSchema = Schema.Union(
+  CompletedVerifierObservationSchema,
+  ExecutionErrorObservationSchema,
+);
+
+const BridgeRequestSchema = Schema.Union(
+  Schema.Struct({
+    schema_version: Schema.Literal("coding-corpus-bridge-request/v1"),
+    operation: Schema.Literal("catalog"),
+    corpus: Schema.String,
+  }),
+  Schema.Struct({
+    schema_version: Schema.Literal("coding-corpus-bridge-request/v1"),
+    operation: Schema.Literal("validate"),
+    corpus: Schema.String,
+    repository: Schema.String,
+  }),
+  Schema.Struct({
+    schema_version: Schema.Literal("coding-corpus-bridge-request/v1"),
+    operation: Schema.Literal("admit"),
+    corpus: Schema.String,
+    repository: Schema.String,
+    python_executable: Schema.String,
+  }),
+  Schema.Struct({
+    schema_version: Schema.Literal("coding-corpus-bridge-request/v1"),
+    operation: Schema.Literal("prepare"),
+    corpus: Schema.String,
+    repository: Schema.String,
+    python_executable: Schema.String,
+    archive_directory: Schema.String,
+    split: Schema.Literal("calibration", "validation", "heldout"),
+  }),
+  Schema.Struct({
+    schema_version: Schema.Literal("coding-corpus-bridge-request/v1"),
+    operation: Schema.Literal("score"),
+    corpus: Schema.String,
+    case_id: Schema.String,
+    metadata: Schema.Unknown,
+    oracle: VerifierObservationSchema,
+    candidate: VerifierObservationSchema,
+  }),
+);
+
 type CorpusCaseWire = typeof CorpusCaseWireSchema.Type;
+type CorpusMetadataWire = typeof CorpusMetadataWireSchema.Type;
+
+export type VerifierObservation =
+  | {
+      readonly kind: "completed";
+      readonly returncode: number;
+      readonly stdout: string;
+      readonly stderr: string;
+    }
+  | { readonly kind: "execution_error"; readonly error: string };
+
+export type BridgeRequest =
+  | {
+      readonly schema_version: "coding-corpus-bridge-request/v1";
+      readonly operation: "catalog";
+      readonly corpus: string;
+    }
+  | {
+      readonly schema_version: "coding-corpus-bridge-request/v1";
+      readonly operation: "validate";
+      readonly corpus: string;
+      readonly repository: string;
+    }
+  | {
+      readonly schema_version: "coding-corpus-bridge-request/v1";
+      readonly operation: "admit";
+      readonly corpus: string;
+      readonly repository: string;
+      readonly python_executable: string;
+    }
+  | {
+      readonly schema_version: "coding-corpus-bridge-request/v1";
+      readonly operation: "prepare";
+      readonly corpus: string;
+      readonly repository: string;
+      readonly python_executable: string;
+      readonly archive_directory: string;
+      readonly split: CorpusSplit;
+    }
+  | {
+      readonly schema_version: "coding-corpus-bridge-request/v1";
+      readonly operation: "score";
+      readonly corpus: string;
+      readonly case_id: string;
+      readonly metadata: unknown;
+      readonly oracle: VerifierObservation;
+      readonly candidate: VerifierObservation;
+    };
 
 export type CorpusSplit = CorpusCaseWire["split"];
 
@@ -103,6 +222,8 @@ const repositoryPathError = (
   if (
     rawPath.startsWith("/") ||
     rawPath.includes("\\") ||
+    /[\u0000\r\n]/u.test(rawPath) ||
+    TEXT_ENCODER.encode(rawPath).byteLength > REPOSITORY_PATH_LIMIT_BYTES ||
     rawPath.split("/").some((part) => part === "" || part === "." || part === "..")
   ) {
     return `${kind} path is not repository-relative: ${rawPath}`;
@@ -130,6 +251,19 @@ export const isPytestVerifier = (verifier: readonly string[]): boolean =>
   verifier[5] === "no:cacheprovider" &&
   verifier[6] !== undefined &&
   PYTEST_FILE.test(verifier[6]);
+
+export const verifierEntryPaths = (
+  verifier: readonly string[],
+): readonly string[] => {
+  if (isUnittestVerifier(verifier)) {
+    return Object.freeze(
+      verifier.slice(3, -1).map((module) => `${module.replaceAll(".", "/")}.py`),
+    );
+  }
+  return isPytestVerifier(verifier) && verifier[6] !== undefined
+    ? Object.freeze([verifier[6]])
+    : Object.freeze([]);
+};
 
 const freezeCase = (wire: CorpusCaseWire): CorpusCase =>
   Object.freeze({
@@ -216,6 +350,13 @@ export const decodeCorpusCase = (value: unknown): DomainResult<CorpusCase> => {
 
   const verifier = boundedStringArray(wire.verifier, "verifier", 2, 32);
   if (!verifier.ok) return verifier;
+  if (
+    verifier.value.some(
+      (argument) => TEXT_ENCODER.encode(argument).byteLength > REPOSITORY_PATH_LIMIT_BYTES,
+    )
+  ) {
+    return failure("verifier arguments exceed the protocol item limit");
+  }
   const unittest = isUnittestVerifier(verifier.value);
   const pytest = isPytestVerifier(verifier.value);
   if (!unittest && !pytest) {
@@ -223,12 +364,9 @@ export const decodeCorpusCase = (value: unknown): DomainResult<CorpusCase> => {
       "verifier must be a verbose unittest module command or a closed pytest file command",
     );
   }
-  if (
-    pytest &&
-    verifier.value[6] !== undefined &&
-    !verifierPaths.value.includes(verifier.value[6])
-  ) {
-    return failure("pytest verifier path must be listed in verifier_paths");
+  const entryPaths = verifierEntryPaths(verifier.value);
+  if (entryPaths.some((path) => !verifierPaths.value.includes(path))) {
+    return failure("verifier command paths must be listed in verifier_paths");
   }
   if (verifier.value.some((item) => /[\u0000\r\n]/.test(item))) {
     return failure("verifier arguments must be single-line strings");
@@ -267,6 +405,86 @@ export const corpusMetadata = (value: CorpusCase): CorpusMetadata =>
     timeout_seconds: value.timeoutSeconds,
     tags: Object.freeze([...value.tags]),
   });
+
+export const corpusCaseWire = (value: CorpusCase): CorpusCaseWire => ({
+  id: value.id,
+  input: value.input,
+  base_sha: value.baseSha,
+  oracle_sha: value.oracleSha,
+  split: value.split,
+  submission_paths: [...value.submissionPaths],
+  verifier_paths: [...value.verifierPaths],
+  verifier: [...value.verifier],
+  timeout_seconds: value.timeoutSeconds,
+  tags: [...value.tags],
+});
+
+const isBoundedProtocolString = (
+  value: string,
+  maximum: number,
+): boolean =>
+  value.length > 0 &&
+  value.length <= maximum &&
+  !/[\u0000\r\n]/u.test(value);
+
+const validateObservation = (
+  observation: VerifierObservation,
+): DomainResult<VerifierObservation> => {
+  if (observation.kind === "execution_error") {
+    return isBoundedProtocolString(observation.error, 128)
+      ? success(Object.freeze({ ...observation }))
+      : failure("execution error must be a bounded single-line string");
+  }
+  if (
+    !Number.isInteger(observation.returncode) ||
+    observation.returncode < -255 ||
+    observation.returncode > 255
+  ) {
+    return failure("verifier returncode must be an integer from -255 through 255");
+  }
+  const outputBytes =
+    TEXT_ENCODER.encode(observation.stdout).byteLength +
+    TEXT_ENCODER.encode(observation.stderr).byteLength;
+  if (outputBytes > VERIFIER_OUTPUT_LIMIT_BYTES) {
+    return failure("verifier output exceeds the protocol limit");
+  }
+  return success(Object.freeze({ ...observation }));
+};
+
+export const decodeBridgeRequest = (
+  value: unknown,
+): DomainResult<BridgeRequest> => {
+  const decoded = Schema.decodeUnknownEither(BridgeRequestSchema, {
+    errors: "all",
+    onExcessProperty: "error",
+  })(value);
+  if (Either.isLeft(decoded)) {
+    return failure(ParseResult.TreeFormatter.formatErrorSync(decoded.left));
+  }
+  const request = decoded.right as BridgeRequest;
+  const paths = [request.corpus];
+  if (request.operation === "validate" || request.operation === "admit" || request.operation === "prepare") {
+    paths.push(request.repository);
+  }
+  if (request.operation === "admit" || request.operation === "prepare") {
+    paths.push(request.python_executable);
+  }
+  if (request.operation === "prepare") paths.push(request.archive_directory);
+  if (paths.some((path) => !isBoundedProtocolString(path, 4_096))) {
+    return failure("protocol paths must be bounded single-line strings");
+  }
+  if (request.operation !== "score") return success(Object.freeze(request));
+  if (!CASE_ID.test(request.case_id)) {
+    return failure("score case_id must use lower-case hyphen syntax");
+  }
+  const oracle = validateObservation(request.oracle);
+  if (!oracle.ok) return oracle;
+  const candidate = validateObservation(request.candidate);
+  if (!candidate.ok) return candidate;
+  return success(
+    Object.freeze({ ...request, oracle: oracle.value, candidate: candidate.value }),
+  );
+};
 
 class JsonScanner {
   readonly #source: string;
@@ -509,6 +727,117 @@ export const verifierSignature = (
     return pytestSignature(stdout, stderr, verifier[6]);
   }
   return Object.freeze([]);
+};
+
+export type CandidateScoreDecision =
+  | {
+      readonly kind: "scored";
+      readonly correct: boolean;
+      readonly explanation: string;
+      readonly returncode: number | null;
+      readonly oracle_signature_match: boolean;
+      readonly execution_error?: string;
+    }
+  | { readonly kind: "harness_error"; readonly reason: string };
+
+const metadataMatchesCase = (value: unknown, expected: CorpusCase): boolean => {
+  const decoded = Schema.decodeUnknownEither(CorpusMetadataWireSchema, {
+    errors: "all",
+    onExcessProperty: "error",
+  })(value);
+  if (Either.isLeft(decoded)) return false;
+  const metadata: CorpusMetadataWire = decoded.right;
+  const canonical = corpusMetadata(expected);
+  return (
+    metadata.case_id === canonical.case_id &&
+    metadata.base_sha === canonical.base_sha &&
+    metadata.oracle_sha === canonical.oracle_sha &&
+    metadata.split === canonical.split &&
+    metadata.timeout_seconds === canonical.timeout_seconds &&
+    metadata.submission_paths.length === canonical.submission_paths.length &&
+    metadata.submission_paths.every(
+      (entry, index) => entry === canonical.submission_paths[index],
+    ) &&
+    metadata.verifier_paths.length === canonical.verifier_paths.length &&
+    metadata.verifier_paths.every(
+      (entry, index) => entry === canonical.verifier_paths[index],
+    ) &&
+    metadata.verifier.length === canonical.verifier.length &&
+    metadata.verifier.every(
+      (entry, index) => entry === canonical.verifier[index],
+    ) &&
+    metadata.tags.length === canonical.tags.length &&
+    metadata.tags.every((entry, index) => entry === canonical.tags[index])
+  );
+};
+
+const sameSignature = (
+  left: readonly string[],
+  right: readonly string[],
+): boolean =>
+  left.length === right.length &&
+  left.every((value, index) => value === right[index]);
+
+export const evaluateCandidateScore = (
+  value: CorpusCase,
+  metadata: unknown,
+  oracle: VerifierObservation,
+  candidate: VerifierObservation,
+): CandidateScoreDecision => {
+  if (!metadataMatchesCase(metadata, value)) {
+    return Object.freeze({
+      kind: "scored",
+      correct: false,
+      explanation: "sample metadata is not corpus-bound",
+      returncode: null,
+      oracle_signature_match: false,
+    });
+  }
+  if (oracle.kind === "execution_error") {
+    return Object.freeze({
+      kind: "harness_error",
+      reason: `oracle verifier could not complete: ${oracle.error}`,
+    });
+  }
+  const oracleSignature = verifierSignature(
+    value.verifier,
+    oracle.stdout,
+    oracle.stderr,
+  );
+  if (oracle.returncode !== 0 || oracleSignature.length === 0) {
+    return Object.freeze({
+      kind: "harness_error",
+      reason: "oracle verifier did not produce a successful admitted signature",
+    });
+  }
+  if (candidate.kind === "execution_error") {
+    return Object.freeze({
+      kind: "scored",
+      correct: false,
+      explanation: `candidate verifier could not complete: ${candidate.error}`,
+      returncode: null,
+      oracle_signature_match: false,
+      execution_error: candidate.error,
+    });
+  }
+  const candidateSignature = verifierSignature(
+    value.verifier,
+    candidate.stdout,
+    candidate.stderr,
+  );
+  const signaturesMatch = sameSignature(candidateSignature, oracleSignature);
+  const correct = candidate.returncode === 0 && signaturesMatch;
+  return Object.freeze({
+    kind: "scored",
+    correct,
+    explanation:
+      `verifier exit=${candidate.returncode}; ` +
+      `oracle_signature_match=${signaturesMatch}\n` +
+      `stdout:\n${candidate.stdout.slice(-4_000)}\n` +
+      `stderr:\n${candidate.stderr.slice(-4_000)}`,
+    returncode: candidate.returncode,
+    oracle_signature_match: signaturesMatch,
+  });
 };
 
 export interface VerifierRun {

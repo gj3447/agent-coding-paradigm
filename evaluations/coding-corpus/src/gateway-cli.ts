@@ -7,7 +7,10 @@ import {
   startGateway,
   type GatewayConfig,
 } from "./model-gateway.js";
-import { gatewayMetricsError } from "./gateway-domain.js";
+import {
+  gatewayMetricsError,
+  normalizeGatewayMetrics,
+} from "./gateway-domain.js";
 import { parseJsonRejectingDuplicateKeys } from "./domain.js";
 import { NodeFileStoreLive } from "./node-runtime.js";
 import { FileFailure, FileStore } from "./ports.js";
@@ -61,7 +64,9 @@ const serve = (
       const files = yield* FileStore;
       const secretPath =
         environment["DGX_API_KEY_FILE"] ?? "/run/secrets/dgx_api_key";
-      const secret = (yield* files.readText(secretPath)).trim();
+      const secret = (yield* files.readText(secretPath, {
+        maxBytes: 4_096,
+      })).trim();
       const config = yield* Effect.try({
         try: (): GatewayConfig => ({
           listenHost: environment["MODEL_GATEWAY_LISTEN_HOST"] ?? "0.0.0.0",
@@ -160,16 +165,21 @@ const validateMetrics = (
     const path =
       environment["MODEL_GATEWAY_METRICS_FILE"] ??
       "/tmp/gateway/metrics.json";
-    const source = yield* files.readText(path);
+    const source = yield* files.readText(path, { maxBytes: 1024 * 1024 });
     const decoded = parseJsonRejectingDuplicateKeys(source.trim());
     const error = decoded.ok
       ? gatewayMetricsError(decoded.value)
       : decoded.error.reason;
+    const metrics =
+      decoded.ok && error === undefined
+        ? (normalizeGatewayMetrics(decoded.value) ?? null)
+        : null;
     process.stdout.write(
       `${JSON.stringify({
-        schema_version: "model-gateway-validation/v1",
+        schema_version: "model-gateway-validation/v2",
         valid: error === undefined,
         error: error ?? null,
+        metrics,
       })}\n`,
     );
   }).pipe(Effect.provide(NodeFileStoreLive));

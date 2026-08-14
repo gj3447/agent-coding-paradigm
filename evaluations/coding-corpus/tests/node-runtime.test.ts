@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
 import { Effect, Either } from "effect";
 
-import { makeNodeCommandExecutorLive } from "../src/node-runtime.js";
-import { CommandExecutor, CommandFailure } from "../src/ports.js";
+import {
+  makeNodeCommandExecutorLive,
+  NodeFileStoreLive,
+} from "../src/node-runtime.js";
+import { CommandExecutor, CommandFailure, FileStore } from "../src/ports.js";
 
 const run = (
   args: readonly string[],
@@ -68,6 +71,53 @@ test("timeout terminates the subprocess group before it can mutate later", async
     if (Either.isLeft(result)) assert.equal(result.left.reason, "timeout");
     await new Promise((resolve) => setTimeout(resolve, 650));
     await assert.rejects(readFile(marker));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("root-bounded writes reject symlink parents without touching the outside file", async () => {
+  const root = await mkdtemp(join(tmpdir(), "coding-corpus-secure-write-"));
+  const checkout = join(root, "checkout");
+  const outside = join(root, "outside");
+  const marker = join(outside, "marker.py");
+  await mkdir(checkout);
+  await mkdir(outside);
+  await writeFile(marker, "original");
+  await symlink(outside, join(checkout, "tests"));
+  try {
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const files = yield* FileStore;
+        return yield* files.writeBytesWithinRoot(
+          checkout,
+          "tests/marker.py",
+          new TextEncoder().encode("replaced"),
+        );
+      }).pipe(Effect.provide(NodeFileStoreLive), Effect.either),
+    );
+    assert.equal(Either.isLeft(result), true);
+    assert.equal(await readFile(marker, "utf8"), "original");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("root-bounded writes preserve the admitted executable mode", async () => {
+  const root = await mkdtemp(join(tmpdir(), "coding-corpus-mode-"));
+  try {
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const files = yield* FileStore;
+        yield* files.writeBytesWithinRoot(
+          root,
+          "scripts/check.py",
+          new TextEncoder().encode("#!/usr/bin/env python3\n"),
+          0o755,
+        );
+      }).pipe(Effect.provide(NodeFileStoreLive)),
+    );
+    assert.equal((await stat(join(root, "scripts/check.py"))).mode & 0o777, 0o755);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

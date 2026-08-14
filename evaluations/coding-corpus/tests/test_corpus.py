@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,34 +14,27 @@ from unittest.mock import patch
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 
+import corpus as corpus_bridge  # noqa: E402
 from corpus import (  # noqa: E402
-    CaseCheck,
-    CorpusCase,
     CorpusError,
-    VerifierRun,
+    PreparedCase,
     check_cases,
     default_corpus_path,
     load_cases,
-    pytest_signature,
     repository_root,
-    unittest_signature,
+    score_candidate,
     validate_history,
-    verifier_signature,
 )
-from task import company_coding  # noqa: E402
+from task import _verifier_observation, company_coding  # noqa: E402
 
 
-class CorpusTests(unittest.TestCase):
-    def test_repository_root_has_an_explicit_standalone_override(self) -> None:
-        with patch.dict(os.environ, {"CODING_CORPUS_REPOSITORY": "/tmp/source-repo"}):
-            self.assertEqual(Path("/tmp/source-repo"), repository_root())
-
-    def test_pilot_is_unique_and_bound_to_available_history(self) -> None:
+class CorpusBridgeTests(unittest.TestCase):
+    def test_catalog_is_unique_and_bound_to_available_history(self) -> None:
         cases = load_cases()
         self.assertEqual(len(cases), len({case.id for case in cases}))
         validate_history(repository_root(), cases)
 
-    def test_lakatotree_slice_contains_the_three_vetted_pytest_cases(self) -> None:
+    def test_lakatotree_slice_is_decoded_by_the_ts_authority(self) -> None:
         cases = load_cases(HERE / "lakatotree.jsonl")
         self.assertEqual(
             [
@@ -52,195 +46,130 @@ class CorpusTests(unittest.TestCase):
         )
         self.assertTrue(all(case.verifier[2] == "pytest" for case in cases))
 
-    def test_duplicate_key_and_path_escape_fail_closed(self) -> None:
-        case = load_cases()[0]
-        raw = {
-            "id": case.id,
-            "input": case.input,
-            "base_sha": case.base_sha,
-            "oracle_sha": case.oracle_sha,
-            "split": case.split,
-            "submission_paths": list(case.submission_paths),
-            "verifier_paths": list(case.verifier_paths),
-            "verifier": list(case.verifier),
-            "timeout_seconds": case.timeout_seconds,
-            "tags": list(case.tags),
-        }
-        escaped = copy.deepcopy(raw)
-        escaped["verifier_paths"] = ["../tests/escape.py"]
-        with self.assertRaisesRegex(CorpusError, "repository-relative"):
-            CorpusCase.from_mapping(escaped)
-
-        fake_command = copy.deepcopy(raw)
-        fake_command["verifier"] = ["python3", "-c", "print('OK')"]
-        with self.assertRaisesRegex(CorpusError, "verbose unittest"):
-            CorpusCase.from_mapping(fake_command)
-
-        pytest_command = copy.deepcopy(raw)
-        pytest_command["verifier_paths"] = ["tests/test_example.py"]
-        pytest_command["verifier"] = [
-            "python3",
-            "-m",
-            "pytest",
-            "-vv",
-            "-p",
-            "no:cacheprovider",
-            "tests/test_example.py",
-        ]
-        parsed = CorpusCase.from_mapping(pytest_command)
-        self.assertEqual(tuple(pytest_command["verifier"]), parsed.verifier)
-
-        malformed_pytest_commands = (
-            ["python", *pytest_command["verifier"][1:]],
-            [*pytest_command["verifier"][:-1], "tests/unit/test_example.py"],
-            [*pytest_command["verifier"], "tests/test_second.py"],
-            ["python3", "-m", "pytest", "-q", "tests/test_example.py"],
-        )
-        for command in malformed_pytest_commands:
-            malformed = copy.deepcopy(pytest_command)
-            malformed["verifier"] = command
-            with self.subTest(command=command):
-                with self.assertRaisesRegex(CorpusError, "closed pytest"):
-                    CorpusCase.from_mapping(malformed)
-
-        unlisted = copy.deepcopy(pytest_command)
-        unlisted["verifier_paths"] = ["tests/test_other.py"]
-        with self.assertRaisesRegex(CorpusError, "listed in verifier_paths"):
-            CorpusCase.from_mapping(unlisted)
-
+    def test_duplicate_keys_and_path_escape_fail_in_ts(self) -> None:
+        original = json.loads(default_corpus_path().read_text(encoding="utf-8").splitlines()[0])
         with tempfile.TemporaryDirectory() as raw_dir:
-            corpus = Path(raw_dir) / "duplicate.jsonl"
-            line = default_corpus_path().read_text(encoding="utf-8").splitlines()[0]
-            line = line[:-1] + ',"id":"duplicate"}'
-            corpus.write_text(line + "\n", encoding="utf-8")
+            root = Path(raw_dir)
+            duplicate = root / "duplicate.jsonl"
+            line = json.dumps(original, separators=(",", ":"))
+            duplicate.write_text(line[:-1] + ',"id":"duplicate"}\n', encoding="utf-8")
             with self.assertRaisesRegex(CorpusError, "duplicate JSON key"):
-                load_cases(corpus)
+                load_cases(duplicate)
 
-    def test_each_pilot_fails_at_base_and_passes_at_oracle(self) -> None:
+            escaped = root / "escaped.jsonl"
+            escaped_case = copy.deepcopy(original)
+            escaped_case["verifier_paths"] = ["../tests/escape.py"]
+            escaped.write_text(json.dumps(escaped_case) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(CorpusError, "repository-relative"):
+                load_cases(escaped)
+
+    def test_admission_summary_comes_from_ts_effect(self) -> None:
         checks = check_cases(repository_root(), load_cases())
-        failures = [
-            {
-                "case_id": check.case_id,
-                "baseline": check.baseline.returncode,
-                "admitted_solution": check.admitted_solution.returncode,
-                "oracle": check.oracle.returncode,
-            }
-            for check in checks
-            if not check.valid
-        ]
-        self.assertEqual([], failures, json.dumps(failures, sort_keys=True))
+        self.assertTrue(checks)
+        self.assertEqual([], [check.case_id for check in checks if not check.valid])
 
-    def test_task_rejects_unbounded_or_unavailable_trials(self) -> None:
+    def test_score_policy_comes_from_ts_and_binds_metadata(self) -> None:
+        case = load_cases()[0]
+        oracle = "test_example (tests.Example.test_example) ... ok\nRan 1 test in 0.01s\nOK\n"
+        completed = {
+            "kind": "completed",
+            "returncode": 0,
+            "stdout": oracle,
+            "stderr": "",
+        }
+        accepted = score_candidate(
+            default_corpus_path(),
+            case.id,
+            case.metadata(),
+            completed,
+            {**completed, "stdout": oracle.replace("0.01s", "8.75s")},
+        )
+        self.assertTrue(accepted.correct)
+        unbound = score_candidate(
+            default_corpus_path(),
+            case.id,
+            {**case.metadata(), "unexpected": True},
+            completed,
+            completed,
+        )
+        self.assertFalse(unbound.correct)
+        self.assertEqual("sample metadata is not corpus-bound", unbound.explanation)
+
+    def test_python_client_uses_no_shell_and_forwards_no_ambient_secret(self) -> None:
+        response = {
+            "schema_version": corpus_bridge.RESPONSE_VERSION,
+            "ok": True,
+            "operation": "catalog",
+            "value": {"cases": []},
+        }
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout=json.dumps(response).encode(), stderr=b""
+        )
+        with patch.dict(os.environ, {"AWS_SECRET_ACCESS_KEY": "must-not-cross"}), patch(
+            "corpus.subprocess.run", return_value=completed
+        ) as run:
+            self.assertEqual((), load_cases(Path("/tmp/corpus;touch-escaped")))
+        args, kwargs = run.call_args
+        self.assertIsInstance(args[0], list)
+        self.assertNotIn("corpus;touch-escaped", " ".join(args[0]))
+        self.assertNotIn("AWS_SECRET_ACCESS_KEY", kwargs["env"])
+        self.assertNotIn("shell", kwargs)
+        request = json.loads(kwargs["input"])
+        self.assertIn("corpus;touch-escaped", request["corpus"])
+
+    def test_bridge_deadline_closes_an_open_stdin_pipe(self) -> None:
+        process = subprocess.Popen(
+            [str(part) for part in corpus_bridge._BRIDGE_COMMAND],
+            cwd=HERE,
+            env=corpus_bridge._BRIDGE_ENVIRONMENT,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        try:
+            returncode = process.wait(timeout=8)
+            self.assertEqual(1, returncode)
+            self.assertIsNotNone(process.stdout)
+            payload = json.loads(process.stdout.read())
+            self.assertFalse(payload["ok"])
+            self.assertIn("exceeded", payload["error"]["reason"])
+        finally:
+            if process.stdin is not None:
+                process.stdin.close()
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=2)
+            if process.stdout is not None:
+                process.stdout.close()
+            if process.stderr is not None:
+                process.stderr.close()
+
+    def test_verifier_observation_uses_the_shared_utf8_byte_budget(self) -> None:
+        class Result:
+            returncode = 0
+            stdout = "😀" * 16_385
+            stderr = ""
+
+        self.assertEqual(
+            {"kind": "execution_error", "error": "OutputLimitExceededError"},
+            _verifier_observation(Result()),
+        )
+
+    def test_task_is_a_thin_mapping_over_prepared_cases(self) -> None:
+        case = load_cases()[0]
+        prepared = PreparedCase(
+            case=case,
+            metadata=case.metadata(),
+            base_archive=Path("/tmp/base.tar"),
+            oracle_archive=Path("/tmp/oracle.tar"),
+            verifier_archive=Path("/tmp/verifier.tar"),
+        )
         with self.assertRaisesRegex(ValueError, "epochs"):
             company_coding(epochs=0)
-        with self.assertRaisesRegex(ValueError, "no heldout cases"):
-            company_coding(split="heldout")
-        configured = company_coding()
-        self.assertEqual(len(load_cases()), len(configured.dataset))
-
-    def test_verifier_requires_the_oracle_unittest_signature(self) -> None:
-        oracle = "test_example (tests.Example.test_example) ... ok\nRan 1 test in 0.01s\nOK\n"
-        equivalent = "test_example (tests.Example.test_example) ... ok\nRan 1 test in 8.75s\nOK\n"
-        verifier = ("python3", "-m", "unittest", "tests.test_example", "-v")
-        self.assertEqual(
-            unittest_signature(oracle, ""),
-            unittest_signature(equivalent, ""),
-        )
-        self.assertEqual(
-            unittest_signature(oracle, ""),
-            verifier_signature(verifier, equivalent, ""),
-        )
-        self.assertNotEqual(unittest_signature(oracle, ""), unittest_signature("", ""))
-        self.assertEqual((), unittest_signature("OK\n", ""))
-        self.assertEqual((), unittest_signature("Ran 0 tests in 0.01s\nOK\n", ""))
-        self.assertEqual((), verifier_signature(("python3", "-c", "print('OK')"), oracle, ""))
-
-    def test_pytest_signature_requires_positive_consistent_verbose_evidence(self) -> None:
-        verifier = (
-            "python3",
-            "-m",
-            "pytest",
-            "-vv",
-            "-p",
-            "no:cacheprovider",
-            "tests/test_example.py",
-        )
-        oracle = """\
-============================= test session starts ==============================
-collecting ... collected 2 items
-
-tests/test_example.py::test_alpha PASSED                         [ 50%]
-tests/test_example.py::test_beta PASSED [100%]
-
-============================== 2 passed in 0.01s ===============================
-"""
-        equivalent = oracle.replace("0.01s", "8.75s")
-        expected = (
-            "tests/test_example.py::test_alpha ... PASSED",
-            "tests/test_example.py::test_beta ... PASSED",
-            "collected 2 items",
-            "2 passed",
-        )
-        self.assertEqual(expected, pytest_signature(oracle, ""))
-        self.assertEqual(expected, pytest_signature(equivalent, ""))
-        self.assertEqual(expected, verifier_signature(verifier, oracle, ""))
-        self.assertEqual(
-            (),
-            verifier_signature(
-                verifier,
-                oracle.replace("tests/test_example.py", "tests/test_other.py"),
-                "",
-            ),
-        )
-
-        baseline = VerifierRun("base", 1, "1 failed in 0.01s\n", "")
-        admitted = VerifierRun("base+solution", 0, equivalent, "")
-        full_oracle = VerifierRun("oracle", 0, oracle, "")
-        self.assertTrue(
-            CaseCheck(
-                "pytest-case",
-                baseline,
-                admitted,
-                full_oracle,
-                verifier=verifier,
-            ).valid
-        )
-
-    def test_pytest_signature_rejects_empty_zero_and_fabricated_transcripts(self) -> None:
-        zero = """\
-============================= test session starts ==============================
-collecting ... collected 0 items
-============================ no tests ran in 0.01s =============================
-"""
-        fabricated = (
-            "============================== 1 passed in 0.01s ==============================\n",
-            """\
-collecting ... collected 1 item
-tests/test_example.py::test_alpha PASSED [100%]
-============================== 1 passed in 0.01s ===============================
-""",
-            """\
-collecting ... collected 2 items
-tests/test_example.py::test_alpha PASSED [100%]
-============================== 2 passed in 0.01s ===============================
-""",
-            """\
-collecting ... collected 2 items
-tests/test_example.py::test_alpha PASSED [ 50%]
-tests/test_example.py::test_alpha PASSED [100%]
-============================== 2 passed in 0.01s ===============================
-""",
-            """\
-collecting ... collected 1 item
-tests/test_example.py::test_alpha FAILED [100%]
-============================== 1 passed in 0.01s ===============================
-""",
-        )
-        self.assertEqual((), pytest_signature("", ""))
-        self.assertEqual((), pytest_signature(zero, ""))
-        for transcript in fabricated:
-            with self.subTest(transcript=transcript):
-                self.assertEqual((), pytest_signature(transcript, ""))
+        with patch("task.prepare_corpus", return_value=(prepared,)):
+            configured = company_coding()
+        self.assertEqual(1, len(configured.dataset))
+        self.assertEqual(case.metadata(), configured.dataset[0].metadata)
 
 
 if __name__ == "__main__":

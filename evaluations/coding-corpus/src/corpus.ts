@@ -3,12 +3,19 @@ import { dirname, join } from "node:path";
 import { Data, Effect } from "effect";
 
 import {
+  type CandidateScoreDecision,
   type CaseCheck,
   type CorpusCase,
+  type CorpusMetadata,
+  type CorpusSplit,
+  corpusMetadata,
   decodeCorpusCase,
+  evaluateCandidateScore,
   isValidCaseCheck,
   parseJsonRejectingDuplicateKeys,
+  type VerifierObservation,
   type VerifierRun,
+  verifierEntryPaths,
 } from "./domain.js";
 import {
   CommandExecutor,
@@ -23,6 +30,12 @@ import {
 const TEXT_DECODER = new TextDecoder("utf-8", { fatal: false });
 const GIT_TIMEOUT_MS = 30_000;
 const GIT_OUTPUT_LIMIT = 8 * 1024 * 1024;
+export const MAX_CORPUS_SOURCE_BYTES = 512 * 1024;
+const MAX_CORPUS_CASES = 64;
+const MAX_ADMISSION_VERIFIER_BUDGET_MS = 36 * 60 * 1_000;
+const MAX_BASE_ARCHIVE_BYTES = 64 * 1024 * 1024;
+const MAX_VERIFIER_ARCHIVE_BYTES = 16 * 1024 * 1024;
+const MAX_VERIFIER_SERVICE_BYTES = 96 * 1024 * 1024;
 
 export class CorpusFailure extends Data.TaggedError("CorpusFailure")<{
   readonly phase:
@@ -49,7 +62,17 @@ export const loadCases = (
 ): Effect.Effect<readonly CorpusCase[], CorpusFailure | FileFailure, FileStoreService> =>
   Effect.gen(function* () {
     const files = yield* FileStore;
-    const source = yield* files.readText(path);
+    const source = yield* files.readText(path, {
+      maxBytes: MAX_CORPUS_SOURCE_BYTES,
+    });
+    if (new TextEncoder().encode(source).byteLength > MAX_CORPUS_SOURCE_BYTES) {
+      return yield* Effect.fail(
+        corpusFailure(
+          "load",
+          `${path}: corpus exceeds ${MAX_CORPUS_SOURCE_BYTES} bytes`,
+        ),
+      );
+    }
     const cases: CorpusCase[] = [];
     const seen = new Set<string>();
     const lines = source.split(/\r?\n/u);
@@ -85,6 +108,11 @@ export const loadCases = (
       }
       seen.add(decoded.value.id);
       cases.push(decoded.value);
+      if (cases.length > MAX_CORPUS_CASES) {
+        return yield* Effect.fail(
+          corpusFailure("load", `${path}: corpus exceeds ${MAX_CORPUS_CASES} cases`),
+        );
+      }
     }
     if (cases.length === 0) {
       return yield* Effect.fail(corpusFailure("load", `${path}: corpus is empty`));
@@ -141,17 +169,49 @@ const runGit = (
 const requireRepository = (
   repository: string,
 ): Effect.Effect<void, CorpusFailure | CommandFailure, CommandExecutorService> =>
-  runGit(repository, ["rev-parse", "--is-inside-work-tree"], {
-    acceptNonzero: true,
-  }).pipe(
-    Effect.flatMap((result) =>
-      result.exitCode === 0 && TEXT_DECODER.decode(result.stdout).trim() === "true"
-        ? Effect.void
-        : Effect.fail(
-            corpusFailure("history", `not a Git worktree: ${repository}`),
-          ),
-    ),
-  );
+  Effect.gen(function* () {
+    const worktree = yield* runGit(repository, ["rev-parse", "--is-inside-work-tree"], {
+      acceptNonzero: true,
+    });
+    if (
+      worktree.exitCode !== 0 ||
+      TEXT_DECODER.decode(worktree.stdout).trim() !== "true"
+    ) {
+      return yield* Effect.fail(
+        corpusFailure("history", `not a Git worktree: ${repository}`),
+      );
+    }
+    const configuredAttributes = yield* runGit(
+      repository,
+      ["config", "--local", "--get", "core.attributesFile"],
+      { acceptNonzero: true },
+    );
+    if (configuredAttributes.exitCode === 0) {
+      return yield* Effect.fail(
+        corpusFailure("history", "repository-local core.attributesFile is not admitted"),
+      );
+    }
+    const infoAttributes = yield* runGit(
+      repository,
+      ["rev-parse", "--git-path", "info/attributes"],
+    );
+    const attributesPath = TEXT_DECODER.decode(infoAttributes.stdout).trim();
+    if (attributesPath.length === 0 || /[\u0000\r\n]/u.test(attributesPath)) {
+      return yield* Effect.fail(
+        corpusFailure("history", "repository info/attributes path is malformed"),
+      );
+    }
+    const empty = yield* runCommand(
+      "test",
+      ["!", "-s", attributesPath],
+      repository,
+    );
+    if (empty.exitCode !== 0) {
+      return yield* Effect.fail(
+        corpusFailure("history", "non-empty repository info/attributes is not admitted"),
+      );
+    }
+  });
 
 const requireCommit = (
   repository: string,
@@ -185,6 +245,33 @@ const requireGitObject = (
     ),
   );
 
+const regularBlobMode = (
+  repository: string,
+  revision: string,
+  relativePath: string,
+  phase: CorpusFailure["phase"],
+): Effect.Effect<0o644 | 0o755, CorpusFailure | CommandFailure, CommandExecutorService> =>
+  runGit(repository, ["ls-tree", "-z", revision, "--", relativePath], {
+    maxOutputBytes: 4_096,
+  }).pipe(
+    Effect.flatMap((result) => {
+      const entry = TEXT_DECODER.decode(result.stdout);
+      const expectedSuffix = `\t${relativePath}\u0000`;
+      if (entry.endsWith(expectedSuffix) && entry.startsWith("100644 blob ")) {
+        return Effect.succeed(0o644);
+      }
+      if (entry.endsWith(expectedSuffix) && entry.startsWith("100755 blob ")) {
+        return Effect.succeed(0o755);
+      }
+      return Effect.fail(
+        corpusFailure(
+          phase,
+          `path is not one regular file blob at ${revision}: ${relativePath}`,
+        ),
+      );
+    }),
+  );
+
 const validateCaseHistory = (
   repository: string,
   value: CorpusCase,
@@ -212,13 +299,58 @@ const validateCaseHistory = (
       { concurrency: 1, discard: true },
     );
     yield* Effect.forEach(
+      verifierEntryPaths(value.verifier),
+      (relative) =>
+        Effect.gen(function* () {
+          const base = yield* runGit(repository, [
+            "rev-parse",
+            `${value.baseSha}:${relative}`,
+          ], { acceptNonzero: true });
+          const oracle = yield* runGit(repository, [
+            "rev-parse",
+            `${value.oracleSha}:${relative}`,
+          ], { acceptNonzero: true });
+          if (
+            oracle.exitCode !== 0 ||
+            (base.exitCode === 0 &&
+              TEXT_DECODER.decode(base.stdout).trim() ===
+                TEXT_DECODER.decode(oracle.stdout).trim())
+          ) {
+            return yield* Effect.fail(
+              corpusFailure(
+                "history",
+                `${value.id}: verifier entry must exist and differ from base: ${relative}`,
+              ),
+            );
+          }
+        }),
+      { concurrency: 1, discard: true },
+    );
+    yield* Effect.forEach(
       value.submissionPaths,
       (relative) =>
-        requireGitObject(repository, `${value.baseSha}:${relative}`).pipe(
-          Effect.zipRight(
-            requireGitObject(repository, `${value.oracleSha}:${relative}`),
-          ),
-        ),
+        Effect.gen(function* () {
+          const baseMode = yield* regularBlobMode(
+            repository,
+            value.baseSha,
+            relative,
+            "history",
+          );
+          const oracleMode = yield* regularBlobMode(
+            repository,
+            value.oracleSha,
+            relative,
+            "history",
+          );
+          if (baseMode !== 0o644 || oracleMode !== 0o644) {
+            return yield* Effect.fail(
+              corpusFailure(
+                "history",
+                `${value.id}: submission paths must remain regular 100644 blobs: ${relative}`,
+              ),
+            );
+          }
+        }),
       { concurrency: 1, discard: true },
     );
   });
@@ -269,6 +401,27 @@ export const archiveRevision = (
     yield* ensureSuccessful(archived, "materialize", "git archive");
   });
 
+const archivePaths = (
+  repository: string,
+  revision: string,
+  relativePaths: readonly string[],
+  destination: string,
+): Effect.Effect<void, CorpusApplicationFailure, CommandExecutorService | FileStoreService> =>
+  Effect.gen(function* () {
+    const files = yield* FileStore;
+    yield* requireCommit(repository, revision);
+    yield* files.makeDirectory(dirname(destination), { recursive: true });
+    const archived = yield* runGit(repository, [
+      "archive",
+      "--format=tar",
+      `--output=${destination}`,
+      revision,
+      "--",
+      ...relativePaths,
+    ]);
+    yield* ensureSuccessful(archived, "materialize", "git archive paths");
+  });
+
 const materializeRevision = (
   repository: string,
   revision: string,
@@ -295,13 +448,31 @@ const materializeRevision = (
     yield* ensureSuccessful(extracted, "materialize", "tar extract");
   });
 
-const gitShow = (
+const requireRegularArchiveBlob = (
   repository: string,
-  object: string,
-): Effect.Effect<Uint8Array, CorpusFailure | CommandFailure, CommandExecutorService> =>
-  runGit(repository, ["show", object], {
-    maxOutputBytes: 1_100_000,
-  }).pipe(Effect.map((result) => result.stdout));
+  revision: string,
+  relativePath: string,
+): Effect.Effect<0o644 | 0o755, CorpusFailure | CommandFailure, CommandExecutorService> =>
+  regularBlobMode(repository, revision, relativePath, "materialize");
+
+const archiveSize = (
+  path: string,
+  repository: string,
+): Effect.Effect<number, CorpusFailure | CommandFailure, CommandExecutorService> =>
+  runCommand("stat", ["--format=%s", "--", path], repository, {
+    maxOutputBytes: 128,
+  }).pipe(
+    Effect.flatMap((result) =>
+      ensureSuccessful(result, "materialize", "archive stat"),
+    ),
+    Effect.flatMap((result) => {
+      const source = TEXT_DECODER.decode(result.stdout).trim();
+      const size = Number(source);
+      return /^\d+$/u.test(source) && Number.isSafeInteger(size)
+        ? Effect.succeed(size)
+        : Effect.fail(corpusFailure("materialize", "archive size is invalid"));
+    }),
+  );
 
 const overlayFiles = (
   repository: string,
@@ -309,23 +480,52 @@ const overlayFiles = (
   relativePaths: readonly string[],
   destination: string,
 ): Effect.Effect<void, CorpusApplicationFailure, CommandExecutorService | FileStoreService> =>
-  Effect.gen(function* () {
-    const files = yield* FileStore;
-    yield* Effect.forEach(
-      relativePaths,
-      (relative) =>
-        Effect.gen(function* () {
-          const content = yield* gitShow(
+  Effect.scoped(
+    Effect.gen(function* () {
+      const files = yield* FileStore;
+      const temporary = yield* Effect.acquireRelease(
+        files.makeTempDirectory("coding-corpus-overlay-"),
+        (path) => files.remove(path).pipe(Effect.orDie),
+      );
+      const archive = join(temporary, "overlay.tar");
+      const modes = yield* Effect.forEach(
+        relativePaths,
+        (relative) => requireRegularArchiveBlob(repository, revision, relative),
+        { concurrency: 1 },
+      );
+      yield* archivePaths(repository, revision, relativePaths, archive);
+      yield* Effect.forEach(
+        relativePaths,
+        (relative, index) =>
+          runCommand(
+            "tar",
+            [
+              "--extract",
+              "--to-stdout",
+              "--file",
+              archive,
+              "--",
+              relative,
+            ],
             repository,
-            `${revision}:${relative}`,
-          );
-          const target = join(destination, relative);
-          yield* files.makeDirectory(dirname(target), { recursive: true });
-          yield* files.writeBytes(target, content);
-        }),
-      { concurrency: 1, discard: true },
-    );
-  });
+            { maxOutputBytes: 1_100_000 },
+          ).pipe(
+            Effect.flatMap((result) =>
+              ensureSuccessful(result, "materialize", "tar extract path"),
+            ),
+            Effect.flatMap((result) =>
+              files.writeBytesWithinRoot(
+                destination,
+                relative,
+                result.stdout,
+                modes[index],
+              ),
+            ),
+          ),
+        { concurrency: 1, discard: true },
+      );
+    }),
+  );
 
 const runVerifier = (
   value: CorpusCase,
@@ -340,9 +540,10 @@ const runVerifier = (
     {
       environment: {
         PYTHONPATH: `${join(checkout, "src")}:${join(checkout, "scripts")}`,
+        PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1",
       },
       timeoutMs: value.timeoutSeconds * 1_000,
-      maxOutputBytes: 8 * 1024 * 1024,
+      maxOutputBytes: 64 * 1024,
     },
   ).pipe(
     Effect.map(
@@ -462,15 +663,144 @@ export const checkCases = (
   CorpusApplicationFailure,
   CommandExecutorService | FileStoreService
 > =>
-  validateHistory(repository, cases).pipe(
-    Effect.zipRight(
-      Effect.forEach(
-        cases,
-        (value) => checkCase(repository, value, pythonExecutable),
-        { concurrency: 1 },
-      ),
-    ),
-    Effect.map((checks) => Object.freeze(checks)),
+  Effect.gen(function* () {
+    const verifierBudget = cases.reduce(
+      (total, value) => total + value.timeoutSeconds * 3 * 1_000,
+      0,
+    );
+    if (verifierBudget > MAX_ADMISSION_VERIFIER_BUDGET_MS) {
+      return yield* Effect.fail(
+        corpusFailure(
+          "configuration",
+          "corpus verifier budget exceeds the 36 minute admission cap",
+        ),
+      );
+    }
+    yield* validateHistory(repository, cases);
+    const checks = yield* Effect.forEach(
+      cases,
+      (value) => checkCase(repository, value, pythonExecutable),
+      { concurrency: 1 },
+    );
+    return Object.freeze(checks);
+  });
+
+export interface PreparedCorpusCase {
+  readonly case: CorpusCase;
+  readonly metadata: CorpusMetadata;
+  readonly baseArchive: string;
+  readonly oracleArchive: string;
+  readonly verifierArchive: string;
+}
+
+export interface PreparedCorpus {
+  readonly selected: readonly PreparedCorpusCase[];
+}
+
+export const prepareCorpus = (
+  corpusPath: string,
+  repository: string,
+  pythonExecutable: string,
+  archiveDirectory: string,
+  split: CorpusSplit,
+): Effect.Effect<
+  PreparedCorpus,
+  CorpusApplicationFailure,
+  CommandExecutorService | FileStoreService
+> =>
+  Effect.gen(function* () {
+    const cases = yield* loadCases(corpusPath);
+    const checks = yield* checkCases(repository, cases, pythonExecutable);
+    const invalid = checks.filter((check) => !isValidCaseCheck(check));
+    if (invalid.length > 0) {
+      return yield* Effect.fail(
+        corpusFailure(
+          "configuration",
+          `corpus admission failed for: ${invalid.map((check) => check.caseId).join(", ")}`,
+        ),
+      );
+    }
+    const selectedCases = cases.filter((value) => value.split === split);
+    if (selectedCases.length === 0) {
+      return yield* Effect.fail(
+        corpusFailure("configuration", `corpus contains no ${split} cases`),
+      );
+    }
+    const selected = yield* Effect.forEach(
+      selectedCases,
+      (value) =>
+        Effect.gen(function* () {
+          const baseArchive = join(archiveDirectory, `${value.id}-base.tar`);
+          const oracleArchive = join(archiveDirectory, `${value.id}-oracle.tar`);
+          const verifierArchive = join(
+            archiveDirectory,
+            `${value.id}-verifier.tar`,
+          );
+          yield* archiveRevision(repository, value.baseSha, baseArchive);
+          yield* archiveRevision(repository, value.oracleSha, oracleArchive);
+          yield* archivePaths(
+            repository,
+            value.oracleSha,
+            value.verifierPaths,
+            verifierArchive,
+          );
+          const [baseBytes, oracleBytes, verifierBytes] = yield* Effect.all(
+            [
+              archiveSize(baseArchive, repository),
+              archiveSize(oracleArchive, repository),
+              archiveSize(verifierArchive, repository),
+            ],
+            { concurrency: 1 },
+          );
+          if (
+            baseBytes > MAX_BASE_ARCHIVE_BYTES ||
+            oracleBytes > MAX_BASE_ARCHIVE_BYTES ||
+            verifierBytes > MAX_VERIFIER_ARCHIVE_BYTES ||
+            baseBytes + verifierBytes > MAX_VERIFIER_SERVICE_BYTES
+          ) {
+            return yield* Effect.fail(
+              corpusFailure(
+                "materialize",
+                `${value.id}: prepared archives exceed the sandbox staging budget`,
+              ),
+            );
+          }
+          return Object.freeze({
+            case: value,
+            metadata: corpusMetadata(value),
+            baseArchive,
+            oracleArchive,
+            verifierArchive,
+          });
+        }),
+      { concurrency: 1 },
+    );
+    return Object.freeze({
+      selected: Object.freeze(selected),
+    });
+  });
+
+export const scoreCandidate = (
+  corpusPath: string,
+  caseId: string,
+  metadata: unknown,
+  oracle: VerifierObservation,
+  candidate: VerifierObservation,
+): Effect.Effect<CandidateScoreDecision, CorpusFailure | FileFailure, FileStoreService> =>
+  loadCases(corpusPath).pipe(
+    Effect.map((cases): CandidateScoreDecision => {
+      const value = cases.find((entry) => entry.id === caseId);
+      if (value === undefined) {
+        return Object.freeze({
+          kind: "scored",
+          correct: false,
+          explanation: "sample metadata is not corpus-bound",
+          returncode: null,
+          oracle_signature_match: false,
+        });
+      }
+      return evaluateCandidateScore(value, metadata, oracle, candidate);
+    }),
   );
 
 export interface CaseCheckSummary {

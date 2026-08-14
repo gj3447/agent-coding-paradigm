@@ -3,6 +3,7 @@ import { Context, Data, Effect } from "effect";
 export type FileOperation =
   | "read_text"
   | "write_bytes"
+  | "write_bytes_within_root"
   | "write_bytes_atomic"
   | "make_directory"
   | "make_temp_directory"
@@ -17,10 +18,17 @@ export class FileFailure extends Data.TaggedError("FileFailure")<{
 export interface FileStoreService {
   readonly readText: (
     path: string,
+    options?: { readonly maxBytes?: number },
   ) => Effect.Effect<string, FileFailure>;
   readonly writeBytes: (
     path: string,
     content: Uint8Array,
+  ) => Effect.Effect<void, FileFailure>;
+  readonly writeBytesWithinRoot: (
+    root: string,
+    relativePath: string,
+    content: Uint8Array,
+    mode?: 0o644 | 0o755,
   ) => Effect.Effect<void, FileFailure>;
   readonly writeBytesAtomic: (
     path: string,

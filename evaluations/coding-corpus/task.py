@@ -7,7 +7,6 @@ import base64
 import binascii
 import json
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -22,13 +21,11 @@ from inspect_ai.tool import bash
 from inspect_ai.util import OutputLimitExceededError, sandbox
 
 from corpus import (
-    CorpusCase,
-    archive_revision,
-    check_cases,
     load_cases,
+    PreparedCase,
+    prepare_corpus,
     repository_root,
-    validate_history,
-    verifier_signature,
+    score_candidate,
 )
 
 
@@ -43,11 +40,26 @@ OPERATING_PROMPT = (
     "concrete edit, run the nearest relevant test, and then finish. Do not use the "
     "network, inspect /opt/coding-corpus, or commit."
 )
-def _sample(case: CorpusCase, repo: Path) -> Sample:
-    base_archive = _ARCHIVE_ROOT / f"{case.id}-base.tar"
-    oracle_archive = _ARCHIVE_ROOT / f"{case.id}-oracle.tar"
-    archive_revision(repo, case.base_sha, base_archive)
-    archive_revision(repo, case.oracle_sha, oracle_archive)
+
+
+def _verifier_observation(result: object) -> dict[str, object]:
+    stdout = getattr(result, "stdout", None)
+    stderr = getattr(result, "stderr", None)
+    returncode = getattr(result, "returncode", None)
+    if not isinstance(stdout, str) or not isinstance(stderr, str) or not isinstance(returncode, int):
+        return {"kind": "execution_error", "error": "InvalidVerifierResult"}
+    if len(stdout.encode("utf-8")) + len(stderr.encode("utf-8")) > 64 * 1024:
+        return {"kind": "execution_error", "error": "OutputLimitExceededError"}
+    return {
+        "kind": "completed",
+        "returncode": returncode,
+        "stdout": stdout,
+        "stderr": stderr,
+    }
+
+
+def _sample(prepared: PreparedCase) -> Sample:
+    case = prepared.case
     setup = f"""set -eu
 rm -rf {WORKSPACE}
 mkdir -p {WORKSPACE}
@@ -64,11 +76,12 @@ git commit -qm baseline
         id=case.id,
         input=case.input,
         target="The hidden deterministic verifier exits successfully.",
-        metadata=case.metadata(),
+        metadata=dict(prepared.metadata),
         files={
-            "/opt/coding-corpus/repository.tar": str(base_archive),
-            "verifier:/opt/coding-corpus/repository.tar": str(base_archive),
-            "oracle:/opt/coding-corpus/repository.tar": str(oracle_archive),
+            "/opt/coding-corpus/repository.tar": str(prepared.base_archive),
+            "verifier:/opt/coding-corpus/repository.tar": str(prepared.base_archive),
+            "verifier:/opt/coding-corpus/verifier.tar": str(prepared.verifier_archive),
+            "oracle:/opt/coding-corpus/repository.tar": str(prepared.oracle_archive),
         },
         setup=setup,
     )
@@ -77,7 +90,6 @@ git commit -qm baseline
 @scorer(metrics=[accuracy()])
 def repository_verifier(
     corpus_path: str,
-    repository: str,
     agent: Literal["react", "aider"],
 ):
     async def score(state: TaskState, target: Target) -> Score:
@@ -85,7 +97,7 @@ def repository_verifier(
         cases = {case.id: case for case in load_cases(Path(corpus_path))}
         case_id = state.metadata.get("case_id")
         case = cases.get(case_id)
-        if case is None or state.metadata != case.metadata():
+        if case is None:
             return Score(value=INCORRECT, explanation="sample metadata is not corpus-bound")
         gateway_metrics: dict[str, object] | None = None
         if agent == "aider":
@@ -95,22 +107,22 @@ def repository_verifier(
                     value=INCORRECT,
                     explanation="Aider output lacks gateway-bound run metadata",
                 )
-            raw_gateway_metrics = output_metadata.get("gateway")
             gateway_validation = output_metadata.get("gateway_validation")
             if not (
-                isinstance(raw_gateway_metrics, dict)
-                and gateway_validation
-                == {
-                    "schema_version": "model-gateway-validation/v1",
-                    "valid": True,
-                    "error": None,
-                }
+                isinstance(gateway_validation, dict)
+                and set(gateway_validation)
+                == {"schema_version", "valid", "error", "metrics"}
+                and gateway_validation.get("schema_version")
+                == "model-gateway-validation/v2"
+                and gateway_validation.get("valid") is True
+                and gateway_validation.get("error") is None
+                and isinstance(gateway_validation.get("metrics"), dict)
             ):
                 return Score(
                     value=INCORRECT,
                     explanation="Aider gateway metrics lack TS validation authority",
                 )
-            gateway_metrics = raw_gateway_metrics
+            gateway_metrics = gateway_validation["metrics"]
 
         agent_environment = sandbox("default")
         verifier_environment = sandbox("verifier")
@@ -130,6 +142,21 @@ tar -xf /opt/coding-corpus/repository.tar -C {WORKSPACE}
             )
             if not prepared.success:
                 raise RuntimeError(f"{name} sandbox setup failed: {prepared.stderr[-1000:]}")
+        verifier_overlay = await verifier_environment.exec(
+            [
+                "/usr/bin/tar",
+                "-xf",
+                "/opt/coding-corpus/verifier.tar",
+                "-C",
+                WORKSPACE,
+            ],
+            timeout=60,
+            timeout_retry=False,
+        )
+        if not verifier_overlay.success:
+            raise RuntimeError(
+                f"verifier overlay failed: {verifier_overlay.stderr[-1000:]}"
+            )
 
         for relative in case.submission_paths:
             source = f"{WORKSPACE}/{relative}"
@@ -167,69 +194,66 @@ tar -xf /opt/coding-corpus/repository.tar -C {WORKSPACE}
                 return Score(value=INCORRECT, explanation=f"submission copy failed: {relative}")
             await verifier_environment.write_file(f"{WORKSPACE}/{relative}", content)
 
-        root = Path(repository).resolve()
-        for relative in case.verifier_paths:
-            completed = subprocess.run(
-                ["git", "-C", str(root), "show", f"{case.oracle_sha}:{relative}"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
-            if completed.returncode != 0:
-                return Score(
-                    value=INCORRECT,
-                    explanation=f"verifier material unavailable: {relative}",
-                )
-            await verifier_environment.write_file(f"{WORKSPACE}/{relative}", completed.stdout)
-
         verifier_argv = ["/usr/local/bin/python3", *case.verifier[1:]]
-        oracle_result = await oracle_environment.exec(
-            verifier_argv,
-            cwd=WORKSPACE,
-            env={"PYTHONPATH": f"{WORKSPACE}/src:{WORKSPACE}/scripts"},
-            timeout=case.timeout_seconds,
-            timeout_retry=False,
-        )
-        oracle_signature = verifier_signature(
-            case.verifier, oracle_result.stdout, oracle_result.stderr
-        )
-        if not oracle_result.success or not oracle_signature:
-            raise RuntimeError(
-                "oracle verifier did not produce a successful admitted signature"
-            )
-
         try:
-            result = await verifier_environment.exec(
+            oracle_result = await oracle_environment.exec(
                 verifier_argv,
                 cwd=WORKSPACE,
-                env={"PYTHONPATH": f"{WORKSPACE}/src:{WORKSPACE}/scripts"},
+                env={
+                    "PYTHONPATH": f"{WORKSPACE}/src:{WORKSPACE}/scripts",
+                    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+                },
                 timeout=case.timeout_seconds,
                 timeout_retry=False,
             )
         except (TimeoutError, OutputLimitExceededError, UnicodeDecodeError) as exc:
-            return Score(
-                value=INCORRECT,
-                explanation=f"candidate verifier could not complete: {type(exc).__name__}",
-                metadata={"case_id": case.id, "execution_error": type(exc).__name__},
+            oracle_observation: dict[str, object] = {
+                "kind": "execution_error",
+                "error": type(exc).__name__,
+            }
+        else:
+            oracle_observation = _verifier_observation(oracle_result)
+        candidate_observation: dict[str, object]
+        try:
+            result = await verifier_environment.exec(
+                verifier_argv,
+                cwd=WORKSPACE,
+                env={
+                    "PYTHONPATH": f"{WORKSPACE}/src:{WORKSPACE}/scripts",
+                    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+                },
+                timeout=case.timeout_seconds,
+                timeout_retry=False,
             )
-        candidate_signature = verifier_signature(
-            case.verifier, result.stdout, result.stderr
+        except (TimeoutError, OutputLimitExceededError, UnicodeDecodeError) as exc:
+            candidate_observation = {
+                "kind": "execution_error",
+                "error": type(exc).__name__,
+            }
+        else:
+            candidate_observation = _verifier_observation(result)
+        decision = score_candidate(
+            Path(corpus_path),
+            case.id,
+            state.metadata,
+            oracle_observation,
+            candidate_observation,
         )
-        stdout = result.stdout[-4_000:]
-        stderr = result.stderr[-4_000:]
-        verified = result.success and candidate_signature == oracle_signature
+        if decision.kind == "harness_error":
+            raise RuntimeError(decision.reason or "TypeScript score authority failed")
         return Score(
-            value=CORRECT if verified else INCORRECT,
-            explanation=(
-                f"verifier exit={result.returncode}; "
-                f"oracle_signature_match={candidate_signature == oracle_signature}\n"
-                f"stdout:\n{stdout}\nstderr:\n{stderr}"
-            ),
+            value=CORRECT if decision.correct else INCORRECT,
+            explanation=decision.explanation or "TypeScript score authority returned no detail",
             metadata={
                 "agent": agent,
-                "returncode": result.returncode,
+                "returncode": decision.returncode,
                 "case_id": case.id,
-                "oracle_signature_match": candidate_signature == oracle_signature,
+                "oracle_signature_match": decision.oracle_signature_match,
+                **(
+                    {"execution_error": decision.execution_error}
+                    if decision.execution_error is not None
+                    else {}
+                ),
                 **({"gateway": gateway_metrics} if gateway_metrics is not None else {}),
             },
         )
@@ -363,13 +387,13 @@ def aider_cli() -> Solver:
         except (TimeoutError, OutputLimitExceededError, UnicodeDecodeError) as exc:
             error = type(exc).__name__
 
-        metrics: dict[str, object] = {}
-        gateway_validation: dict[str, object] = {}
+        gateway_validation: dict[str, object] = {
+            "schema_version": "model-gateway-validation/v2",
+            "valid": False,
+            "error": "metrics_unavailable",
+            "metrics": None,
+        }
         try:
-            raw_metrics = await gateway.read_file("/tmp/gateway/metrics.json")
-            decoded = json.loads(raw_metrics)
-            if isinstance(decoded, dict):
-                metrics = decoded
             validated = await gateway.exec(
                 [
                     "node",
@@ -381,7 +405,12 @@ def aider_cli() -> Solver:
                 timeout_retry=False,
             )
             validation_payload = json.loads(validated.stdout)
-            if validated.success and isinstance(validation_payload, dict):
+            if (
+                validated.success
+                and isinstance(validation_payload, dict)
+                and set(validation_payload)
+                == {"schema_version", "valid", "error", "metrics"}
+            ):
                 gateway_validation = validation_payload
         except (
             FileNotFoundError,
@@ -391,7 +420,7 @@ def aider_cli() -> Solver:
             TimeoutError,
             OutputLimitExceededError,
         ):
-            metrics = {"metrics_unavailable": True}
+            pass
 
         completion = (
             f"Aider exit={returncode}; execution_error={error or 'none'}\n"
@@ -406,7 +435,6 @@ def aider_cli() -> Solver:
         output.metadata = {
             "agent": "aider-0.86.2",
             "returncode": returncode,
-            "gateway": metrics,
             "gateway_validation": gateway_validation,
         }
         state.output = output
@@ -441,22 +469,11 @@ def company_coding(
     else:
         raise ValueError(f"unsupported agent: {agent}")
     repo = Path(repository).resolve()
-    all_cases = load_cases(Path(corpus))
-    validate_history(repo, all_cases)
-    cases = tuple(case for case in all_cases if case.split == split)
-    if not cases:
-        raise ValueError(f"corpus contains no {split} cases")
-    invalid = [
-        check.case_id
-        for check in check_cases(repo, all_cases)
-        if not check.valid
-    ]
-    if invalid:
-        raise ValueError(f"corpus admission failed for: {invalid}")
+    cases = prepare_corpus(Path(corpus), repo, split, _ARCHIVE_ROOT)
     return Task(
-        dataset=[_sample(case, repo) for case in cases],
+        dataset=[_sample(case) for case in cases],
         solver=selected_solver,
-        scorer=repository_verifier(corpus, str(repo), agent),
+        scorer=repository_verifier(corpus, agent),
         sandbox=("docker", str(compose_file)),
         epochs=epochs,
         fail_on_error=True,
