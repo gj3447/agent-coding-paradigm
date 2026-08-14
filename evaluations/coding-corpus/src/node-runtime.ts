@@ -124,12 +124,12 @@ const NodeFileStore: FileStoreService = {
         `${root}:${relativePath}`,
       ),
     }),
-  writeBytesAtomic: (path, content) =>
+  writeBytesAtomic: (path, content, mode = 0o600) =>
     Effect.tryPromise({
       try: async (signal) => {
         const temporary = `${path}.${randomUUID()}.tmp`;
         try {
-          await writeFile(temporary, content, { mode: 0o600, signal });
+          await writeFile(temporary, content, { mode, signal });
           await rename(temporary, path);
         } catch (error) {
           await rm(temporary, { force: true }).catch(() => undefined);

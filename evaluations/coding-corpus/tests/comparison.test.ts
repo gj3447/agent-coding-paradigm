@@ -101,7 +101,7 @@ test("unknown arms and malformed operator endpoints fail closed", () => {
   }
 });
 
-test("secret binding stays outside argv and becomes a Compose-managed file", () => {
+test("secret binding stays outside argv and differs by execution arm", () => {
   const react = admittedPlan("react");
   const aider = admittedPlan("aider");
   const secret = "bounded-private-value";
@@ -112,7 +112,7 @@ test("secret binding stays outside argv and becomes a Compose-managed file", () 
   assert.deepEqual(comparisonEnvironment(aider, secret), {
     MODEL_GATEWAY_UPSTREAM_HOST: "dgx.internal",
     MODEL_GATEWAY_UPSTREAM_PORT: "18000",
-    DGX_API_KEY: secret,
+    DGX_API_KEY_FILE: "/run/secrets/dgx-key",
   });
   assert.equal(react.command.includes(secret), false);
   assert.equal(aider.command.includes(secret), false);
@@ -237,13 +237,15 @@ const logFixture = (
   ],
 });
 
-const comparisonFiles = (atomicWrites: string[] = []): FileStoreService => ({
+const comparisonFiles = (
+  atomicWrites: Array<{ path: string; mode: number | undefined }> = [],
+): FileStoreService => ({
   readText: () => Effect.succeed(`${SECRET}\n`),
   writeBytes: () => Effect.die("unused"),
   writeBytesWithinRoot: () => Effect.die("unused"),
-  writeBytesAtomic: (path) =>
+  writeBytesAtomic: (path, _content, mode) =>
     Effect.sync(() => {
-      atomicWrites.push(path);
+      atomicWrites.push({ path, mode });
     }),
   makeDirectory: () => Effect.void,
   makeTempDirectory: () => Effect.succeed("/tmp/controller"),
@@ -265,7 +267,7 @@ const admittedComparisonRequest = (arms: readonly ("react" | "aider")[]) => ({
 
 test("Effect orchestration runs both fake Inspect arms sequentially and summarizes their logs", async () => {
   const specs: CommandSpec[] = [];
-  const atomicWrites: string[] = [];
+  const atomicWrites: Array<{ path: string; mode: number | undefined }> = [];
   const listingSnapshots = [
     [],
     ["/logs/react.eval"],
@@ -303,7 +305,10 @@ test("Effect orchestration runs both fake Inspect arms sequentially and summariz
   );
 
   assert.equal(report.efficacy_comparable, false);
-  assert.deepEqual(atomicWrites, ["/tmp/controller/.env"]);
+  assert.deepEqual(atomicWrites, [
+    { path: "/tmp/controller/.env", mode: undefined },
+    { path: "/tmp/controller/dgx-api-key", mode: 0o644 },
+  ]);
   assert.equal(report.non_comparability_reason, "arm_budget_semantics_differ");
   assert.equal(report.repository_head, HEAD);
   assert.deepEqual(
@@ -332,7 +337,10 @@ test("Effect orchestration runs both fake Inspect arms sequentially and summariz
   assert.equal(react.cwd, "/tmp/controller");
   assert.equal(aider.cwd, "/tmp/controller");
   assert.equal(react.environment?.["DGX_API_KEY"], SECRET);
-  assert.equal(aider.environment?.["DGX_API_KEY"], SECRET);
+  assert.equal(
+    aider.environment?.["DGX_API_KEY_FILE"],
+    "/tmp/controller/dgx-api-key",
+  );
   assert.equal(aider.environment?.["MODEL_GATEWAY_UPSTREAM_HOST"], "dgx.internal");
   assert.equal(aider.environment?.["MODEL_GATEWAY_UPSTREAM_PORT"], "18000");
   assert.equal(react.args.join("\n").includes(SECRET), false);

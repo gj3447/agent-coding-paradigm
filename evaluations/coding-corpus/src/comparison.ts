@@ -49,8 +49,9 @@ export interface OperatorEndpoint {
 }
 
 export interface SecretBinding {
-  readonly environmentName: "DGX_API_KEY";
-  readonly source: "secret_value";
+  readonly environmentName: "DGX_API_KEY" | "DGX_API_KEY_FILE";
+  readonly source: "secret_value" | "secret_file";
+  readonly filePath: string;
 }
 
 export interface ComparisonArmPlan {
@@ -304,10 +305,17 @@ export const buildComparisonArmPlan = (
       command: Object.freeze(command),
       operatorEndpoint: dgx.endpoint,
       secretBinding: Object.freeze(
-        {
-          environmentName: "DGX_API_KEY" as const,
-          source: "secret_value" as const,
-        },
+        request.arm === "react"
+          ? {
+              environmentName: "DGX_API_KEY" as const,
+              source: "secret_value" as const,
+              filePath: request.dgxKeyFile,
+            }
+          : {
+              environmentName: "DGX_API_KEY_FILE" as const,
+              source: "secret_file" as const,
+              filePath: request.dgxKeyFile,
+            },
       ),
       fixedEnvironment: Object.freeze(
         request.arm === "aider"
@@ -354,7 +362,10 @@ export const comparisonEnvironment = (
 ): Readonly<Record<string, string>> =>
   Object.freeze({
     ...plan.fixedEnvironment,
-    [plan.secretBinding.environmentName]: secret,
+    [plan.secretBinding.environmentName]:
+      plan.secretBinding.source === "secret_value"
+        ? secret
+        : plan.secretBinding.filePath,
   });
 
 export const selectComparisonControllerEnvironment = (
@@ -846,13 +857,20 @@ export const runAdmittedComparison = (
       join(workingDirectory, ".env"),
       new Uint8Array(),
     );
+    const secret = yield* readComparisonSecret(request.dgxKeyFile);
+    const scopedKeyFile = join(workingDirectory, "dgx-api-key");
+    yield* files.writeBytesAtomic(
+      scopedKeyFile,
+      TEXT_ENCODER.encode(secret),
+      0o644,
+    );
     const invocationLogDirectory = join(
       request.logDirectory,
       randomUUID(),
     );
     yield* files.makeDirectory(invocationLogDirectory, { recursive: true });
     const plans = buildPlans(
-      request,
+      { ...request, dgxKeyFile: scopedKeyFile },
       workingDirectory,
       invocationLogDirectory,
     );
@@ -887,7 +905,6 @@ export const runAdmittedComparison = (
         ),
       );
     }
-    const secret = yield* readComparisonSecret(request.dgxKeyFile);
     const arms = yield* Effect.forEach(
       plans.value,
       (plan) => runArm(plan, secret),

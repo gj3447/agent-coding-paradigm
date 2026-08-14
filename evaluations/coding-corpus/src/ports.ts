@@ -33,6 +33,7 @@ export interface FileStoreService {
   readonly writeBytesAtomic: (
     path: string,
     content: Uint8Array,
+    mode?: 0o600 | 0o644,
   ) => Effect.Effect<void, FileFailure>;
   readonly makeDirectory: (
     path: string,

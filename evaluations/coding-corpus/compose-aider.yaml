@@ -95,4 +95,4 @@ networks:
 
 secrets:
   dgx_api_key:
-    environment: DGX_API_KEY
+    file: ${DGX_API_KEY_FILE:?set DGX_API_KEY_FILE to the scoped container-readable key copy}
