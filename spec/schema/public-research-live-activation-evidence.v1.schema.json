@@ -1,0 +1,506 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gj3447/agent-coding-paradigm/spec/schema/public-research-live-activation-evidence.v1.schema.json",
+  "title": "Bounded public-research Neo4j live-activation evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "epistemicStatus", "measurementScope", "repositoryClaimStatus", "receiptPath", "observationWindow", "repositoryState", "subject", "environment", "operations", "schemaProvisioning", "activationAttempts", "successfulActivation", "uidEnvelope", "finalVerification", "sideEffects", "claimBoundary"],
+  "properties": {
+    "schemaVersion": {"$ref": "#/$defs/nonEmptyString"},
+    "kind": {"$ref": "#/$defs/nonEmptyString"},
+    "epistemicStatus": {"$ref": "#/$defs/nonEmptyString"},
+    "measurementScope": {"$ref": "#/$defs/nonEmptyString"},
+    "repositoryClaimStatus": {"$ref": "#/$defs/nonEmptyString"},
+    "receiptPath": {"$ref": "#/$defs/nonEmptyString"},
+    "observationWindow": {"$ref": "#/$defs/observationWindow"},
+    "repositoryState": {"$ref": "#/$defs/repositoryState"},
+    "subject": {"$ref": "#/$defs/subject"},
+    "environment": {"$ref": "#/$defs/environment"},
+    "operations": {"$ref": "#/$defs/operations"},
+    "schemaProvisioning": {"$ref": "#/$defs/schemaProvisioning"},
+    "activationAttempts": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/activationAttempt"}
+    },
+    "successfulActivation": {"$ref": "#/$defs/successfulActivation"},
+    "uidEnvelope": {"$ref": "#/$defs/uidEnvelope"},
+    "finalVerification": {"$ref": "#/$defs/finalVerification"},
+    "sideEffects": {"$ref": "#/$defs/sideEffects"},
+    "claimBoundary": {"$ref": "#/$defs/claimBoundary"}
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "boundedActivationCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "nullableBoundedActivationCount": {
+      "anyOf": [
+        {"$ref": "#/$defs/boundedActivationCount"},
+        {"type": "null"}
+      ]
+    },
+    "observationWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startedAt", "successfulCreateObservedAt", "finalVerificationStartedAt", "finalVerificationEndedAt", "startedAtPrecision", "successfulCreateObservedAtPrecision", "finalVerificationTimestampSource", "clock"],
+      "properties": {
+        "startedAt": {"type": "string", "format": "date-time"},
+        "successfulCreateObservedAt": {"type": "string", "format": "date-time"},
+        "finalVerificationStartedAt": {"type": "string", "format": "date-time"},
+        "finalVerificationEndedAt": {"type": "string", "format": "date-time"},
+        "startedAtPrecision": {"$ref": "#/$defs/nonEmptyString"},
+        "successfulCreateObservedAtPrecision": {"$ref": "#/$defs/nonEmptyString"},
+        "finalVerificationTimestampSource": {"$ref": "#/$defs/nonEmptyString"},
+        "clock": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "repositoryState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseHead", "preActivationWorktreeDirty", "preActivationWorktreeEntryCount", "activationSourcePath", "initialCreateSourceClosureFrozen", "initialCreateSourceSha256", "currentFinalActivationSourceSha256"],
+      "properties": {
+        "baseHead": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "preActivationWorktreeDirty": {"type": "boolean"},
+        "preActivationWorktreeEntryCount": {"type": "integer", "minimum": 0},
+        "activationSourcePath": {"$ref": "#/$defs/nonEmptyString"},
+        "initialCreateSourceClosureFrozen": {"type": "boolean"},
+        "initialCreateSourceSha256": {
+          "anyOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        },
+        "currentFinalActivationSourceSha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database", "fixturePath", "fixtureFileSha256", "projectionId", "manifestDigest", "projectionDigest", "policyVersion", "planStatus", "planDigest", "uidTriggerProfileId", "queryDigests", "evidenceIds"],
+      "properties": {
+        "database": {"$ref": "#/$defs/nonEmptyString"},
+        "fixturePath": {"$ref": "#/$defs/nonEmptyString"},
+        "fixtureFileSha256": {"$ref": "#/$defs/digest"},
+        "projectionId": {"$ref": "#/$defs/nonEmptyString"},
+        "manifestDigest": {"$ref": "#/$defs/digest"},
+        "projectionDigest": {"$ref": "#/$defs/digest"},
+        "policyVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "planStatus": {"$ref": "#/$defs/nonEmptyString"},
+        "planDigest": {"$ref": "#/$defs/digest"},
+        "uidTriggerProfileId": {"$ref": "#/$defs/nonEmptyString"},
+        "queryDigests": {"$ref": "#/$defs/queryDigests"},
+        "evidenceIds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      }
+    },
+    "queryDigests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constraint", "index", "uidTrigger", "apply", "readback", "rollback"],
+      "properties": {
+        "constraint": {"$ref": "#/$defs/digest"},
+        "index": {"$ref": "#/$defs/digest"},
+        "uidTrigger": {"$ref": "#/$defs/digest"},
+        "apply": {"$ref": "#/$defs/digest"},
+        "readback": {"$ref": "#/$defs/digest"},
+        "rollback": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "databaseProduct", "databaseVersion", "databaseEdition", "queryLanguage", "availableCypherComponentVersions", "connector", "hostIdentifierRecorded", "credentialsRecorded", "privateEndpointRecorded"],
+      "properties": {
+        "profile": {"$ref": "#/$defs/nonEmptyString"},
+        "databaseProduct": {"$ref": "#/$defs/nonEmptyString"},
+        "databaseVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "databaseEdition": {"$ref": "#/$defs/nonEmptyString"},
+        "queryLanguage": {"$ref": "#/$defs/nonEmptyString"},
+        "availableCypherComponentVersions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "connector": {"$ref": "#/$defs/nonEmptyString"},
+        "hostIdentifierRecorded": {"type": "boolean"},
+        "credentialsRecorded": {"type": "boolean"},
+        "privateEndpointRecorded": {"type": "boolean"}
+      }
+    },
+    "operations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readCommand", "writeCommand", "schemaCommand", "commandSemantics"],
+      "properties": {
+        "readCommand": {"$ref": "#/$defs/nonEmptyString"},
+        "writeCommand": {"$ref": "#/$defs/nonEmptyString"},
+        "schemaCommand": {"$ref": "#/$defs/nonEmptyString"},
+        "commandSemantics": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "schemaProvisioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialRelevantConstraintCount", "events", "finalConstraint", "finalBackingIndex"],
+      "properties": {
+        "initialRelevantConstraintCount": {"type": "integer", "minimum": 0},
+        "events": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {"$ref": "#/$defs/schemaEvent"}
+        },
+        "finalConstraint": {"$ref": "#/$defs/finalConstraint"},
+        "finalBackingIndex": {"$ref": "#/$defs/finalIndex"}
+      }
+    },
+    "schemaEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventId", "command", "target", "outcome", "dataNodeMutationCount"],
+      "properties": {
+        "eventId": {"$ref": "#/$defs/nonEmptyString"},
+        "command": {"$ref": "#/$defs/nonEmptyString"},
+        "target": {"$ref": "#/$defs/nonEmptyString"},
+        "outcome": {"$ref": "#/$defs/nonEmptyString"},
+        "dataNodeMutationCount": {"$ref": "#/$defs/boundedActivationCount"}
+      }
+    },
+    "activationAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attemptId", "queryProfile", "outcome", "reasonCode", "postAttemptEvidenceNodeCount", "exactApplySummaryReturned", "atomicityClaim"],
+      "properties": {
+        "attemptId": {"$ref": "#/$defs/nonEmptyString"},
+        "queryProfile": {"$ref": "#/$defs/nonEmptyString"},
+        "outcome": {"$ref": "#/$defs/nonEmptyString"},
+        "reasonCode": {"$ref": "#/$defs/nonEmptyString"},
+        "postAttemptEvidenceNodeCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "exactApplySummaryReturned": {"type": "boolean"},
+        "atomicityClaim": {"type": "boolean"}
+      }
+    },
+    "successfulActivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorizationScope", "queryId", "queryDigest", "queryIdentityClosureFrozen", "physicalWriteLabel", "connectorMetadata", "initialCreateSourceClosureFrozen", "exactFirstApplySummaryReturned", "firstApplyAtomicityClaim"],
+      "properties": {
+        "authorizationScope": {"$ref": "#/$defs/nonEmptyString"},
+        "queryId": {"type": ["string", "null"]},
+        "queryDigest": {
+          "anyOf": [
+            {"$ref": "#/$defs/digest"},
+            {"type": "null"}
+          ]
+        },
+        "queryIdentityClosureFrozen": {"type": "boolean"},
+        "physicalWriteLabel": {"$ref": "#/$defs/nonEmptyString"},
+        "connectorMetadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nodesCreated", "propertiesSet"],
+          "properties": {
+            "nodesCreated": {"$ref": "#/$defs/boundedActivationCount"},
+            "propertiesSet": {"type": "integer", "minimum": 0, "maximum": 128}
+          }
+        },
+        "initialCreateSourceClosureFrozen": {"type": "boolean"},
+        "exactFirstApplySummaryReturned": {"type": "boolean"},
+        "firstApplyAtomicityClaim": {"type": "boolean"}
+      }
+    },
+    "uidEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "triggerName", "queryId", "queryDigest", "installed", "paused", "phase", "matchingQueryProfileCount", "observationBoundary"],
+      "properties": {
+        "profileId": {"$ref": "#/$defs/nonEmptyString"},
+        "triggerName": {"$ref": "#/$defs/nonEmptyString"},
+        "queryId": {"$ref": "#/$defs/nonEmptyString"},
+        "queryDigest": {"$ref": "#/$defs/digest"},
+        "installed": {"type": "boolean"},
+        "paused": {"type": "boolean"},
+        "phase": {"$ref": "#/$defs/nonEmptyString"},
+        "matchingQueryProfileCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "observationBoundary": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "finalVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaReadback", "exactStateInspection", "reapplyObservation", "derivedVerifierCompatibilityReceipt", "observationCompositionOrdered", "observationCompositionBoundary", "nodes", "fulltext", "producerSoleVerifier"],
+      "properties": {
+        "schemaReadback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["constraint", "index"],
+          "properties": {
+            "constraint": {"$ref": "#/$defs/finalConstraint"},
+            "index": {"$ref": "#/$defs/finalIndex"}
+          }
+        },
+        "exactStateInspection": {"$ref": "#/$defs/exactStateInspection"},
+        "reapplyObservation": {"$ref": "#/$defs/reapplyObservation"},
+        "derivedVerifierCompatibilityReceipt": {"$ref": "#/$defs/derivedVerifierCompatibilityReceipt"},
+        "observationCompositionOrdered": {"type": "boolean"},
+        "observationCompositionBoundary": {"$ref": "#/$defs/nonEmptyString"},
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"$ref": "#/$defs/nodeReadback"}
+        },
+        "fulltext": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"$ref": "#/$defs/fulltextReadback"}
+        },
+        "producerSoleVerifier": {"type": "boolean"}
+      }
+    },
+    "exactStateInspection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "conflictCount", "wouldCreateCount", "unchangedCount", "observedEntryCount", "writeExecuted"],
+      "properties": {
+        "mode": {"$ref": "#/$defs/nonEmptyString"},
+        "conflictCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "wouldCreateCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "unchangedCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "observedEntryCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "writeExecuted": {"type": "boolean"}
+      }
+    },
+    "finalConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "entityType", "labelsOrTypes", "properties", "ownedIndex"],
+      "properties": {
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"$ref": "#/$defs/nonEmptyString"},
+        "entityType": {"$ref": "#/$defs/nonEmptyString"},
+        "labelsOrTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "properties": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "ownedIndex": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "finalIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "entityType", "labelsOrTypes", "properties", "state", "populationPercent", "owningConstraint"],
+      "properties": {
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "type": {"$ref": "#/$defs/nonEmptyString"},
+        "entityType": {"$ref": "#/$defs/nonEmptyString"},
+        "labelsOrTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "properties": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "state": {"$ref": "#/$defs/nonEmptyString"},
+        "populationPercent": {"type": "number", "minimum": 0, "maximum": 100},
+        "owningConstraint": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "evidenceProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "projectionId", "visibilityScope", "publicResearchTitle", "publicResearchSummary", "name", "description", "uid", "uid_scheme", "uid_source", "sourceRef", "revision", "semanticLabels", "contentDigest", "policyVersion", "manifestDigest", "projectionDigest"],
+      "properties": {
+        "evidenceId": {"$ref": "#/$defs/nonEmptyString"},
+        "projectionId": {"$ref": "#/$defs/nonEmptyString"},
+        "visibilityScope": {"$ref": "#/$defs/nonEmptyString"},
+        "publicResearchTitle": {"$ref": "#/$defs/nonEmptyString"},
+        "publicResearchSummary": {"$ref": "#/$defs/nonEmptyString"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "description": {"$ref": "#/$defs/nonEmptyString"},
+        "uid": {"type": "string", "minLength": 1, "maxLength": 200},
+        "uid_scheme": {"$ref": "#/$defs/nonEmptyString"},
+        "uid_source": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceRef": {"type": "string", "format": "uri", "maxLength": 2048},
+        "revision": {"$ref": "#/$defs/nonEmptyString"},
+        "semanticLabels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "contentDigest": {"$ref": "#/$defs/digest"},
+        "policyVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "manifestDigest": {"$ref": "#/$defs/digest"},
+        "projectionDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "nodeReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "globalIdentityMatchCount", "conceptIdentityMatchCount", "isolatedConceptMatchCount", "physicalLabels", "physicalLabelCount", "observedPropertyCount", "relationshipCount", "observedProperties"],
+      "properties": {
+        "evidenceId": {"$ref": "#/$defs/nonEmptyString"},
+        "globalIdentityMatchCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "conceptIdentityMatchCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "isolatedConceptMatchCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "physicalLabels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "physicalLabelCount": {"type": "integer", "minimum": 0, "maximum": 8},
+        "observedPropertyCount": {"type": "integer", "minimum": 0, "maximum": 64},
+        "relationshipCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "observedProperties": {"$ref": "#/$defs/evidenceProperties"}
+      }
+    },
+    "fulltextReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["indexName", "evidenceId", "query", "score", "expectedEvidenceMatchCount", "wrongEvidenceAdmittedCount"],
+      "properties": {
+        "indexName": {"$ref": "#/$defs/nonEmptyString"},
+        "evidenceId": {"$ref": "#/$defs/nonEmptyString"},
+        "query": {"$ref": "#/$defs/nonEmptyString"},
+        "score": {"type": "number", "minimum": 0},
+        "expectedEvidenceMatchCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "wrongEvidenceAdmittedCount": {"$ref": "#/$defs/boundedActivationCount"}
+      }
+    },
+    "reapplyObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["queryId", "queryDigest", "writeCallCount", "connectorResultKind", "exactApplySummaryReturned", "reportedMutationCount", "reportedConflictCount", "reportedCreatedCount", "reportedUnchangedCount", "mutationClaim"],
+      "properties": {
+        "queryId": {"$ref": "#/$defs/nonEmptyString"},
+        "queryDigest": {"$ref": "#/$defs/digest"},
+        "writeCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "connectorResultKind": {"$ref": "#/$defs/nonEmptyString"},
+        "exactApplySummaryReturned": {"type": "boolean"},
+        "reportedMutationCount": {"$ref": "#/$defs/nullableBoundedActivationCount"},
+        "reportedConflictCount": {"$ref": "#/$defs/nullableBoundedActivationCount"},
+        "reportedCreatedCount": {"$ref": "#/$defs/nullableBoundedActivationCount"},
+        "reportedUnchangedCount": {"$ref": "#/$defs/nullableBoundedActivationCount"},
+        "mutationClaim": {"type": "boolean"}
+      }
+    },
+    "derivedVerifierCompatibilityReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executorRunObserved", "receiptIsLiveExecutorEvidence", "observationSource", "receipt"],
+      "properties": {
+        "executorRunObserved": {"type": "boolean"},
+        "receiptIsLiveExecutorEvidence": {"type": "boolean"},
+        "observationSource": {"$ref": "#/$defs/nonEmptyString"},
+        "receipt": {"$ref": "#/$defs/activationReceipt"}
+      }
+    },
+    "activationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "schemaVersion", "status", "receiptDigest", "planDigest", "uidTriggerProfileId", "uidTriggerQueryDigest", "createdCount", "unchangedCount", "conflictCount", "verifiedEntryCount", "createdEvidenceIds", "liveNeo4jWriteCallCount", "liveNeo4jReadCallCount", "rollbackProposalDigest", "rollbackProposalIsAuthorization", "externalExactlyOnceClaim", "completionClaim"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/nonEmptyString"},
+        "schemaVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "status": {"$ref": "#/$defs/nonEmptyString"},
+        "receiptDigest": {"$ref": "#/$defs/digest"},
+        "planDigest": {"$ref": "#/$defs/digest"},
+        "uidTriggerProfileId": {"$ref": "#/$defs/nonEmptyString"},
+        "uidTriggerQueryDigest": {"$ref": "#/$defs/digest"},
+        "createdCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "unchangedCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "conflictCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "verifiedEntryCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "createdEvidenceIds": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "liveNeo4jWriteCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "liveNeo4jReadCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "rollbackProposalDigest": {"$ref": "#/$defs/digest"},
+        "rollbackProposalIsAuthorization": {"type": "boolean"},
+        "externalExactlyOnceClaim": {"type": "boolean"},
+        "completionClaim": {"type": "boolean"}
+      }
+    },
+    "sideEffects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["successfulSchemaMutationCount", "createdDataNodeCount", "initialCreateWriteCallCount", "verifiedReapplyWriteCallCount", "verifiedReapplyMutationCount", "finalRelationshipCount", "rollbackExecuted", "rollbackWriteCallCount", "modelCallCount"],
+      "properties": {
+        "successfulSchemaMutationCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "createdDataNodeCount": {"$ref": "#/$defs/boundedActivationCount"},
+        "initialCreateWriteCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "verifiedReapplyWriteCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "verifiedReapplyMutationCount": {"$ref": "#/$defs/nullableBoundedActivationCount"},
+        "finalRelationshipCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "rollbackExecuted": {"type": "boolean"},
+        "rollbackWriteCallCount": {"type": "integer", "minimum": 0, "maximum": 100},
+        "modelCallCount": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
+    },
+    "claimBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundedObservationMeasured", "repositoryClaimPromoted", "externalExactlyOnce", "firstApplyAtomicity", "completion", "productionReadiness", "publication", "enginePromotion", "comparativeEfficacy", "globalUidUniqueness", "uidPreflightToctouClosed", "rollbackAuthorized", "rollbackAbaSafe"],
+      "properties": {
+        "boundedObservationMeasured": {"type": "boolean"},
+        "repositoryClaimPromoted": {"type": "boolean"},
+        "externalExactlyOnce": {"type": "boolean"},
+        "firstApplyAtomicity": {"type": "boolean"},
+        "completion": {"type": "boolean"},
+        "productionReadiness": {"type": "boolean"},
+        "publication": {"type": "boolean"},
+        "enginePromotion": {"type": "boolean"},
+        "comparativeEfficacy": {"type": "boolean"},
+        "globalUidUniqueness": {"type": "boolean"},
+        "uidPreflightToctouClosed": {"type": "boolean"},
+        "rollbackAuthorized": {"type": "boolean"},
+        "rollbackAbaSafe": {"type": "boolean"}
+      }
+    }
+  }
+}

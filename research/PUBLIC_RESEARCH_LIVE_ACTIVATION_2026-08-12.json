@@ -1,0 +1,348 @@
+{
+  "schemaVersion": "public-research-live-activation-evidence/v1",
+  "kind": "PublicResearchLiveActivationEvidence",
+  "epistemicStatus": "MEASURED",
+  "measurementScope": "One bounded live Neo4j activation and final readback of the two repository-pinned synthetic public-research Concept nodes; not repository-wide efficacy, completion, production, publication, engine, or external exactly-once evidence",
+  "repositoryClaimStatus": "PROPOSED",
+  "receiptPath": "research/PUBLIC_RESEARCH_LIVE_ACTIVATION_2026-08-12.json",
+  "observationWindow": {
+    "startedAt": "2026-08-12T07:36:00Z",
+    "successfulCreateObservedAt": "2026-08-12T07:44:44Z",
+    "finalVerificationStartedAt": "2026-08-12T07:56:58Z",
+    "finalVerificationEndedAt": "2026-08-12T07:56:59Z",
+    "startedAtPrecision": "minute",
+    "successfulCreateObservedAtPrecision": "second-approximate",
+    "finalVerificationTimestampSource": "UTC clock captured immediately before and after independent live reads",
+    "clock": "UTC"
+  },
+  "repositoryState": {
+    "baseHead": "067f6203f709f50655ae392c9187376119b50fc6",
+    "preActivationWorktreeDirty": true,
+    "preActivationWorktreeEntryCount": 29,
+    "activationSourcePath": "integrations/langgraphjs-synthetic/src/public-research-activation.ts",
+    "initialCreateSourceClosureFrozen": false,
+    "initialCreateSourceSha256": null,
+    "currentFinalActivationSourceSha256": "sha256:f512bb52a75d0be87c3fc3b5b1c1a7a3171b7526ebf4b479a00f00e360619b6f"
+  },
+  "subject": {
+    "database": "neo4j",
+    "fixturePath": "integrations/langgraphjs-synthetic/fixtures/public-research/synthetic-foundations.manifest.v1.json",
+    "fixtureFileSha256": "sha256:1a7ce2ab494ef57c71d88c293b95caad2212110cc4bfe433ebd4646387c5fb08",
+    "projectionId": "projection:synthetic-agent-coding-foundations-v1",
+    "manifestDigest": "sha256:290a5c10cfd0fd799923d7e6db05a7faf92d4f8ce5516d4bcae7d5408269f8b2",
+    "projectionDigest": "sha256:03fc00a7d233d726859da3474c8d7149d60f78c4492ab7acb579e34dd5951c90",
+    "policyVersion": "public-research-admission/1",
+    "planStatus": "PROPOSED",
+    "planDigest": "sha256:272177a97351479096ce13e5ff7469b90b49f83ac3b26ce09fd992682dfa45dd",
+    "uidTriggerProfileId": "neo4j-concept-uid-envelope/v1",
+    "queryDigests": {
+      "constraint": "sha256:9c6a500b11e1ce9c3878d1451e1b91ae377b35006aafb6f5cacb6762a9b8b367",
+      "index": "sha256:b09c44049ea1b76bf2b15250049d97b1a134a7be0ec29f58608c6e83c5682628",
+      "uidTrigger": "sha256:c9ca71e264f9f1deaff9a8a635170eb3d20f69477c4f5925fe377875fdb7eaa1",
+      "apply": "sha256:b011292c76fcc788ea48d0dfa3c3a2123413738d0d3a09a52731e9e6fb8ab198",
+      "readback": "sha256:5cbe40ca69835b8f19a2d750c6c7d68daab335feb2a3df5c1348edb582db65ba",
+      "rollback": "sha256:a39f289dacf6180bb7b9f351f337537ece3a151b89af088157c42418a5bb1602"
+    },
+    "evidenceIds": [
+      "evidence:synthetic:effect-role-v1",
+      "evidence:synthetic:langgraph-role-v1"
+    ]
+  },
+  "environment": {
+    "profile": "neo4j-community-2026.02.3-concept-uid-envelope-v1",
+    "databaseProduct": "Neo4j Kernel",
+    "databaseVersion": "2026.02.3",
+    "databaseEdition": "community",
+    "queryLanguage": "Cypher 5",
+    "availableCypherComponentVersions": ["5", "25"],
+    "connector": "Neo4j MCP",
+    "hostIdentifierRecorded": false,
+    "credentialsRecorded": false,
+    "privateEndpointRecorded": false
+  },
+  "operations": {
+    "readCommand": "Neo4j MCP read_neo4j_cypher",
+    "writeCommand": "Neo4j MCP write_neo4j_cypher",
+    "schemaCommand": "CALL apoc.cypher.runSchema(statement,{})",
+    "commandSemantics": "Connector operations and repository query identifiers are recorded; no shell argv, host, endpoint, or credential value is retained"
+  },
+  "schemaProvisioning": {
+    "initialRelevantConstraintCount": 0,
+    "events": [
+      {
+        "eventId": "schema-direct-ddl-classifier-rejection",
+        "command": "Neo4j MCP write_neo4j_cypher with direct CREATE CONSTRAINT",
+        "target": "PublicResearchEvidence(evidenceId)",
+        "outcome": "REJECTED_NO_MUTATION",
+        "dataNodeMutationCount": 0
+      },
+      {
+        "eventId": "schema-temporary-evidence-label-constraint-created",
+        "command": "CALL apoc.cypher.runSchema(statement,{})",
+        "target": "public_research_evidence_id_unique on PublicResearchEvidence(evidenceId)",
+        "outcome": "SUCCEEDED",
+        "dataNodeMutationCount": 0
+      },
+      {
+        "eventId": "schema-concept-constraint-created",
+        "command": "CALL apoc.cypher.runSchema(statement,{})",
+        "target": "public_research_concept_evidence_id_unique on Concept(evidenceId)",
+        "outcome": "SUCCEEDED",
+        "dataNodeMutationCount": 0
+      },
+      {
+        "eventId": "schema-temporary-evidence-label-constraint-dropped",
+        "command": "CALL apoc.cypher.runSchema(statement,{})",
+        "target": "public_research_evidence_id_unique",
+        "outcome": "SUCCEEDED",
+        "dataNodeMutationCount": 0
+      }
+    ],
+    "finalConstraint": {
+      "name": "public_research_concept_evidence_id_unique",
+      "type": "NODE_PROPERTY_UNIQUENESS",
+      "entityType": "NODE",
+      "labelsOrTypes": ["Concept"],
+      "properties": ["evidenceId"],
+      "ownedIndex": "public_research_concept_evidence_id_unique"
+    },
+    "finalBackingIndex": {
+      "name": "public_research_concept_evidence_id_unique",
+      "type": "RANGE",
+      "entityType": "NODE",
+      "labelsOrTypes": ["Concept"],
+      "properties": ["evidenceId"],
+      "state": "ONLINE",
+      "populationPercent": 100,
+      "owningConstraint": "public_research_concept_evidence_id_unique"
+    }
+  },
+  "activationAttempts": [
+    {
+      "attemptId": "candidate-parser-rejection",
+      "queryProfile": "pre-repair candidate using an indexed path expression",
+      "outcome": "REJECTED_NO_MUTATION",
+      "reasonCode": "CYPHER_PARSER_REJECTED_INDEXED_PATH_EXPRESSION",
+      "postAttemptEvidenceNodeCount": 0,
+      "exactApplySummaryReturned": false,
+      "atomicityClaim": false
+    },
+    {
+      "attemptId": "candidate-schema-freeze-rejection",
+      "queryProfile": "fixed DML candidate with unregistered PublicResearchEvidence physical label",
+      "outcome": "REJECTED_NO_MUTATION",
+      "reasonCode": "SCHEMA_FREEZE_UNREGISTERED_LABEL",
+      "postAttemptEvidenceNodeCount": 0,
+      "exactApplySummaryReturned": false,
+      "atomicityClaim": false
+    },
+    {
+      "attemptId": "concept-only-fixed-dml",
+      "queryProfile": "unfrozen Concept-only fixed-DML predecessor; exact query bytes and source closure unavailable",
+      "outcome": "CONNECTOR_MUTATION_METADATA_RETURNED",
+      "reasonCode": "NONE",
+      "postAttemptEvidenceNodeCount": 2,
+      "exactApplySummaryReturned": false,
+      "atomicityClaim": false
+    }
+  ],
+  "successfulActivation": {
+    "authorizationScope": "Create only the two repository-pinned public-research Concept nodes; no rollback, publication, package, release, or production authority",
+    "queryId": null,
+    "queryDigest": null,
+    "queryIdentityClosureFrozen": false,
+    "physicalWriteLabel": "Concept",
+    "connectorMetadata": {
+      "nodesCreated": 2,
+      "propertiesSet": 30
+    },
+    "initialCreateSourceClosureFrozen": false,
+    "exactFirstApplySummaryReturned": false,
+    "firstApplyAtomicityClaim": false
+  },
+  "uidEnvelope": {
+    "profileId": "neo4j-concept-uid-envelope/v1",
+    "triggerName": "t_uid_forward_gate_v3",
+    "queryId": "NEO4J_PUBLIC_RESEARCH_UID_TRIGGER_QUERY",
+    "queryDigest": "sha256:c9ca71e264f9f1deaff9a8a635170eb3d20f69477c4f5925fe377875fdb7eaa1",
+    "installed": true,
+    "paused": false,
+    "phase": "afterAsync",
+    "matchingQueryProfileCount": 1,
+    "observationBoundary": "The preflight matches one installed, unpaused afterAsync trigger by bounded query-text predicates, and final reconciliation verifies the UID trio; this is not synchronous transaction, trigger semantic, durability, or global UID uniqueness proof"
+  },
+  "finalVerification": {
+    "schemaReadback": {
+      "constraint": {
+        "name": "public_research_concept_evidence_id_unique",
+        "type": "NODE_PROPERTY_UNIQUENESS",
+        "entityType": "NODE",
+        "labelsOrTypes": ["Concept"],
+        "properties": ["evidenceId"],
+        "ownedIndex": "public_research_concept_evidence_id_unique"
+      },
+      "index": {
+        "name": "public_research_concept_evidence_id_unique",
+        "type": "RANGE",
+        "entityType": "NODE",
+        "labelsOrTypes": ["Concept"],
+        "properties": ["evidenceId"],
+        "state": "ONLINE",
+        "populationPercent": 100,
+        "owningConstraint": "public_research_concept_evidence_id_unique"
+      }
+    },
+    "exactStateInspection": {
+      "mode": "read-only final-plan exact-state inspection",
+      "conflictCount": 0,
+      "wouldCreateCount": 0,
+      "unchangedCount": 2,
+      "observedEntryCount": 2,
+      "writeExecuted": false
+    },
+    "reapplyObservation": {
+      "queryId": "NEO4J_PUBLIC_RESEARCH_APPLY_QUERY",
+      "queryDigest": "sha256:b011292c76fcc788ea48d0dfa3c3a2123413738d0d3a09a52731e9e6fb8ab198",
+      "writeCallCount": 1,
+      "connectorResultKind": "empty-object",
+      "exactApplySummaryReturned": false,
+      "reportedMutationCount": null,
+      "reportedConflictCount": null,
+      "reportedCreatedCount": null,
+      "reportedUnchangedCount": null,
+      "mutationClaim": false
+    },
+    "derivedVerifierCompatibilityReceipt": {
+      "executorRunObserved": false,
+      "receiptIsLiveExecutorEvidence": false,
+      "observationSource": "read-only equivalent inspection plus separately supplied schema, trigger, and exact-state observations",
+      "receipt": {
+        "kind": "PublicResearchActivationReceipt",
+        "schemaVersion": "public-research-activation-receipt/1",
+        "status": "PROPOSED",
+        "receiptDigest": "sha256:c3d02b0519ea057b75f9520ac7f5e10fb8bb6a23b66eda5a08c23804a1371d72",
+        "planDigest": "sha256:272177a97351479096ce13e5ff7469b90b49f83ac3b26ce09fd992682dfa45dd",
+        "uidTriggerProfileId": "neo4j-concept-uid-envelope/v1",
+        "uidTriggerQueryDigest": "sha256:c9ca71e264f9f1deaff9a8a635170eb3d20f69477c4f5925fe377875fdb7eaa1",
+        "createdCount": 0,
+        "unchangedCount": 2,
+        "conflictCount": 0,
+        "verifiedEntryCount": 2,
+        "createdEvidenceIds": [],
+        "liveNeo4jWriteCallCount": 1,
+        "liveNeo4jReadCallCount": 4,
+        "rollbackProposalDigest": "sha256:956fa8ed5930d8536a691017900c0f10062fb2a09fbf20c694b7f7aad3019853",
+        "rollbackProposalIsAuthorization": false,
+        "externalExactlyOnceClaim": false,
+        "completionClaim": false
+      }
+    },
+    "observationCompositionOrdered": false,
+    "observationCompositionBoundary": "The pure verifier compatibility receipt was constructed from a read-only equivalent inspection and separately supplied constraint, index, trigger-profile, and exact-state observations; it is not the connector reapply result or one proven ordered or atomic executor run",
+    "nodes": [
+      {
+        "evidenceId": "evidence:synthetic:effect-role-v1",
+        "globalIdentityMatchCount": 1,
+        "conceptIdentityMatchCount": 1,
+        "isolatedConceptMatchCount": 1,
+        "physicalLabels": ["Concept"],
+        "physicalLabelCount": 1,
+        "observedPropertyCount": 17,
+        "relationshipCount": 0,
+        "observedProperties": {
+          "evidenceId": "evidence:synthetic:effect-role-v1",
+          "projectionId": "projection:synthetic-agent-coding-foundations-v1",
+          "visibilityScope": "public-research",
+          "publicResearchTitle": "Effect boundary role",
+          "publicResearchSummary": "Synthetic fixture: lazy typed effects bound timeout and cancellation without becoming a second agent loop.",
+          "name": "Effect boundary role",
+          "description": "Synthetic fixture: lazy typed effects bound timeout and cancellation without becoming a second agent loop.",
+          "uid": "sym:Concept:effect_boundary_role",
+          "uid_scheme": "v1",
+          "uid_source": "forward-gate-v3",
+          "sourceRef": "https://github.com/Effect-TS/effect",
+          "revision": "2026-08-12",
+          "semanticLabels": ["Concept", "Technology"],
+          "contentDigest": "sha256:4f5e3e9a86ca2ef019bc8c4637c467e8c615fc667e15437411462ae22604571d",
+          "policyVersion": "public-research-admission/1",
+          "manifestDigest": "sha256:290a5c10cfd0fd799923d7e6db05a7faf92d4f8ce5516d4bcae7d5408269f8b2",
+          "projectionDigest": "sha256:03fc00a7d233d726859da3474c8d7149d60f78c4492ab7acb579e34dd5951c90"
+        }
+      },
+      {
+        "evidenceId": "evidence:synthetic:langgraph-role-v1",
+        "globalIdentityMatchCount": 1,
+        "conceptIdentityMatchCount": 1,
+        "isolatedConceptMatchCount": 1,
+        "physicalLabels": ["Concept"],
+        "physicalLabelCount": 1,
+        "observedPropertyCount": 17,
+        "relationshipCount": 0,
+        "observedProperties": {
+          "evidenceId": "evidence:synthetic:langgraph-role-v1",
+          "projectionId": "projection:synthetic-agent-coding-foundations-v1",
+          "visibilityScope": "public-research",
+          "publicResearchTitle": "LangGraph.js orchestration role",
+          "publicResearchSummary": "Synthetic fixture: graph state and pause/resume mechanics do not grant external-effect authority.",
+          "name": "LangGraph.js orchestration role",
+          "description": "Synthetic fixture: graph state and pause/resume mechanics do not grant external-effect authority.",
+          "uid": "sym:Concept:langgraph.js_orchestration_role",
+          "uid_scheme": "v1",
+          "uid_source": "forward-gate-v3",
+          "sourceRef": "https://github.com/langchain-ai/langgraphjs",
+          "revision": "2026-08-12",
+          "semanticLabels": ["Concept", "Technology"],
+          "contentDigest": "sha256:c7e36e36c67ac47cc01e71dbbfeba0686cbbafa730ebfdd9df2d2c12d28b7664",
+          "policyVersion": "public-research-admission/1",
+          "manifestDigest": "sha256:290a5c10cfd0fd799923d7e6db05a7faf92d4f8ce5516d4bcae7d5408269f8b2",
+          "projectionDigest": "sha256:03fc00a7d233d726859da3474c8d7149d60f78c4492ab7acb579e34dd5951c90"
+        }
+      }
+    ],
+    "fulltext": [
+      {
+        "indexName": "ontology_fulltext",
+        "evidenceId": "evidence:synthetic:effect-role-v1",
+        "query": "name:\"Effect boundary role\"",
+        "score": 8.58698558807373,
+        "expectedEvidenceMatchCount": 1,
+        "wrongEvidenceAdmittedCount": 0
+      },
+      {
+        "indexName": "ontology_fulltext",
+        "evidenceId": "evidence:synthetic:langgraph-role-v1",
+        "query": "name:\"LangGraph.js orchestration role\"",
+        "score": 9.898554801940918,
+        "expectedEvidenceMatchCount": 1,
+        "wrongEvidenceAdmittedCount": 0
+      }
+    ],
+    "producerSoleVerifier": false
+  },
+  "sideEffects": {
+    "successfulSchemaMutationCount": 3,
+    "createdDataNodeCount": 2,
+    "initialCreateWriteCallCount": 1,
+    "verifiedReapplyWriteCallCount": 1,
+    "verifiedReapplyMutationCount": null,
+    "finalRelationshipCount": 0,
+    "rollbackExecuted": false,
+    "rollbackWriteCallCount": 0,
+    "modelCallCount": 0
+  },
+  "claimBoundary": {
+    "boundedObservationMeasured": true,
+    "repositoryClaimPromoted": false,
+    "externalExactlyOnce": false,
+    "firstApplyAtomicity": false,
+    "completion": false,
+    "productionReadiness": false,
+    "publication": false,
+    "enginePromotion": false,
+    "comparativeEfficacy": false,
+    "globalUidUniqueness": false,
+    "uidPreflightToctouClosed": false,
+    "rollbackAuthorized": false,
+    "rollbackAbaSafe": false
+  }
+}
