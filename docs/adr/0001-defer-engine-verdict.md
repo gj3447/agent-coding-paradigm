@@ -1,26 +1,41 @@
 # ADR 0001: Defer the engine verdict
 
 - Status: ACCEPTED FOR THIS REPOSITORY
-DIRECT L-R PROJECTION MEASURED; ENGINE VERDICT DEFERRED
+- Evidence status: bounded TypeScript/Effect experiments `PROPOSED`; engine verdict `defer`
 - Date: 2026-08-08
 - Decision scope: repository architecture only; not external canon
 
 ## Context
 
-The research proposes a reusable deterministic kernel, durable control shell, and graph contracts. Bounded sibling Python references now exist for pure F, ground stratified L, supplied-value scalar-frontier R, and a stateless direct L-to-R projection, but there is no integrated F/L/R/H runtime, current production consumer, durable recovery evidence, persistent incremental evaluator, or demonstrated need for a shared runtime boundary. Calling the work an engine now would still turn an architecture hypothesis into an unsupported product claim.
+The research proposes a reusable deterministic kernel, durable control shell,
+and graph contracts. Bounded Python references cover pure F, ground stratified
+L, supplied-value scalar-frontier R, and a stateless direct L-to-R projection.
+The TypeScript package contains bounded Effect-based synthetic experiments.
+There is still no real adapter, production consumer, persistent incremental
+evaluator, in-flight upgrade trial, two-consumer reuse record, or demonstrated
+comparative need for a shared engine boundary.
 
 ## Decision
 
-Treat the repository as a specification and mechanics incubator. The machine-readable decision remains `defer`, not `engine`. The completed M1, M2, M3, and direct L-to-R projection slices are evidence for four separate reference seams, not permission to scaffold the broader framework or claim their direct integration.
+Treat the repository as a specification and mechanics incubator. The
+machine-readable decision remains `defer`, not `engine`. A bounded control
+slice may exercise one contract through typed ports and simulated Layers; it
+is not permission to add a broad plugin framework, claim arbitrary consumer
+reuse, durability, or production readiness.
 
 ## Candidate boundary
+
+The following is a **PROPOSED future engine boundary**, not a current public
+API:
 
 ```text
 evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile)
   -> stable transition + stable effect proposals | typed rejection
 ```
 
-The candidate owns deterministic transition, fixpoint, signed-delta stabilization, and typed output. Product policy, model choice, UI, credentials, external effect implementation, and cloud tenancy stay outside.
+That future candidate would own deterministic transition, fixpoint,
+signed-delta stabilization, and typed output. Product policy, model choice, UI,
+credentials, external effect implementation, and cloud tenancy stay outside.
 
 ## Promotion gates
 
@@ -37,6 +52,6 @@ Reconsider an engine verdict only when all frozen gates pass:
 ## Consequences
 
 - No broad plugin framework or service topology is created in the first slice.
-- Python is the M1/M2/M3/direct-LR reference language only; an eventual engine language remains open pending independent consumers and interoperability evidence.
+- Python remains the measured reference language for M1–M3 and LR. TypeScript/Effect is the bounded experiment direction; an eventual engine language remains open pending independent consumers and interoperability evidence.
 - Documentation may use “runtime candidate” or “profile”; “engine” must be qualified as deferred/candidate.
 - If consumers need incompatible policies or semantics, keep separate modules/adapters and reject engine promotion.

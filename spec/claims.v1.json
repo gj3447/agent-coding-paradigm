@@ -1,6 +1,6 @@
 {
   "schema_version": "claim-ledger/v1",
-  "updated_at": "2026-08-09T06:00:38Z",
+  "updated_at": "2026-08-14T10:36:40Z",
   "claims": [
     {
       "id": "responsibility-separation",
@@ -75,6 +75,53 @@
       "scope": "graph interoperability profile",
       "evidence": ["docs/GRAPH_CONTRACT.md", "spec/schema/protocol.v1.schema.json"],
       "falsifiers": ["Required information cannot round-trip across the declared graph-kind boundaries."]
+    },
+    {
+      "id": "langgraphjs-synthetic-consumer-candidate",
+      "statement": "One strict TypeScript public-synthetic consumer plus bounded agent-coding proposal path can combine LangGraph.js orchestration, Effect-wrapped I/O, fixed-query Neo4j MCP evidence, one structured LangChain/OpenAI model call, explicit H approval and reconciliation, and a separate verifier.",
+      "epistemic_status": "PROPOSED",
+      "disposition": "active",
+      "scope": "one repository-local unpublished TypeScript package with exact dependency pins, bounded process-local orchestration, schema-decoded ports, explicit approval and reconciliation, simulated or mocked adapters, and a separate verifier; not durable state authority, a causally ordered executor receipt, real model-call evidence, production, external exactly-once behavior, comparative efficacy, or engine promotion",
+      "evidence": [
+        "integrations/langgraphjs-synthetic/package.json",
+        "integrations/langgraphjs-synthetic/pnpm-lock.yaml",
+        "integrations/langgraphjs-synthetic/src/graph.ts",
+        "integrations/langgraphjs-synthetic/src/mcp-effect-port.ts",
+        "integrations/langgraphjs-synthetic/src/agent-coding.ts",
+        "integrations/langgraphjs-synthetic/src/run-fsm-control.ts",
+        "integrations/langgraphjs-synthetic/tests/vertical-slice.test.ts",
+        "integrations/langgraphjs-synthetic/tests/run-fsm-control.test.ts",
+        "integrations/langgraphjs-synthetic/README.md",
+        ".github/workflows/langgraphjs-synthetic.yml"
+      ],
+      "falsifiers": [
+        "A duplicate conflicting intent, insufficient headroom, producer-only success, or unresolved effect reaches SUCCEEDED.",
+        "An unknown effect result is blindly dispatched again before query or human reconciliation.",
+        "MCP may select a tool from untrusted intent input, negotiate or resume an unverified legacy continuation surface, auto-fulfil input-required continuation, or accept an unbound structured success receipt.",
+        "Caller cancellation is reclassified as destination success, an interrupted dispatch can only be recovered by applying again, a raw graph bypasses H, or a checkpoint is accepted as completion evidence.",
+        "Unadmitted graph data or model-generated query syntax reaches an external port, or a model plan bypasses exact approval and independent verification."
+      ]
+    },
+    {
+      "id": "public-research-live-activation-observation",
+      "statement": "One bounded Neo4j Community 2026.02.3 observation recorded connector metadata for two created nodes, later exact state for the two pinned synthetic Concept identities, an empty connector result from a final-query write, a separate read-only equivalent inspection with zero conflicts and two unchanged rows, and one expected full-text match per title.",
+      "epistemic_status": "MEASURED",
+      "disposition": "active",
+      "scope": "the named 2026-08-12 UTC Neo4j MCP observation over the repository-owned two-entry fixture and activation plan sha256:272177a97351479096ce13e5ff7469b90b49f83ac3b26ce09fd992682dfa45dd: connector metadata reported two created nodes, later readback found exactly 17 properties, only the physical Concept label, and zero relationships per identity; a final-query write returned an empty connector result, while a separate read-only equivalent inspection found conflictCount 0, wouldCreateCount 0, and unchangedCount 2; the first create returned no exact apply rows and neither its source nor query identity was frozen, while the final verifier compatibility receipt composes separately supplied observations and is not live executor evidence; not either write's exact mutation count, a global UID-uniqueness, exclusive-writer, TOCTOU-closure, synchronous-trigger, rollback, completion, durability, production, publication, external exactly-once, efficacy, or engine claim",
+      "evidence": [
+        "research/PUBLIC_RESEARCH_LIVE_ACTIVATION_2026-08-12.json",
+        "spec/schema/public-research-live-activation-evidence.v1.schema.json",
+        "scripts/validate_public_research_live_evidence.py",
+        "tests/test_public_research_live_evidence.py",
+        "integrations/langgraphjs-synthetic/fixtures/public-research/synthetic-foundations.manifest.v1.json",
+        "integrations/langgraphjs-synthetic/src/public-research-activation.ts",
+        "integrations/langgraphjs-synthetic/tests/public-research-activation.test.ts"
+      ],
+      "falsifiers": [
+        "The named evidence artifact fails its checked-in schema or its recorded fixture, source, plan, or query digest binding cannot be reproduced from the identified artifacts.",
+        "The recorded final observations contain other than the two pinned identities with exact 17-property maps, only the Concept physical label, zero relationships, and one expected full-text match per title.",
+        "The empty connector result is represented as exact write counters, the separate read-only equivalent inspection differs from conflictCount 0, wouldCreateCount 0, and unchangedCount 2, or the derived compatibility receipt is represented as live executor evidence."
+      ]
     },
     {
       "id": "harness-owns-closure",

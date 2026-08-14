@@ -12,9 +12,9 @@
     "adapter-sdk"
   ],
   "rationale": [
-    "Bounded sibling Python reference slices exist for pure F, ground stratified L, supplied-value scalar-frontier R, and one stateless direct L-to-R projection; no integrated runtime or production consumer exists yet.",
-    "Durability, recovery, effect reconciliation, and graph interoperability are specified but unmeasured.",
-    "Direct L-to-R projection is measured while the engine verdict remains defer"
+    "Bounded Python reference slices exist for pure F, ground stratified L, supplied-value scalar-frontier R, and one stateless direct L-to-R projection; no production consumer or general runtime exists yet.",
+    "Bounded TypeScript and Effect experiments exercise typed control, reconciliation, and simulated composition without establishing durable state authority or real-platform operation.",
+    "Executable reference mechanisms do not satisfy the reusable-engine promotion gates"
   ],
   "boundary": {
     "owns": "Deterministic transition, fixpoint, unit-delta stabilization, and typed stable-proposal output",
@@ -32,9 +32,9 @@
       "Defining planning or dispatch doctrine",
       "Standardizing one universal graph representation"
     ],
-    "state_authority": "A future fenced H store would own accepted state; the current repository owns specifications, stateless pure-F, pure-L, and pure-R reference functions, and one stateless direct L-to-R projection only"
+    "state_authority": "Current reference functions remain authority-free and current TypeScript test stores are process-local simulated adapters; a future operational H store must establish real-consumer authority, migration, and recovery evidence"
   },
-  "contract": "evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
+  "contract": "PROPOSED future engine boundary, not a current public API: evaluate(snapshot, accepted_event, rule_bundle, dataflow_profile) -> StableTransitionAndEffectProposals | TypedRejection",
   "invariants": [
     "Identical explicit inputs and versions produce identical canonical output.",
     "F, L, and R never execute external effects.",

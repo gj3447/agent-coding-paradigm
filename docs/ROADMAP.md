@@ -72,4 +72,18 @@ Gate: report effect sizes and uncertainty. A null or negative result is valid an
 
 ## Immediate next slice
 
-Freeze the next H authority and durable-effect boundary without retroactively widening M1, M2, M3, or the measured direct L-to-R projection. Keep eligibility correctness, authority, and external effects outside R; `EffectIntent` remains H-owned for M4. Persistent incremental L maintenance, durable R state, an integrated F/L/R runtime, and the engine decision remain separate open mechanisms.
+Keep the current TypeScript/Effect control experiment at one repository-owned
+`run-fsm` Schema projection and pure decision kernel. Reuse the package's
+existing H orchestration for effectful experiments rather than creating a
+second store, dispatch loop, or public runtime. The slice remains `PROPOSED`
+and must not recreate the archived Python candidate's manifests, receipts,
+copied fixtures, or broad framework surface.
+
+The next real-platform gate is a least-privilege fenced executor that binds an
+intent to apply, reconciliation, and independent readback. The checked-in live
+Neo4j observation remains narrow historical evidence; it is not an ordered
+executor receipt or rollback authority.
+
+A real model call, restart-durable state, operational consumers, upgrade and
+crash trials, external-effect evidence, comparative efficacy, and engine
+promotion remain separate gates.
