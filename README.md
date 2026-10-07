@@ -185,4 +185,12 @@ Those claims require executable mechanics first, then held-out equal-budget comp
 
 The proposal composes constituent mechanisms rather than pretending one source already defines FLR-H. Primary anchors include [Reactive Streams](https://www.reactive-streams.org/), [CloudEvents](https://github.com/cloudevents/spec), [W3C SHACL](https://www.w3.org/TR/shacl/), [W3C PROV-O](https://www.w3.org/TR/prov-o/), [Differential Dataflow](https://www.cidrdb.org/cidr2013/Papers/CIDR13_Paper111.pdf), and durable agent/workflow contracts summarized in the [research baseline](research/BASELINE_2026-08-08.md).
 
-No license has been selected yet. Do not infer permission beyond GitHub's default repository terms.
+MetaHumotonic License 1.2 has been adopted by explicit owner direction; see [LICENSE-NOTICE.md](LICENSE-NOTICE.md).
+
+## License
+
+**MetaHumotonic License 1.2** — [LICENSE](LICENSE); [scope, prior grants and third-party notices](LICENSE-NOTICE.md).
+
+지정한 하드웨어의 접근권한과 전체 관리 권한을 합의한 명세서에 따라 공유하고, **CHU의 일부가 된다**는 참여 원칙을 적용합니다. 실제 접근에는 별도 승인이 필요합니다.
+
+Source-available; not OSI-approved. Existing grants and separately licensed material remain valid.
